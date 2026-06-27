@@ -92,6 +92,11 @@ export interface Peptide {
   blendComponents?: string[];
 }
 
+export interface TitrationStep {
+  date: string;
+  dose: string;
+}
+
 export interface CycleEntry {
   peptideId: string;
   doseMcg: number;
@@ -101,6 +106,9 @@ export interface CycleEntry {
   startDate: string;
   endDate: string;
   notes?: string;
+  vialSize?: number;
+  vialWaterMl?: number;
+  titration?: TitrationStep[];
 }
 
 export interface Cycle {

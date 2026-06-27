@@ -9,7 +9,7 @@ import {
 } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { peptides } from '@/lib/peptide-data';
-import { ROUTE_LABELS, type AdminRoute, type Cycle, type CycleEntry, type DoseLog } from '@/lib/types';
+import { ROUTE_LABELS, type AdminRoute, type Cycle, type CycleEntry, type DoseLog, type TitrationStep } from '@/lib/types';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -109,6 +109,36 @@ function diffDays(a: string, b: string): number {
   return Math.round((db.getTime() - da.getTime()) / 86400000);
 }
 
+function calcInjectionVolume(
+  dose: string,
+  doseUnit: string,
+  vialSizeMg: string,
+  waterMl: string
+): { volumeMl: string; iu: string } | null {
+  const d = Number(dose);
+  const vs = Number(vialSizeMg);
+  const wm = Number(waterMl);
+  if (!d || !vs || !wm) return null;
+  const concMgPerMl = vs / wm;
+  const doseMg = doseUnit === 'mcg' ? d / 1000 : doseUnit === 'mg' ? d : null;
+  if (doseMg === null) return null;
+  const volumeMl = doseMg / concMgPerMl;
+  return {
+    volumeMl: parseFloat(volumeMl.toFixed(4)).toString(),
+    iu: parseFloat((volumeMl * 100).toFixed(2)).toString(),
+  };
+}
+
+function getActiveDose(entry: CycleEntry, dateStr: string): number {
+  if (!entry.titration?.length) return entry.doseMcg;
+  const sorted = [...entry.titration].sort((a, b) => a.date.localeCompare(b.date));
+  let dose = entry.doseMcg;
+  for (const step of sorted) {
+    if (step.date <= dateStr) dose = Number(step.dose);
+  }
+  return dose;
+}
+
 function getPeptideName(id: string): string {
   const found = peptides.find((p) => p.id === id);
   return found ? found.name : id;
@@ -139,6 +169,9 @@ const emptyForm = () => ({
   startDate: todayStr(),
   endDate: addDays(todayStr(), 28),
   notes: '',
+  vialSize: '',
+  vialWaterMl: '',
+  titration: [] as TitrationStep[],
 });
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -298,10 +331,24 @@ function exportCycleText(cycle: Cycle): string {
     'PEPTIDES:',
   ];
   cycle.entries.forEach((e) => {
-    lines.push(
-      `• ${getPeptideName(e.peptideId)} — ${e.doseMcg} ${e.doseUnit} ${e.frequency} via ${ROUTE_LABELS[e.route]}`
-    );
+    let doseLine = `• ${getPeptideName(e.peptideId)} — ${e.doseMcg} ${e.doseUnit} ${e.frequency} via ${ROUTE_LABELS[e.route]}`;
+    if (e.vialSize && e.vialWaterMl) {
+      const calc = calcInjectionVolume(String(e.doseMcg), e.doseUnit, String(e.vialSize), String(e.vialWaterMl));
+      if (calc) doseLine += ` (${calc.volumeMl} ml / ${calc.iu} IU per dose)`;
+      doseLine += ` [Vial: ${e.vialSize}mg in ${e.vialWaterMl}ml]`;
+    }
+    lines.push(doseLine);
     lines.push(`  Start: ${formatDate(e.startDate)} | End: ${formatDate(e.endDate)}`);
+    if (e.titration?.length) {
+      lines.push(`  Titration Schedule:`);
+      [...e.titration].sort((a, b) => a.date.localeCompare(b.date)).forEach((step) => {
+        const sc = e.vialSize && e.vialWaterMl
+          ? calcInjectionVolume(step.dose, e.doseUnit, String(e.vialSize), String(e.vialWaterMl))
+          : null;
+        const vol = sc ? ` (${sc.volumeMl} ml / ${sc.iu} IU)` : '';
+        lines.push(`    ${formatDate(step.date)}: ${step.dose} ${e.doseUnit}${vol}`);
+      });
+    }
     if (e.notes) lines.push(`  Notes: ${e.notes}`);
     lines.push('');
   });
@@ -358,6 +405,11 @@ function CycleBuilderInner() {
   const [editingEntryIdx, setEditingEntryIdx] = useState<number | null>(null);
   const [formError, setFormError] = useState('');
 
+  // Titration sub-form
+  const [showTitrationInput, setShowTitrationInput] = useState(false);
+  const [titrationDate, setTitrationDate] = useState('');
+  const [titrationDose, setTitrationDose] = useState('');
+
   // Pre-select peptide from query param
   useEffect(() => {
     if (addPeptideId) {
@@ -382,6 +434,22 @@ function CycleBuilderInner() {
     if (d < 7) return `${d} days`;
     const weeks = Math.round(d / 7);
     return `${weeks} week${weeks !== 1 ? 's' : ''}`;
+  }
+
+  // ── Titration step handler ──
+  function handleAddTitrationStep() {
+    if (!titrationDate) { alert('Please select a date for the dose change.'); return; }
+    if (!titrationDose || Number(titrationDose) <= 0) { alert('Please enter a valid dose amount.'); return; }
+    if (entryForm.startDate && titrationDate <= entryForm.startDate) {
+      alert('Dose change date must be after the cycle start date.'); return;
+    }
+    setEntryForm((f) => ({
+      ...f,
+      titration: [...f.titration, { date: titrationDate, dose: titrationDose }],
+    }));
+    setTitrationDate('');
+    setTitrationDose('');
+    setShowTitrationInput(false);
   }
 
   // ── Entry form handlers ──
@@ -413,6 +481,9 @@ function CycleBuilderInner() {
       startDate: entryForm.startDate,
       endDate: entryForm.endDate,
       notes: entryForm.notes || undefined,
+      vialSize: entryForm.vialSize ? Number(entryForm.vialSize) : undefined,
+      vialWaterMl: entryForm.vialWaterMl ? Number(entryForm.vialWaterMl) : undefined,
+      titration: entryForm.titration.length > 0 ? [...entryForm.titration] : undefined,
     };
 
     if (editingEntryIdx !== null) {
@@ -426,6 +497,9 @@ function CycleBuilderInner() {
       setCycleEntries((prev) => [...prev, newEntry]);
     }
     setEntryForm(emptyForm());
+    setShowTitrationInput(false);
+    setTitrationDate('');
+    setTitrationDose('');
   }
 
   function handleEditEntry(idx: number) {
@@ -439,7 +513,11 @@ function CycleBuilderInner() {
       startDate: entry.startDate,
       endDate: entry.endDate,
       notes: entry.notes ?? '',
+      vialSize: entry.vialSize ? String(entry.vialSize) : '',
+      vialWaterMl: entry.vialWaterMl ? String(entry.vialWaterMl) : '',
+      titration: entry.titration ? [...entry.titration] : [],
     });
+    setShowTitrationInput(false);
     setEditingEntryIdx(idx);
   }
 
@@ -569,7 +647,7 @@ function CycleBuilderInner() {
         const newLog: DoseLog = {
           date: logDate,
           peptideId,
-          dose: entry.doseMcg,
+          dose: getActiveDose(entry, logDate),
           doseUnit: entry.doseUnit,
           taken,
           notes: notes || undefined,
@@ -809,6 +887,153 @@ function CycleBuilderInner() {
                   />
                 </div>
 
+                {/* Vial Reconstitution Calculator */}
+                <div className="sm:col-span-2 lg:col-span-3 rounded-lg border border-gray-700/60 bg-gray-800/30 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
+                    Vial Reconstitution (optional)
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Vial Size (mg)</Label>
+                      <Input
+                        type="text"
+                        inputMode="decimal"
+                        value={entryForm.vialSize}
+                        onChange={(e) => setEntryForm((f) => ({ ...f, vialSize: e.target.value }))}
+                        placeholder="e.g., 5"
+                      />
+                    </div>
+                    <div>
+                      <Label>BAC Water Added (ml)</Label>
+                      <Input
+                        type="text"
+                        inputMode="decimal"
+                        value={entryForm.vialWaterMl}
+                        onChange={(e) => setEntryForm((f) => ({ ...f, vialWaterMl: e.target.value }))}
+                        placeholder="e.g., 2"
+                      />
+                    </div>
+                  </div>
+                  {(() => {
+                    const calc = calcInjectionVolume(entryForm.dose, entryForm.doseUnit, entryForm.vialSize, entryForm.vialWaterMl);
+                    if (!calc) return (
+                      <p className="mt-2 text-xs text-gray-600">
+                        Enter vial size + water volume above to see your injection amount per dose.
+                      </p>
+                    );
+                    return (
+                      <div className="mt-3 flex flex-wrap gap-3">
+                        <div className="flex items-center gap-2 rounded-lg bg-green-950/40 border border-green-800/40 px-3 py-2">
+                          <span className="text-xs text-gray-400">Volume per dose:</span>
+                          <span className="text-sm font-semibold text-green-400">{calc.volumeMl} ml</span>
+                        </div>
+                        <div className="flex items-center gap-2 rounded-lg bg-green-950/40 border border-green-800/40 px-3 py-2">
+                          <span className="text-xs text-gray-400">Insulin syringe:</span>
+                          <span className="text-sm font-semibold text-green-400">{calc.iu} IU</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* Titration Schedule */}
+                <div className="sm:col-span-2 lg:col-span-3 rounded-lg border border-gray-700/60 bg-gray-800/30 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                      Titration Schedule (optional)
+                    </p>
+                    {!showTitrationInput && (
+                      <button
+                        type="button"
+                        onClick={() => setShowTitrationInput(true)}
+                        className="text-xs text-green-400 hover:text-green-300 transition-colors"
+                      >
+                        + Add dose change
+                      </button>
+                    )}
+                  </div>
+
+                  {entryForm.titration.length > 0 && (
+                    <div className="space-y-1.5 mb-3">
+                      <p className="text-xs text-gray-500 mb-1.5">
+                        Starting: <span className="text-gray-300">{entryForm.dose || '—'} {entryForm.doseUnit}</span>
+                        {entryForm.startDate && <span className="text-gray-600"> from {formatDate(entryForm.startDate)}</span>}
+                      </p>
+                      {[...entryForm.titration]
+                        .sort((a, b) => a.date.localeCompare(b.date))
+                        .map((step, si) => {
+                          const sc = calcInjectionVolume(step.dose, entryForm.doseUnit, entryForm.vialSize, entryForm.vialWaterMl);
+                          return (
+                            <div key={si} className="flex items-center justify-between rounded-md bg-gray-800 px-3 py-2 text-sm">
+                              <span className="text-gray-400">
+                                {formatDate(step.date)} →{' '}
+                                <span className="font-medium text-white">{step.dose} {entryForm.doseUnit}</span>
+                                {sc && <span className="text-green-400 text-xs"> ({sc.volumeMl} ml / {sc.iu} IU)</span>}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setEntryForm((f) => ({
+                                  ...f,
+                                  titration: f.titration.filter((_, j) => j !== si),
+                                }))}
+                                className="ml-3 text-xs text-red-500 hover:text-red-400 transition-colors"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+
+                  {showTitrationInput && (
+                    <div className="mt-2 rounded-lg border border-gray-700 bg-gray-800 p-3">
+                      <div className="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                          <Label>Date of Dose Change</Label>
+                          <Input
+                            type="date"
+                            value={titrationDate}
+                            onChange={(e) => setTitrationDate(e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <Label>New Dose ({entryForm.doseUnit})</Label>
+                          <Input
+                            type="text"
+                            inputMode="decimal"
+                            value={titrationDose}
+                            onChange={(e) => setTitrationDose(e.target.value)}
+                            placeholder="e.g., 2"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={handleAddTitrationStep}
+                          className="px-4 py-1.5 rounded-lg bg-green-700 hover:bg-green-600 text-white text-xs font-semibold transition-colors"
+                        >
+                          Add Step
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setShowTitrationInput(false); setTitrationDate(''); setTitrationDose(''); }}
+                          className="px-4 py-1.5 rounded-lg border border-gray-700 text-gray-400 hover:text-gray-200 text-xs transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {entryForm.titration.length === 0 && !showTitrationInput && (
+                    <p className="text-xs text-gray-600">
+                      No dose changes planned. Use "Add dose change" to schedule dose escalations.
+                    </p>
+                  )}
+                </div>
+
                 {/* Notes */}
                 <div className="sm:col-span-2 lg:col-span-3">
                   <Label>Entry Notes (optional)</Label>
@@ -1036,18 +1261,47 @@ function CycleBuilderInner() {
                     <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">
                       Peptides
                     </p>
-                    <div className="flex flex-wrap gap-2">
-                      {cycle.entries.map((e, i) => (
-                        <span
-                          key={i}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-800 border border-gray-700 text-xs text-gray-300"
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${BAR_COLORS[i % BAR_COLORS.length]}`}
-                          />
-                          {getPeptideName(e.peptideId)} — {e.doseMcg}{e.doseUnit} {e.frequency}
-                        </span>
-                      ))}
+                    <div className="space-y-2">
+                      {cycle.entries.map((e, i) => {
+                        const calc = e.vialSize && e.vialWaterMl
+                          ? calcInjectionVolume(String(e.doseMcg), e.doseUnit, String(e.vialSize), String(e.vialWaterMl))
+                          : null;
+                        return (
+                          <div key={i} className="rounded-lg bg-gray-800 border border-gray-700/50 px-3 py-2.5">
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${BAR_COLORS[i % BAR_COLORS.length]}`} />
+                              <span className="text-sm font-medium text-gray-100">{getPeptideName(e.peptideId)}</span>
+                              <span className="text-sm text-gray-400">—</span>
+                              <span className="text-sm text-gray-300">{e.doseMcg} {e.doseUnit}</span>
+                              {calc && (
+                                <span className="text-xs text-green-400 font-medium">= {calc.volumeMl} ml / {calc.iu} IU</span>
+                              )}
+                              <span className="text-xs text-gray-500">{e.frequency} · {ROUTE_LABELS[e.route]}</span>
+                            </div>
+                            {e.titration && e.titration.length > 0 && (
+                              <div className="mt-1.5 ml-4 space-y-0.5">
+                                <p className="text-xs text-gray-600">Titration schedule:</p>
+                                {[...e.titration].sort((a, b) => a.date.localeCompare(b.date)).map((step, j) => {
+                                  const sc = e.vialSize && e.vialWaterMl
+                                    ? calcInjectionVolume(step.dose, e.doseUnit, String(e.vialSize), String(e.vialWaterMl))
+                                    : null;
+                                  return (
+                                    <p key={j} className="text-xs text-gray-400">
+                                      {formatDate(step.date)} → <span className="text-gray-200">{step.dose} {e.doseUnit}</span>
+                                      {sc && <span className="text-green-500"> ({sc.volumeMl} ml / {sc.iu} IU)</span>}
+                                    </p>
+                                  );
+                                })}
+                              </div>
+                            )}
+                            {e.vialSize && e.vialWaterMl && (
+                              <p className="mt-1 ml-4 text-xs text-gray-600">
+                                Vial: {e.vialSize} mg in {e.vialWaterMl} ml BAC water
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                     {cycle.notes && (
                       <p className="mt-3 text-xs text-gray-500 leading-relaxed">
@@ -1204,7 +1458,21 @@ function CycleBuilderInner() {
                                 {getPeptideName(entry.peptideId)}
                               </p>
                               <p className="text-xs text-gray-500 mt-0.5">
-                                {entry.doseMcg} {entry.doseUnit} — {entry.frequency} — {ROUTE_LABELS[entry.route]}
+                                {(() => {
+                                  const activeDose = getActiveDose(entry, logDate);
+                                  const calc = entry.vialSize && entry.vialWaterMl
+                                    ? calcInjectionVolume(String(activeDose), entry.doseUnit, String(entry.vialSize), String(entry.vialWaterMl))
+                                    : null;
+                                  return (
+                                    <>
+                                      <span className={activeDose !== entry.doseMcg ? 'text-green-400 font-medium' : ''}>
+                                        {activeDose} {entry.doseUnit}
+                                      </span>
+                                      {calc && <span className="text-green-500"> = {calc.volumeMl} ml / {calc.iu} IU</span>}
+                                      {' — '}{entry.frequency} — {ROUTE_LABELS[entry.route]}
+                                    </>
+                                  );
+                                })()}
                               </p>
                             </div>
                             <div className="flex gap-2 shrink-0">
