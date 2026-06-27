@@ -742,20 +742,19 @@ function CycleBuilderInner() {
                 {/* Dose amount + unit */}
                 <div>
                   <Label>Dose Amount *</Label>
-                  <div className="flex gap-2">
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 5.5rem', gap: '0.5rem' }}>
                     <Input
-                      type="number"
+                      type="text"
+                      inputMode="decimal"
+                      pattern="[0-9.]*"
                       min="0"
-                      step="any"
                       value={entryForm.dose}
                       onChange={(e) => setEntryForm((f) => ({ ...f, dose: e.target.value }))}
                       placeholder="e.g., 500"
-                      style={{ flex: '1 1 0%', minWidth: 0, width: 'auto' }}
                     />
                     <Select
                       value={entryForm.doseUnit}
                       onChange={(e) => setEntryForm((f) => ({ ...f, doseUnit: e.target.value as DoseUnit }))}
-                      className="w-24"
                     >
                       {DOSE_UNITS.map((u) => (
                         <option key={u} value={u}>{u}</option>
