@@ -743,20 +743,19 @@ function CycleBuilderInner() {
                 <div>
                   <Label>Dose Amount *</Label>
                   <div className="flex gap-2">
-                    <div className="flex-1 min-w-0">
-                      <Input
-                        type="number"
-                        min="0"
-                        step="any"
-                        value={entryForm.dose}
-                        onChange={(e) => setEntryForm((f) => ({ ...f, dose: e.target.value }))}
-                        placeholder="e.g., 500"
-                      />
-                    </div>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="any"
+                      value={entryForm.dose}
+                      onChange={(e) => setEntryForm((f) => ({ ...f, dose: e.target.value }))}
+                      placeholder="e.g., 500"
+                      style={{ flex: '1 1 0%', minWidth: 0, width: 'auto' }}
+                    />
                     <Select
                       value={entryForm.doseUnit}
                       onChange={(e) => setEntryForm((f) => ({ ...f, doseUnit: e.target.value as DoseUnit }))}
-                      className="w-24 flex-shrink-0"
+                      className="w-24"
                     >
                       {DOSE_UNITS.map((u) => (
                         <option key={u} value={u}>{u}</option>
