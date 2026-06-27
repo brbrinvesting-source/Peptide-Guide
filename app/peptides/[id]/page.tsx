@@ -74,12 +74,13 @@ function BulletList({ items }: { items: string[] }) {
 
 // ─── page ─────────────────────────────────────────────────────────────────────
 
-export default function PeptideDetailPage({
+export default async function PeptideDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const peptide = peptides.find((p) => p.id === params.id);
+  const { id } = await params;
+  const peptide = peptides.find((p) => p.id === id);
   if (!peptide) return notFound();
 
   // Lookup helpers for stacking sections
