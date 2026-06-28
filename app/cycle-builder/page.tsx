@@ -5,6 +5,7 @@ import {
   useEffect,
   useMemo,
   useCallback,
+  useRef,
   Suspense,
 } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -85,6 +86,14 @@ const BAR_COLORS = [
 
 function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+
+function encodeCycle(cycle: Cycle): string {
+  try {
+    const json = JSON.stringify(cycle);
+    return btoa(encodeURIComponent(json))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+  } catch { return ''; }
 }
 
 function formatDate(dateStr: string): string {
@@ -392,6 +401,10 @@ function CycleBuilderInner() {
     } catch {}
   }, []);
 
+  // ── Share / export / import state ──
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const importFileRef = useRef<HTMLInputElement>(null);
+
   // ── Build Cycle form ──
   const [cycleName, setCycleName] = useState('');
   const [cycleGoal, setCycleGoal] = useState('');
@@ -592,6 +605,50 @@ function CycleBuilderInner() {
     if (!confirm('Delete this cycle? This cannot be undone.')) return;
     saveCycles(cycles.filter((c) => c.id !== id));
     if (logCycleId === id) setLogCycleId(null);
+  }
+
+  function handleShareCycle(cycle: Cycle) {
+    const encoded = encodeCycle(cycle);
+    const url = `${window.location.origin}/shared?c=${encoded}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopiedId(cycle.id);
+      setTimeout(() => setCopiedId(null), 2500);
+    }).catch(() => {
+      prompt('Copy this share link:', url);
+    });
+  }
+
+  function handleExportJson(cycle: Cycle) {
+    const json = JSON.stringify(cycle, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${cycle.name.replace(/\s+/g, '-').toLowerCase()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function handleImportFile(file: File) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const cycle = JSON.parse(e.target?.result as string) as Cycle;
+        if (!cycle.name || !Array.isArray(cycle.entries)) {
+          alert('Invalid cycle file — make sure it is a Peptide Guide JSON export.');
+          return;
+        }
+        const imported: Cycle = { ...cycle, id: generateId(), logs: cycle.logs ?? [] };
+        saveCycles([...cycles, imported]);
+        setActiveTab('my-cycles');
+        alert(`"${cycle.name}" imported successfully!`);
+      } catch {
+        alert('Could not read this file. Make sure it is a valid Peptide Guide JSON export.');
+      }
+    };
+    reader.readAsText(file);
   }
 
   function handleExportCycle(cycle: Cycle) {
@@ -1186,6 +1243,33 @@ function CycleBuilderInner() {
         {/* ═══════════ TAB 2: MY CYCLES ═══════════ */}
         {activeTab === 'my-cycles' && (
           <div className="space-y-5">
+
+            {/* Hidden file input for JSON import */}
+            <input
+              ref={importFileRef}
+              type="file"
+              accept=".json,application/json"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleImportFile(file);
+                e.target.value = '';
+              }}
+            />
+
+            {/* Top toolbar */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm text-gray-500">
+                {cycles.length} saved cycle{cycles.length !== 1 ? 's' : ''}
+              </p>
+              <button
+                onClick={() => importFileRef.current?.click()}
+                className="px-4 py-2 rounded-lg border border-gray-700 text-gray-300 hover:text-white hover:border-gray-500 text-xs font-medium transition-colors"
+              >
+                ↑ Import from JSON
+              </button>
+            </div>
+
             {cycles.length === 0 ? (
               <div className="flex flex-col items-center justify-center rounded-xl border border-gray-800 bg-gray-900 py-24 text-center">
                 <div className="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center mb-4">
@@ -1195,13 +1279,21 @@ function CycleBuilderInner() {
                   </svg>
                 </div>
                 <p className="text-base font-medium text-gray-400 mb-1">No saved cycles yet</p>
-                <p className="text-sm text-gray-600 mb-6">Build your first cycle to get started.</p>
-                <button
-                  onClick={() => setActiveTab('build')}
-                  className="px-5 py-2.5 rounded-lg bg-green-600 hover:bg-green-500 text-white text-sm font-semibold transition-colors"
-                >
-                  Build a Cycle
-                </button>
+                <p className="text-sm text-gray-600 mb-6">Build your first cycle or import one from another device.</p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setActiveTab('build')}
+                    className="px-5 py-2.5 rounded-lg bg-green-600 hover:bg-green-500 text-white text-sm font-semibold transition-colors"
+                  >
+                    Build a Cycle
+                  </button>
+                  <button
+                    onClick={() => importFileRef.current?.click()}
+                    className="px-5 py-2.5 rounded-lg border border-gray-700 text-gray-300 hover:text-white text-sm font-semibold transition-colors"
+                  >
+                    Import JSON
+                  </button>
+                </div>
               </div>
             ) : (
               cycles.map((cycle) => (
@@ -1242,10 +1334,22 @@ function CycleBuilderInner() {
                         Start Logging
                       </button>
                       <button
+                        onClick={() => handleShareCycle(cycle)}
+                        className="px-3 py-1.5 rounded-lg border border-green-800/60 text-green-400 hover:bg-green-900/30 text-xs font-medium transition-colors"
+                      >
+                        {copiedId === cycle.id ? '✓ Link Copied!' : 'Copy Share Link'}
+                      </button>
+                      <button
+                        onClick={() => handleExportJson(cycle)}
+                        className="px-3 py-1.5 rounded-lg border border-gray-700 text-gray-400 hover:text-gray-200 text-xs font-medium transition-colors"
+                      >
+                        Save as JSON
+                      </button>
+                      <button
                         onClick={() => handleExportCycle(cycle)}
                         className="px-3 py-1.5 rounded-lg border border-gray-700 text-gray-400 hover:text-gray-200 text-xs font-medium transition-colors"
                       >
-                        Export as Text
+                        Export Text
                       </button>
                       <button
                         onClick={() => handleDeleteCycle(cycle.id)}
