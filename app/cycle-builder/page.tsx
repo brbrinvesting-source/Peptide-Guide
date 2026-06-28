@@ -90,9 +90,10 @@ function generateId(): string {
 
 function encodeCycle(cycle: Cycle): string {
   try {
-    const json = JSON.stringify(cycle);
-    return btoa(encodeURIComponent(json))
-      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    const bytes = new TextEncoder().encode(JSON.stringify(cycle));
+    let bin = '';
+    bytes.forEach((b) => { bin += String.fromCharCode(b); });
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
   } catch { return ''; }
 }
 
@@ -417,6 +418,7 @@ function CycleBuilderInner() {
 
   // ── Share / export / import state ──
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
   const importFileRef = useRef<HTMLInputElement>(null);
 
   // ── Build Cycle form ──
@@ -635,13 +637,7 @@ function CycleBuilderInner() {
 
   function handleShareCycle(cycle: Cycle) {
     const encoded = encodeCycle(cycle);
-    const url = `${window.location.origin}/shared?c=${encoded}`;
-    navigator.clipboard.writeText(url).then(() => {
-      setCopiedId(cycle.id);
-      setTimeout(() => setCopiedId(null), 2500);
-    }).catch(() => {
-      prompt('Copy this share link:', url);
-    });
+    setShareUrl(`${window.location.origin}/shared?c=${encoded}`);
   }
 
   function handleExportJson(cycle: Cycle) {
@@ -794,6 +790,58 @@ function CycleBuilderInner() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
+
+      {/* ── Share Link Modal ── */}
+      {shareUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4"
+          onClick={() => setShareUrl(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl border border-gray-700 bg-gray-900 p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-semibold text-white">Share Cycle Link</h2>
+              <button
+                onClick={() => setShareUrl(null)}
+                className="text-gray-500 hover:text-gray-300 text-xl leading-none transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-xs text-gray-400 mb-3">
+              Anyone who opens this link can preview and import your cycle.
+            </p>
+            <div className="flex gap-2">
+              <input
+                readOnly
+                value={shareUrl}
+                className="flex-1 min-w-0 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-xs text-gray-300 focus:outline-none"
+                onFocus={(e) => e.target.select()}
+              />
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(shareUrl).then(() => {
+                    setCopiedId('modal');
+                    setTimeout(() => setCopiedId(null), 2000);
+                  }).catch(() => {
+                    const input = document.querySelector('[data-share-input]') as HTMLInputElement;
+                    input?.select();
+                  });
+                }}
+                className="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white text-xs font-semibold transition-colors whitespace-nowrap"
+              >
+                {copiedId === 'modal' ? '✓ Copied!' : 'Copy Link'}
+              </button>
+            </div>
+            <p className="mt-3 text-xs text-gray-600">
+              Tap the link above to select it, then copy manually if the button doesn't work.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Page header */}
       <div className="border-b border-gray-800 bg-gray-900/60 py-10 px-4">
         <div className="mx-auto max-w-7xl">
@@ -1571,7 +1619,7 @@ function CycleBuilderInner() {
                         onClick={() => handleShareCycle(cycle)}
                         className="px-3 py-1.5 rounded-lg border border-green-800/60 text-green-400 hover:bg-green-900/30 text-xs font-medium transition-colors"
                       >
-                        {copiedId === cycle.id ? '✓ Link Copied!' : 'Copy Share Link'}
+                        Share Link
                       </button>
                       <button
                         onClick={() => handleExportJson(cycle)}
