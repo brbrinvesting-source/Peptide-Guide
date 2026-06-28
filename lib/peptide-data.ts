@@ -3495,6 +3495,62 @@ export const peptides: Peptide[] = [
     researchNotes: 'Szeto et al. (Journal of Pharmacology and Experimental Therapeutics) — foundational SS-31 cardiolipin work. PROGRESS-HF trial showed significant improvement in heart failure patients. MMPOWER trial in mitochondrial myopathy showed functional improvement. Currently in Phase 2/3 for multiple indications.',
     experienceLevel: 'advanced',
   },
+
+  // ─── Kisspeptin ───────────────────────────────────────────────────────────
+  {
+    id: 'kisspeptin',
+    name: 'Kisspeptin',
+    aliases: ['Kisspeptin-10', 'Kisspeptin-54', 'Metastin', 'KP-10', 'KP-54'],
+    categories: ['hormonal', 'sexual-health'],
+    description: 'Kisspeptin is a naturally occurring neuropeptide encoded by the KISS1 gene that acts as the master regulator of the hypothalamic-pituitary-gonadal (HPG) axis. By binding to GPR54 receptors in the hypothalamus it triggers a powerful pulse of GnRH, which in turn drives LH and FSH release, stimulating endogenous testosterone and estradiol production. It is used clinically to restore suppressed HPG axis function and is being studied extensively for male and female hypogonadism, IVF protocols, and as an alternative to exogenous LH in fertility treatment.',
+    mechanism: 'Binds GPR54 (KISS1R) receptors on GnRH neurons in the hypothalamus. This removes tonic inhibition and drives pulsatile GnRH secretion, producing downstream LH and FSH surges from the pituitary and subsequent gonadal steroidogenesis (testosterone in men, estradiol/progesterone in women). Kisspeptin is also expressed in peripheral tissues including the placenta, liver, and gonads.',
+    primaryBenefits: [
+      'Restores suppressed LH/FSH and testosterone after anabolic steroid or TRT use',
+      'Stimulates endogenous testosterone production without directly suppressing the HPG axis',
+      'Improves sperm count and motility in hypogonadotropic hypogonadism',
+      'Drives ovulation in anovulatory women — clinical IVF trigger',
+      'Elevates libido and sexual arousal (psychosexual effects studied in humans)',
+      'May improve mood, motivation, and energy via downstream testosterone effects',
+      'Alternative or adjunct to hCG/gonadorelin for PCT or HPG axis recovery',
+    ],
+    sideEffects: [
+      'Hot flashes / flushing (dose-dependent)',
+      'Mild nausea',
+      'Headache',
+      'Transient hypotension with IV dosing',
+      'Tachyphylaxis (desensitization) with continuous infusion — must use pulsatile dosing',
+      'Potential gonadotropin hyperstimulation with very high doses',
+    ],
+    dosing: {
+      typical: '0.5–1 nmol/kg IV (clinical) or 50–150 mcg SubQ (community use)',
+      range: '25–300 mcg SubQ per injection',
+      frequency: 'Pulsatile: 1–3x daily or every other day. Avoid continuous infusion.',
+      route: ['subcutaneous', 'intramuscular', 'intravenous'],
+      cycleLength: '4–12 weeks',
+      breakLength: '4 weeks',
+      timing: 'Morning dosing aligns with natural LH pulsatility. For PCT, begin when exogenous androgens have cleared.',
+      notes: 'Pulsatile dosing is critical — continuous exposure causes GPR54 desensitization and paradoxical LH suppression (similar to GnRH agonist dynamics). KP-10 (10-amino-acid C-terminal fragment) is the most potent and commonly researched form. KP-54 has a longer half-life. Often stacked with gonadorelin or enclomiphene for HPG axis recovery.',
+    },
+    goals: ['testosterone', 'sexual', 'healing'],
+    stacks: {
+      synergistic: [
+        { id: 'gonadorelin', reason: 'Kisspeptin drives GnRH release upstream while gonadorelin provides direct GnRH stimulation — layered HPG axis support for PCT.' },
+        { id: 'pt-141', reason: 'PT-141 acts centrally on melanocortin receptors for direct sexual arousal; Kisspeptin raises testosterone to amplify baseline libido — complementary mechanisms.' },
+      ],
+      redundant: [
+        { id: 'gonadorelin', reason: 'Both ultimately raise LH/FSH via the HPG axis; using both simultaneously may cause overstimulation — use sequentially or at reduced doses.' },
+      ],
+      complementary: [
+        { id: 'bpc-157', reason: 'BPC-157 supports vascular and tissue health during hormonal recovery cycles.' },
+        { id: 'sermorelin', reason: 'Adding a GH secretagogue alongside HPG axis restoration addresses both GH and testosterone axes for comprehensive recovery.' },
+      ],
+    },
+    halfLife: 'KP-10: ~3–5 minutes IV; ~20–40 minutes SubQ. KP-54: ~30 minutes IV.',
+    storage: 'Lyophilized: store at -20°C long-term, 2–8°C after reconstitution. Use within 2–4 weeks once reconstituted.',
+    reconstitution: 'Reconstitute with bacteriostatic water. Use 1–2 ml per vial. Store reconstituted peptide at 2–8°C.',
+    researchNotes: 'Dhillo et al. (JCEM 2005) — first human study showing IV KP-54 raises LH. Jayasena et al. (Clinical Endocrinology) demonstrated SubQ KP-54 sustained LH and testosterone elevation. Multiple clinical trials ongoing for male infertility (hypogonadotropic hypogonadism) and as an IVF ovulation trigger replacing hCG.',
+    experienceLevel: 'intermediate',
+  },
 ];
 
 export function getPeptideById(id: string): Peptide | undefined {
