@@ -9,6 +9,7 @@ import {
   Suspense,
 } from 'react';
 import { useSearchParams } from 'next/navigation';
+import LZString from 'lz-string';
 import { peptides } from '@/lib/peptide-data';
 import { ROUTE_LABELS, type AdminRoute, type Cycle, type CycleEntry, type DoseLog, type TitrationStep } from '@/lib/types';
 
@@ -90,10 +91,10 @@ function generateId(): string {
 
 function encodeCycle(cycle: Cycle): string {
   try {
-    const bytes = new TextEncoder().encode(JSON.stringify(cycle));
-    let bin = '';
-    bytes.forEach((b) => { bin += String.fromCharCode(b); });
-    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    // Strip personal data (logs, id) — recipient gets a fresh id on import
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, logs, ...shareable } = cycle;
+    return LZString.compressToEncodedURIComponent(JSON.stringify(shareable));
   } catch { return ''; }
 }
 

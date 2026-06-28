@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import LZString from 'lz-string';
 import Link from 'next/link';
 import { peptides } from '@/lib/peptide-data';
 import { ROUTE_LABELS, type Cycle } from '@/lib/types';
@@ -28,21 +29,36 @@ function getPeptideName(id: string): string {
 }
 
 function decodeCycle(encoded: string): Cycle | null {
+  // Try lz-string (current compact format)
+  try {
+    const json = LZString.decompressFromEncodedURIComponent(encoded);
+    if (json) {
+      const parsed = JSON.parse(json);
+      if (parsed && typeof parsed === 'object' && parsed.entries) {
+        return { id: '', logs: [], ...parsed } as Cycle;
+      }
+    }
+  } catch {}
+
+  // Fallback: TextEncoder base64 format
   const b64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
   const padded = b64 + '='.repeat((4 - (b64.length % 4)) % 4);
-
-  // Try TextEncoder-based encoding (current format)
   try {
     const bin = atob(padded);
     const bytes = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
     const parsed = JSON.parse(new TextDecoder().decode(bytes));
-    if (parsed && typeof parsed === 'object' && parsed.entries) return parsed as Cycle;
+    if (parsed && typeof parsed === 'object' && parsed.entries) {
+      return { id: '', logs: [], ...parsed } as Cycle;
+    }
   } catch {}
 
-  // Fallback: old encodeURIComponent(JSON.stringify(...)) format
+  // Fallback: oldest encodeURIComponent(JSON.stringify(...)) format
   try {
-    return JSON.parse(decodeURIComponent(atob(padded))) as Cycle;
+    const parsed = JSON.parse(decodeURIComponent(atob(padded)));
+    if (parsed && typeof parsed === 'object' && parsed.entries) {
+      return { id: '', logs: [], ...parsed } as Cycle;
+    }
   } catch {}
 
   return null;
