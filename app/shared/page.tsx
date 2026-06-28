@@ -9,6 +9,17 @@ import { ROUTE_LABELS, type Cycle } from '@/lib/types';
 
 const LS_KEY = 'peptide-cycles';
 
+function displayFrequency(entry: { frequency: string; customDays?: number[] }): string {
+  if (entry.frequency === 'Custom Days' && entry.customDays?.length) {
+    const names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    return [...entry.customDays]
+      .sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7))
+      .map((d) => names[d])
+      .join(', ');
+  }
+  return entry.frequency;
+}
+
 const BAR_COLORS = [
   'bg-green-500', 'bg-blue-500', 'bg-purple-500', 'bg-amber-500',
   'bg-cyan-500', 'bg-pink-500', 'bg-teal-500', 'bg-orange-500',
@@ -218,7 +229,7 @@ function SharedCycleInner() {
                   </Link>
                   <span className="text-sm text-gray-400">—</span>
                   <span className="text-sm text-gray-300">{e.doseMcg} {e.doseUnit}</span>
-                  <span className="text-xs text-gray-500">{e.frequency} · {ROUTE_LABELS[e.route]}</span>
+                  <span className="text-xs text-gray-500">{displayFrequency(e)} · {ROUTE_LABELS[e.route]}</span>
                 </div>
                 <p className="mt-1 ml-4 text-xs text-gray-500">
                   {formatDate(e.startDate)} → {formatDate(e.endDate)}

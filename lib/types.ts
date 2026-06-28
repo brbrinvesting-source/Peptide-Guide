@@ -102,6 +102,7 @@ export interface CycleEntry {
   doseMcg: number;
   doseUnit: 'mcg' | 'mg' | 'IU' | 'mg/kg';
   frequency: string;
+  customDays?: number[];
   timeOfDay?: 'AM' | 'PM';
   route: AdminRoute;
   startDate: string;

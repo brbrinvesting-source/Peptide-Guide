@@ -23,10 +23,29 @@ const FREQUENCIES = [
   '3x/week',
   '2x/week',
   'Weekly',
+  'Custom Days',
   'Protocol-specific',
 ] as const;
 
 type Frequency = (typeof FREQUENCIES)[number];
+
+// JS getDay() order: 0=Sun,1=Mon,...,6=Sat. DAY_NAMES is Mon-first, so index i → getDay (i+1)%7.
+const CUSTOM_DAY_ORDER = [1, 2, 3, 4, 5, 6, 0]; // Mon→Sun in display order
+
+function formatCustomDays(days: number[]): string {
+  const names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  return [...days]
+    .sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7))
+    .map((d) => names[d])
+    .join(', ');
+}
+
+function displayFrequency(entry: { frequency: string; customDays?: number[] }): string {
+  if (entry.frequency === 'Custom Days' && entry.customDays?.length) {
+    return formatCustomDays(entry.customDays);
+  }
+  return entry.frequency;
+}
 
 const DOSE_UNITS = ['mcg', 'mg', 'IU', 'mg/kg'] as const;
 type DoseUnit = (typeof DOSE_UNITS)[number];
@@ -173,6 +192,8 @@ function shouldDoseToday(entry: CycleEntry, dateStr: string): boolean {
     case '3x/week': return [0, 2, 4].includes(dayOffset % 7);
     case '2x/week': return [0, 3].includes(dayOffset % 7);
     case 'Weekly': return dayOffset % 7 === 0;
+    case 'Custom Days':
+      return (entry.customDays ?? []).includes(new Date(dateStr + 'T00:00:00').getDay());
     case 'Protocol-specific': return true;
     default: return true;
   }
@@ -185,6 +206,7 @@ const emptyForm = () => ({
   dose: '',
   doseUnit: 'mcg' as DoseUnit,
   frequency: 'Daily' as Frequency,
+  customDays: [] as number[],
   timeOfDay: '' as '' | 'AM' | 'PM',
   route: 'subcutaneous' as AdminRoute,
   startDate: todayStr(),
@@ -352,7 +374,7 @@ function exportCycleText(cycle: Cycle): string {
     'PEPTIDES:',
   ];
   cycle.entries.forEach((e) => {
-    let doseLine = `• ${getPeptideName(e.peptideId)} — ${e.doseMcg} ${e.doseUnit} ${e.frequency} via ${ROUTE_LABELS[e.route]}`;
+    let doseLine = `• ${getPeptideName(e.peptideId)} — ${e.doseMcg} ${e.doseUnit} ${displayFrequency(e)} via ${ROUTE_LABELS[e.route]}`;
     if (e.vialSize && e.vialWaterMl) {
       const calc = calcInjectionVolume(String(e.doseMcg), e.doseUnit, String(e.vialSize), String(e.vialWaterMl));
       if (calc) doseLine += ` (${calc.volumeMl} ml / ${calc.iu} IU per dose)`;
@@ -501,12 +523,17 @@ function CycleBuilderInner() {
       setFormError('End date must be after start date.');
       return;
     }
+    if (entryForm.frequency === 'Custom Days' && entryForm.customDays.length === 0) {
+      setFormError('Please select at least one day for custom schedule.');
+      return;
+    }
 
     const newEntry: CycleEntry = {
       peptideId: entryForm.peptideId,
       doseMcg: Number(entryForm.dose),
       doseUnit: entryForm.doseUnit,
       frequency: entryForm.frequency,
+      customDays: entryForm.frequency === 'Custom Days' ? [...entryForm.customDays] : undefined,
       timeOfDay: entryForm.timeOfDay || undefined,
       route: entryForm.route,
       startDate: entryForm.startDate,
@@ -544,6 +571,7 @@ function CycleBuilderInner() {
       dose: String(entry.doseMcg),
       doseUnit: entry.doseUnit,
       frequency: entry.frequency as Frequency,
+      customDays: entry.customDays ? [...entry.customDays] : [],
       timeOfDay: entry.timeOfDay ?? '',
       route: entry.route,
       startDate: entry.startDate,
@@ -981,13 +1009,50 @@ function CycleBuilderInner() {
                   <Label>Frequency</Label>
                   <Select
                     value={entryForm.frequency}
-                    onChange={(e) => setEntryForm((f) => ({ ...f, frequency: e.target.value as Frequency }))}
+                    onChange={(e) => setEntryForm((f) => ({ ...f, frequency: e.target.value as Frequency, customDays: [] }))}
                   >
                     {FREQUENCIES.map((f) => (
                       <option key={f} value={f}>{f}</option>
                     ))}
                   </Select>
                 </div>
+
+                {/* Custom day picker */}
+                {entryForm.frequency === 'Custom Days' && (
+                  <div>
+                    <Label>Days of Week</Label>
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {CUSTOM_DAY_ORDER.map((jsDay) => {
+                        const name = DAY_NAMES[(jsDay + 6) % 7];
+                        const selected = entryForm.customDays.includes(jsDay);
+                        return (
+                          <button
+                            key={jsDay}
+                            type="button"
+                            onClick={() =>
+                              setEntryForm((f) => ({
+                                ...f,
+                                customDays: selected
+                                  ? f.customDays.filter((d) => d !== jsDay)
+                                  : [...f.customDays, jsDay],
+                              }))
+                            }
+                            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+                              selected
+                                ? 'bg-green-600 text-white'
+                                : 'bg-gray-800 border border-gray-700 text-gray-400 hover:text-gray-200'
+                            }`}
+                          >
+                            {name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {entryForm.customDays.length === 0 && (
+                      <p className="text-xs text-amber-500 mt-1.5">Select at least one day.</p>
+                    )}
+                  </div>
+                )}
 
                 {/* Time of Day */}
                 <div>
@@ -1267,7 +1332,7 @@ function CycleBuilderInner() {
                             {entry.doseMcg} {entry.doseUnit}
                           </td>
                           <td className="py-3 px-4 text-gray-300">
-                            {entry.frequency}
+                            {displayFrequency(entry)}
                             {entry.timeOfDay && (
                               <span className="ml-1 text-xs text-green-400">({entry.timeOfDay})</span>
                             )}
@@ -1490,7 +1555,7 @@ function CycleBuilderInner() {
                                       </span>
                                     )}
                                     <span className="ml-1.5 text-xs text-gray-500">
-                                      {entry.frequency}{entry.timeOfDay ? ` (${entry.timeOfDay})` : ''} · {ROUTE_LABELS[entry.route]}
+                                      {displayFrequency(entry)}{entry.timeOfDay ? ` (${entry.timeOfDay})` : ''} · {ROUTE_LABELS[entry.route]}
                                     </span>
                                   </div>
                                 </div>
@@ -1663,7 +1728,7 @@ function CycleBuilderInner() {
                               {calc && (
                                 <span className="text-xs text-green-400 font-medium">= {calc.volumeMl} ml / {calc.iu} IU</span>
                               )}
-                              <span className="text-xs text-gray-500">{e.frequency}{e.timeOfDay ? ` (${e.timeOfDay})` : ''} · {ROUTE_LABELS[e.route]}</span>
+                              <span className="text-xs text-gray-500">{displayFrequency(e)}{e.timeOfDay ? ` (${e.timeOfDay})` : ''} · {ROUTE_LABELS[e.route]}</span>
                             </div>
                             {e.titration && e.titration.length > 0 && (
                               <div className="mt-1.5 ml-4 space-y-0.5">
@@ -1856,7 +1921,7 @@ function CycleBuilderInner() {
                                         {activeDose} {entry.doseUnit}
                                       </span>
                                       {calc && <span className="text-green-500"> = {calc.volumeMl} ml / {calc.iu} IU</span>}
-                                      {' — '}{entry.frequency}{entry.timeOfDay ? ` (${entry.timeOfDay})` : ''} — {ROUTE_LABELS[entry.route]}
+                                      {' — '}{displayFrequency(entry)}{entry.timeOfDay ? ` (${entry.timeOfDay})` : ''} — {ROUTE_LABELS[entry.route]}
                                     </>
                                   );
                                 })()}
