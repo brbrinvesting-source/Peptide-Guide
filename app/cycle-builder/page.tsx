@@ -514,16 +514,20 @@ function CycleBuilderInner() {
       titration: entryForm.titration.length > 0 ? [...entryForm.titration] : undefined,
     };
 
-    if (editingEntryIdx !== null) {
-      setCycleEntries((prev) => {
-        const updated = [...prev];
-        updated[editingEntryIdx] = newEntry;
-        return updated;
-      });
-      setEditingEntryIdx(null);
-    } else {
-      setCycleEntries((prev) => [...prev, newEntry]);
+    const newEntries = editingEntryIdx !== null
+      ? cycleEntries.map((e, i) => (i === editingEntryIdx ? newEntry : e))
+      : [...cycleEntries, newEntry];
+
+    setCycleEntries(newEntries);
+    if (editingEntryIdx !== null) setEditingEntryIdx(null);
+
+    // Auto-save immediately when editing an existing saved cycle
+    if (editingCycleId) {
+      saveCycles(cycles.map((c) =>
+        c.id === editingCycleId ? { ...c, entries: newEntries } : c
+      ));
     }
+
     setEntryForm(emptyForm());
     setShowTitrationInput(false);
     setTitrationDate('');
@@ -551,10 +555,16 @@ function CycleBuilderInner() {
   }
 
   function handleRemoveEntry(idx: number) {
-    setCycleEntries((prev) => prev.filter((_, i) => i !== idx));
+    const newEntries = cycleEntries.filter((_, i) => i !== idx);
+    setCycleEntries(newEntries);
     if (editingEntryIdx === idx) {
       setEditingEntryIdx(null);
       setEntryForm(emptyForm());
+    }
+    if (editingCycleId) {
+      saveCycles(cycles.map((c) =>
+        c.id === editingCycleId ? { ...c, entries: newEntries } : c
+      ));
     }
   }
 
@@ -1182,7 +1192,7 @@ function CycleBuilderInner() {
                       <tr className="border-b border-gray-800 bg-gray-950/40">
                         <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Peptide</th>
                         <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Dose</th>
-                        <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Frequency</th>
+                        <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Frequency / Time</th>
                         <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Route</th>
                         <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Start</th>
                         <th className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-gray-500">End</th>
@@ -1207,7 +1217,12 @@ function CycleBuilderInner() {
                           <td className="py-3 px-4 text-gray-300">
                             {entry.doseMcg} {entry.doseUnit}
                           </td>
-                          <td className="py-3 px-4 text-gray-300">{entry.frequency}</td>
+                          <td className="py-3 px-4 text-gray-300">
+                            {entry.frequency}
+                            {entry.timeOfDay && (
+                              <span className="ml-1 text-xs text-green-400">({entry.timeOfDay})</span>
+                            )}
+                          </td>
                           <td className="py-3 px-4 text-gray-300">{ROUTE_LABELS[entry.route]}</td>
                           <td className="py-3 px-4 text-gray-300 whitespace-nowrap">{formatDate(entry.startDate)}</td>
                           <td className="py-3 px-4 text-gray-300 whitespace-nowrap">{formatDate(entry.endDate)}</td>
