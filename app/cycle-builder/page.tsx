@@ -183,6 +183,7 @@ const emptyForm = () => ({
   dose: '',
   doseUnit: 'mcg' as DoseUnit,
   frequency: 'Daily' as Frequency,
+  timeOfDay: '' as '' | 'AM' | 'PM',
   route: 'subcutaneous' as AdminRoute,
   startDate: todayStr(),
   endDate: addDays(todayStr(), 28),
@@ -503,6 +504,7 @@ function CycleBuilderInner() {
       doseMcg: Number(entryForm.dose),
       doseUnit: entryForm.doseUnit,
       frequency: entryForm.frequency,
+      timeOfDay: entryForm.timeOfDay || undefined,
       route: entryForm.route,
       startDate: entryForm.startDate,
       endDate: entryForm.endDate,
@@ -535,6 +537,7 @@ function CycleBuilderInner() {
       dose: String(entry.doseMcg),
       doseUnit: entry.doseUnit,
       frequency: entry.frequency as Frequency,
+      timeOfDay: entry.timeOfDay ?? '',
       route: entry.route,
       startDate: entry.startDate,
       endDate: entry.endDate,
@@ -924,6 +927,19 @@ function CycleBuilderInner() {
                     {FREQUENCIES.map((f) => (
                       <option key={f} value={f}>{f}</option>
                     ))}
+                  </Select>
+                </div>
+
+                {/* Time of Day */}
+                <div>
+                  <Label>Time of Day</Label>
+                  <Select
+                    value={entryForm.timeOfDay}
+                    onChange={(e) => setEntryForm((f) => ({ ...f, timeOfDay: e.target.value as '' | 'AM' | 'PM' }))}
+                  >
+                    <option value="">Not specified</option>
+                    <option value="AM">AM</option>
+                    <option value="PM">PM</option>
                   </Select>
                 </div>
 
@@ -1410,7 +1426,7 @@ function CycleBuilderInner() {
                                       </span>
                                     )}
                                     <span className="ml-1.5 text-xs text-gray-500">
-                                      {entry.frequency} · {ROUTE_LABELS[entry.route]}
+                                      {entry.frequency}{entry.timeOfDay ? ` (${entry.timeOfDay})` : ''} · {ROUTE_LABELS[entry.route]}
                                     </span>
                                   </div>
                                 </div>
@@ -1583,7 +1599,7 @@ function CycleBuilderInner() {
                               {calc && (
                                 <span className="text-xs text-green-400 font-medium">= {calc.volumeMl} ml / {calc.iu} IU</span>
                               )}
-                              <span className="text-xs text-gray-500">{e.frequency} · {ROUTE_LABELS[e.route]}</span>
+                              <span className="text-xs text-gray-500">{e.frequency}{e.timeOfDay ? ` (${e.timeOfDay})` : ''} · {ROUTE_LABELS[e.route]}</span>
                             </div>
                             {e.titration && e.titration.length > 0 && (
                               <div className="mt-1.5 ml-4 space-y-0.5">
@@ -1776,7 +1792,7 @@ function CycleBuilderInner() {
                                         {activeDose} {entry.doseUnit}
                                       </span>
                                       {calc && <span className="text-green-500"> = {calc.volumeMl} ml / {calc.iu} IU</span>}
-                                      {' — '}{entry.frequency} — {ROUTE_LABELS[entry.route]}
+                                      {' — '}{entry.frequency}{entry.timeOfDay ? ` (${entry.timeOfDay})` : ''} — {ROUTE_LABELS[entry.route]}
                                     </>
                                   );
                                 })()}
