@@ -148,6 +148,10 @@ function getWeekMonday(dateStr: string): string {
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
+function sortEntries(entries: CycleEntry[]): CycleEntry[] {
+  return [...entries].sort((a, b) => a.startDate.localeCompare(b.startDate));
+}
+
 function calcInjectionVolume(
   dose: string,
   doseUnit: string,
@@ -544,9 +548,11 @@ function CycleBuilderInner() {
       titration: entryForm.titration.length > 0 ? [...entryForm.titration] : undefined,
     };
 
-    const newEntries = editingEntryIdx !== null
-      ? cycleEntries.map((e, i) => (i === editingEntryIdx ? newEntry : e))
-      : [...cycleEntries, newEntry];
+    const newEntries = sortEntries(
+      editingEntryIdx !== null
+        ? cycleEntries.map((e, i) => (i === editingEntryIdx ? newEntry : e))
+        : [...cycleEntries, newEntry]
+    );
 
     setCycleEntries(newEntries);
     if (editingEntryIdx !== null) setEditingEntryIdx(null);
@@ -653,7 +659,7 @@ function CycleBuilderInner() {
     setCycleGoal(cycle.goal);
     setCycleNotes(cycle.notes ?? '');
     setBreakWeeks(cycle.breakAfterWeeks ? String(cycle.breakAfterWeeks) : '');
-    setCycleEntries(cycle.entries);
+    setCycleEntries(sortEntries(cycle.entries));
     setEditingCycleId(cycle.id);
     setActiveTab('build');
   }
