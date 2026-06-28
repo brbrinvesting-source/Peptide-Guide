@@ -118,6 +118,15 @@ function diffDays(a: string, b: string): number {
   return Math.round((db.getTime() - da.getTime()) / 86400000);
 }
 
+function getWeekMonday(dateStr: string): string {
+  const d = new Date(dateStr + 'T00:00:00');
+  const day = d.getDay();
+  d.setDate(d.getDate() + (day === 0 ? -6 : 1 - day));
+  return d.toISOString().split('T')[0];
+}
+
+const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
 function calcInjectionVolume(
   dose: string,
   doseUnit: string,
@@ -378,9 +387,13 @@ function CycleBuilderInner() {
   const addPeptideId = searchParams.get('add') ?? '';
 
   // ── Tab state ──
-  const [activeTab, setActiveTab] = useState<'build' | 'my-cycles' | 'dose-log'>(
+  const [activeTab, setActiveTab] = useState<'build' | 'schedule' | 'my-cycles' | 'dose-log'>(
     addPeptideId ? 'build' : 'build'
   );
+
+  // ── Schedule state ──
+  const [scheduleWeekStart, setScheduleWeekStart] = useState(() => getWeekMonday(todayStr()));
+  const [scheduleCycleId, setScheduleCycleId] = useState<string | null>(null);
 
   // ── Cycles persistence ──
   const [cycles, setCycles] = useState<Cycle[]>([]);
@@ -779,10 +792,13 @@ function CycleBuilderInner() {
       </div>
 
       {/* Tab bar */}
-      <div className="border-b border-gray-800 bg-gray-950 px-4">
-        <div className="mx-auto max-w-7xl flex gap-1 pt-2">
+      <div className="border-b border-gray-800 bg-gray-950 px-4 overflow-x-auto">
+        <div className="mx-auto max-w-7xl flex gap-1 pt-2 min-w-max">
           <TabButton active={activeTab === 'build'} onClick={() => setActiveTab('build')}>
             Build Cycle{editingCycleId ? ' (Editing)' : ''}
+          </TabButton>
+          <TabButton active={activeTab === 'schedule'} onClick={() => setActiveTab('schedule')}>
+            Schedule
           </TabButton>
           <TabButton active={activeTab === 'my-cycles'} onClick={() => setActiveTab('my-cycles')}>
             My Cycles ({cycles.length})
@@ -1240,7 +1256,194 @@ function CycleBuilderInner() {
           </div>
         )}
 
-        {/* ═══════════ TAB 2: MY CYCLES ═══════════ */}
+        {/* ═══════════ TAB 2: SCHEDULE ═══════════ */}
+        {activeTab === 'schedule' && (() => {
+          const weekDays = Array.from({ length: 7 }, (_, i) => addDays(scheduleWeekStart, i));
+          const weekEnd = weekDays[6];
+          const today = todayStr();
+
+          const activeCycle = scheduleCycleId
+            ? cycles.find((c) => c.id === scheduleCycleId) ?? cycles[0] ?? null
+            : cycles[0] ?? null;
+
+          return (
+            <div className="space-y-5">
+
+              {/* Week navigation */}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setScheduleWeekStart((w) => addDays(w, -7))}
+                  className="p-2 rounded-lg border border-gray-700 hover:border-gray-500 text-gray-400 hover:text-white transition-colors"
+                  aria-label="Previous week"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <div className="flex-1 text-center">
+                  <p className="text-sm font-semibold text-white">
+                    {new Date(scheduleWeekStart + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    {' – '}
+                    {new Date(weekEnd + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </p>
+                  {scheduleWeekStart !== getWeekMonday(today) && (
+                    <button
+                      onClick={() => setScheduleWeekStart(getWeekMonday(today))}
+                      className="text-xs text-green-400 hover:text-green-300 transition-colors"
+                    >
+                      Back to this week
+                    </button>
+                  )}
+                </div>
+                <button
+                  onClick={() => setScheduleWeekStart((w) => addDays(w, 7))}
+                  className="p-2 rounded-lg border border-gray-700 hover:border-gray-500 text-gray-400 hover:text-white transition-colors"
+                  aria-label="Next week"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Cycle picker */}
+              {cycles.length > 1 && (
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-gray-500 whitespace-nowrap">Showing cycle:</span>
+                  <Select
+                    value={scheduleCycleId ?? cycles[0]?.id ?? ''}
+                    onChange={(e) => setScheduleCycleId(e.target.value)}
+                    className="text-xs py-1.5"
+                  >
+                    {cycles.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </Select>
+                </div>
+              )}
+
+              {cycles.length === 0 ? (
+                <div className="flex flex-col items-center justify-center rounded-xl border border-gray-800 bg-gray-900 py-20 text-center">
+                  <p className="text-base font-medium text-gray-400 mb-1">No cycles saved yet</p>
+                  <p className="text-sm text-gray-600 mb-6">Build a cycle first to see your weekly schedule.</p>
+                  <button
+                    onClick={() => setActiveTab('build')}
+                    className="px-5 py-2.5 rounded-lg bg-green-600 hover:bg-green-500 text-white text-sm font-semibold transition-colors"
+                  >
+                    Build a Cycle
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {weekDays.map((day, di) => {
+                    const isToday = day === today;
+                    const isPast = day < today;
+                    const scheduled = activeCycle
+                      ? activeCycle.entries.filter((e) => shouldDoseToday(e, day))
+                      : [];
+
+                    return (
+                      <div
+                        key={day}
+                        className={[
+                          'rounded-xl border overflow-hidden',
+                          isToday
+                            ? 'border-green-700/60 bg-green-950/15'
+                            : isPast
+                            ? 'border-gray-800 bg-gray-900/40 opacity-60'
+                            : 'border-gray-800 bg-gray-900',
+                        ].join(' ')}
+                      >
+                        {/* Day header */}
+                        <div className={[
+                          'flex items-center gap-3 px-4 py-2.5 border-b',
+                          isToday ? 'border-green-800/40 bg-green-950/20' : 'border-gray-800',
+                        ].join(' ')}>
+                          <div className="flex items-baseline gap-2">
+                            <span className={`text-sm font-bold ${isToday ? 'text-green-400' : 'text-gray-300'}`}>
+                              {DAY_NAMES[di]}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {new Date(day + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </span>
+                          </div>
+                          {isToday && (
+                            <span className="ml-1 px-2 py-0.5 rounded-full bg-green-600 text-white text-xs font-semibold">
+                              Today
+                            </span>
+                          )}
+                          {scheduled.length > 0 && (
+                            <span className="ml-auto text-xs text-gray-500">
+                              {scheduled.length} dose{scheduled.length !== 1 ? 's' : ''}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Compounds */}
+                        {scheduled.length === 0 ? (
+                          <div className="px-4 py-3">
+                            <p className="text-xs text-gray-600 italic">No doses scheduled</p>
+                          </div>
+                        ) : (
+                          <div className="px-4 py-3 space-y-2">
+                            {scheduled.map((entry, ei) => {
+                              const activeDose = getActiveDose(entry, day);
+                              const calc = entry.vialSize && entry.vialWaterMl
+                                ? calcInjectionVolume(String(activeDose), entry.doseUnit, String(entry.vialSize), String(entry.vialWaterMl))
+                                : null;
+                              const colorDot = BAR_COLORS[(activeCycle?.entries.indexOf(entry) ?? ei) % BAR_COLORS.length];
+
+                              return (
+                                <div key={ei} className="flex items-start gap-2.5">
+                                  <span className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${colorDot}`} />
+                                  <div className="min-w-0">
+                                    <span className="text-sm font-medium text-gray-100">
+                                      {getPeptideName(entry.peptideId)}
+                                    </span>
+                                    <span className="mx-1.5 text-gray-600">·</span>
+                                    <span className={`text-sm font-semibold ${activeDose !== entry.doseMcg ? 'text-green-400' : 'text-gray-200'}`}>
+                                      {activeDose} {entry.doseUnit}
+                                    </span>
+                                    {calc && (
+                                      <span className="ml-1.5 text-xs text-green-500">
+                                        = {calc.volumeMl} ml / {calc.iu} IU
+                                      </span>
+                                    )}
+                                    <span className="ml-1.5 text-xs text-gray-500">
+                                      {entry.frequency} · {ROUTE_LABELS[entry.route]}
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Link to dose log */}
+              {activeCycle && (
+                <div className="text-center pt-2">
+                  <button
+                    onClick={() => {
+                      setLogCycleId(activeCycle.id);
+                      setLogDate(today);
+                      setActiveTab('dose-log');
+                    }}
+                    className="text-xs text-gray-500 hover:text-green-400 transition-colors"
+                  >
+                    Log today's doses in Dose Log →
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* ═══════════ TAB 3: MY CYCLES ═══════════ */}
         {activeTab === 'my-cycles' && (
           <div className="space-y-5">
 
