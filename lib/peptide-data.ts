@@ -3496,6 +3496,60 @@ export const peptides: Peptide[] = [
     experienceLevel: 'advanced',
   },
 
+  // ─── Testagen ─────────────────────────────────────────────────────────────
+  {
+    id: 'testagen',
+    name: 'Testagen',
+    aliases: ['KEDG', 'Lys-Glu-Asp-Gly', 'Testes Peptide Bioregulator'],
+    categories: ['hormonal', 'anti-aging'],
+    description: 'Testagen is a tetrapeptide bioregulator (Lys-Glu-Asp-Gly / KEDG) developed by the Khavinson Institute (St. Petersburg Institute of Bioregulation and Gerontology). It is a tissue-specific peptide derived from testicular extract, designed to normalize gene expression in Leydig and Sertoli cells. It supports endogenous testosterone production and spermatogenesis, and is used for age-related androgen decline, mild hypogonadism, and post-cycle hormonal normalization.',
+    mechanism: 'As a short peptide bioregulator, Testagen penetrates cell nuclei and binds directly to DNA regulatory regions in testicular cells, acting as a tissue-specific transcription modulator. It upregulates the expression of genes involved in steroidogenesis (StAR, CYP11A1, 3β-HSD) within Leydig cells, restoring the capacity for testosterone biosynthesis. It also supports Sertoli cell function relevant to sperm maturation.',
+    primaryBenefits: [
+      'Supports endogenous testosterone production via Leydig cell activation',
+      'May improve sperm quality and spermatogenesis',
+      'Helps normalize testosterone in age-related androgen decline',
+      'Tissue-specific with minimal systemic hormonal disruption',
+      'Anti-aging effects on testicular tissue integrity',
+      'Can complement PCT protocols alongside HPG axis peptides',
+    ],
+    sideEffects: [
+      'Extremely well tolerated — tetrapeptides have a strong safety profile',
+      'Mild transient libido fluctuation during initial course',
+      'No significant androgenic or estrogenic side effects reported',
+      'Long-term data limited to Khavinson Institute studies',
+    ],
+    dosing: {
+      typical: '5–10 mg per course (1 capsule/2 mg sublingual daily)',
+      range: '2–5 mg/day',
+      frequency: 'Once daily',
+      route: ['sublingual', 'oral'],
+      cycleLength: '10–30 days',
+      breakLength: '3–6 months',
+      timing: 'Morning, under the tongue for 1–2 minutes before swallowing',
+      notes: 'Khavinson bioregulators are typically run as short courses (10–30 days) repeated 1–2× per year. Sublingual absorption is preferred over straight oral. Effects are cumulative and may take 2–4 weeks to become noticeable. Often combined with Epithalon for broader anti-aging and hormonal support.',
+    },
+    goals: ['testosterone', 'sexual', 'anti-aging', 'longevity'],
+    stacks: {
+      synergistic: [
+        { id: 'kisspeptin', reason: 'Kisspeptin drives pulsatile LH release to stimulate Leydig cells; Testagen works at the intracellular level to restore steroidogenic capacity — complementary upstream/downstream support.' },
+        { id: 'gonadorelin', reason: 'Gonadorelin provides HPG axis stimulation (LH/FSH); Testagen sensitizes Leydig cells to respond — effective combination for HPG axis recovery.' },
+        { id: 'epithalon', reason: 'Epithalon (pineal bioregulator) works synergistically with Testagen in Khavinson protocols — together they address circadian/hormonal regulation and gonadal function for anti-aging.' },
+      ],
+      redundant: [
+        { id: 'hcg', reason: 'hCG mimics LH directly; Testagen restores intrinsic Leydig cell function. Overlap in outcome (testosterone production) — use sequentially rather than simultaneously.' },
+      ],
+      complementary: [
+        { id: 'bpc-157', reason: 'BPC-157 supports vascular and connective tissue health; useful alongside hormonal optimization protocols for overall recovery.' },
+        { id: 'pt-141', reason: 'PT-141 addresses libido centrally while Testagen works on hormonal substrate — complementary for sexual health goals.' },
+      ],
+    },
+    halfLife: 'Minutes (tetrapeptides are rapidly cleaved); cellular effects persist via epigenetic mechanisms',
+    storage: 'Capsule form: room temperature, away from heat and moisture. If reconstituted powder: refrigerate at 2–8°C, use within 2–3 weeks.',
+    reconstitution: 'If using powder form, reconstitute with bacteriostatic water (0.5–1 ml per vial). Sublingual capsule/tablet form requires no reconstitution.',
+    researchNotes: 'Khavinson VKh et al. have published extensively on peptide bioregulators through the St. Petersburg Institute. Studies in aging male populations showed Testagen improved testosterone indices and reproductive parameters over 6–24 month observation periods. Mechanism studies support direct epigenetic modulation of steroidogenic gene promoters in testicular tissue.',
+    experienceLevel: 'beginner',
+  },
+
   // ─── Kisspeptin ───────────────────────────────────────────────────────────
   {
     id: 'kisspeptin',
