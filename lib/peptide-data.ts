@@ -1171,13 +1171,13 @@ export const peptides: Peptide[] = [
       'Nausea (rare, BPC-157 component)',
     ],
     dosing: {
-      typical: '0.5–1 mL SubQ per injection (10–20 units on U-100 syringe from 2 mL reconstitution)',
-      range: '5–20 units depending on desired dose',
+      typical: '3.5–7 mg SubQ per injection (10–20 units on a U-100 syringe, from 2 mL BAC water reconstitution)',
+      range: '1.75–7 mg per injection (5–20 units on U-100 syringe)',
       frequency: 'Daily or EOD',
       route: ['subcutaneous'],
       cycleLength: '8–12 weeks',
       breakLength: '4 weeks',
-      notes: 'Standard vial: 70 mg total (GHK-Cu 50 mg / BPC-157 10 mg / TB-500 10 mg). Reconstitute with 2 mL BAC water. Each 10 units on a U-100 syringe = 0.10 mL. Upgrade to KLOW Blend by adding KPV for additional anti-inflammatory coverage.',
+      notes: 'Standard vial: 70 mg total (GHK-Cu 50 mg / BPC-157 10 mg / TB-500 10 mg). Reconstitute with 2 mL BAC water → 35 mg/mL. Each 10 units on a U-100 syringe = 0.10 mL = 3.5 mg total. Upgrade to KLOW Blend by adding KPV for additional anti-inflammatory coverage.',
     },
     goals: ['skin', 'healing', 'anti-aging'],
     stacks: {
@@ -1526,13 +1526,13 @@ export const peptides: Peptide[] = [
       'Mild fatigue during initial doses',
     ],
     dosing: {
-      typical: '0.5–1 mL SubQ per injection (10–20 units on U-100 syringe from 2 mL reconstitution)',
-      range: '5–20 units depending on desired dose',
+      typical: '4–8 mg SubQ per injection (10–20 units on a U-100 syringe, from 2 mL BAC water reconstitution)',
+      range: '2–8 mg per injection (5–20 units on U-100 syringe)',
       frequency: 'Daily or EOD',
       route: ['subcutaneous'],
       cycleLength: '8–12 weeks',
       breakLength: '4 weeks',
-      notes: 'Standard vial: 80 mg total (GHK-Cu 50 mg / BPC-157 10 mg / TB-500 10 mg / KPV 10 mg). Reconstitute with 2 mL BAC water. Each 10 units (U-100) = 0.10 mL. The KLOW Blend is the GLOW Blend with KPV added — choose KLOW when gut health, systemic inflammation, or skin inflammation is also a target.',
+      notes: 'Standard vial: 80 mg total (GHK-Cu 50 mg / BPC-157 10 mg / TB-500 10 mg / KPV 10 mg). Reconstitute with 2 mL BAC water → 40 mg/mL. Each 10 units on a U-100 syringe = 0.10 mL = 4 mg total. The KLOW Blend is the GLOW Blend with KPV added — choose KLOW when gut health, systemic inflammation, or skin inflammation is also a target.',
     },
     goals: ['skin', 'healing', 'anti-aging', 'gut-health', 'immune'],
     stacks: {
