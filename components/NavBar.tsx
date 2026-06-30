@@ -11,6 +11,7 @@ const navLinks = [
   { label: 'Goals', href: '/goals' },
   { label: 'Stacking', href: '/stacking' },
   { label: 'Cycle Builder', href: '/cycle-builder' },
+  { label: 'Reconstitution', href: '/reconstitution' },
 ];
 
 export default function NavBar() {
