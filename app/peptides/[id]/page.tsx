@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { peptides } from '@/lib/peptide-data';
+import BackButton from '@/components/BackButton';
 import {
   CATEGORY_LABELS,
   GOAL_LABELS,
@@ -108,6 +109,7 @@ export default async function PeptideDetailPage({
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
+      <BackButton />
       {/* Header */}
       <div className="border-b border-gray-800 bg-gray-900 px-4 py-8">
         <div className="mx-auto max-w-7xl">
