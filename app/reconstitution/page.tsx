@@ -129,18 +129,20 @@ const BLEND_PRESETS: BlendPreset[] = [
     ],
   },
   {
-    label: 'Glow Blend — GHK-Cu + AHK-Cu + Snap-8',
+    label: 'GLOW Blend — GHK-Cu + BPC-157 + TB-500',
     components: [
-      { name: 'GHK-Cu', fraction: 5 / 7 },
-      { name: 'AHK-Cu', fraction: 1 / 7 },
-      { name: 'Snap-8', fraction: 1 / 7 },
+      { name: 'GHK-Cu', fraction: 5 / 7 },   // 50 mg of 70 mg standard vial
+      { name: 'BPC-157', fraction: 1 / 7 },   // 10 mg
+      { name: 'TB-500', fraction: 1 / 7 },    // 10 mg
     ],
   },
   {
-    label: 'KLOW Blend — Klotho + Epithalon',
+    label: 'KLOW Blend — GHK-Cu + BPC-157 + TB-500 + KPV',
     components: [
-      { name: 'Klotho Derived Peptide 1', fraction: 0.5 },
-      { name: 'Epithalon', fraction: 0.5 },
+      { name: 'GHK-Cu', fraction: 50 / 80 },  // 50 mg of 80 mg standard vial
+      { name: 'BPC-157', fraction: 10 / 80 }, // 10 mg
+      { name: 'TB-500', fraction: 10 / 80 },  // 10 mg
+      { name: 'KPV', fraction: 10 / 80 },     // 10 mg
     ],
   },
   {
