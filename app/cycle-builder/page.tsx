@@ -1771,6 +1771,13 @@ function CycleBuilderInner() {
                       </p>
                     )}
                   </div>
+
+                  {/* Visual timeline */}
+                  {cycle.entries.length > 0 && (
+                    <div className="px-5 pb-5">
+                      <GanttTimeline entries={cycle.entries} />
+                    </div>
+                  )}
                 </div>
               ))
             )}
