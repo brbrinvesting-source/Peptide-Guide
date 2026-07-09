@@ -109,7 +109,7 @@ export default function HomePage() {
               <ChevronRight className="w-4 h-4" aria-hidden="true" />
             </Link>
             <Link
-              href="/cycle-builder"
+              href="/cycle-builder?tab=my-cycles"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-gray-800 hover:bg-gray-700 text-green-400 font-semibold text-sm transition-colors border border-green-800/60"
             >
               My Cycle

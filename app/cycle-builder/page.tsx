@@ -416,8 +416,12 @@ function CycleBuilderInner() {
   const addPeptideId = searchParams.get('add') ?? '';
 
   // ── Tab state ──
+  const tabParam = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState<'build' | 'schedule' | 'my-cycles' | 'dose-log'>(
-    addPeptideId ? 'build' : 'build'
+    tabParam === 'my-cycles' ? 'my-cycles'
+    : tabParam === 'schedule' ? 'schedule'
+    : tabParam === 'dose-log' ? 'dose-log'
+    : 'build'
   );
 
   // ── Schedule state ──
