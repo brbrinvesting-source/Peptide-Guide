@@ -339,21 +339,14 @@ function GanttTimeline({ entries }: { entries: CycleEntry[] }) {
         </div>
 
         {/* Bars */}
-        <div className="space-y-2 relative">
-          {/* Today marker line */}
-          {showTodayLine && (
-            <div
-              className="absolute top-0 bottom-0 w-px bg-green-500/50 z-10 pointer-events-none"
-              style={{ left: `${todayPct}%` }}
-            />
-          )}
-
+        <div className="space-y-2">
           {dated.map((entry, i) => {
             const startOffset = diffDays(minDate, entry.startDate);
             const duration = diffDays(entry.startDate, entry.endDate);
             const leftPct = (startOffset / totalDays) * 100;
             const widthPct = (duration / totalDays) * 100;
             const colorClass = BAR_COLORS[i % BAR_COLORS.length];
+            const activeToday = showTodayLine && today >= entry.startDate && today <= entry.endDate;
 
             return (
               <div key={i} className="flex items-center gap-2">
@@ -368,6 +361,12 @@ function GanttTimeline({ entries }: { entries: CycleEntry[] }) {
                       width: `${Math.max(widthPct, 2)}%`,
                     }}
                   />
+                  {activeToday && (
+                    <div
+                      className="absolute top-0 bottom-0 w-0.5 bg-white/70 z-10 pointer-events-none"
+                      style={{ left: `${todayPct}%` }}
+                    />
+                  )}
                 </div>
               </div>
             );
