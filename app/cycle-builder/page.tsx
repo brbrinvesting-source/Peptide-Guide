@@ -309,32 +309,43 @@ function GanttTimeline({ entries }: { entries: CycleEntry[] }) {
   const todayOffset = diffDays(minDate, today);
   const showTodayLine = todayOffset >= 0 && todayOffset <= totalDays;
 
+  const todayPct = (todayOffset / totalDays) * 100;
+  // Suppress start/end labels when Today would collide (within 18% of either edge)
+  const hideStart = showTodayLine && todayPct < 18;
+  const hideEnd = showTodayLine && todayPct > 82;
+
   return (
     <div className="mt-6 rounded-xl border border-gray-800 bg-gray-900 p-5">
       <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-4">
         Visual Timeline
       </h3>
       <div className="relative">
-        {/* Date axis labels */}
-        <div className="flex justify-between text-xs text-gray-600 mb-2 px-1">
-          <span>{formatDate(minDate)}</span>
-          <span>{formatDate(maxDate)}</span>
+        {/* Three-point date axis: start | today | end */}
+        <div className="relative h-5 mb-2">
+          {!hideStart && (
+            <span className="absolute left-0 text-xs text-gray-500">{formatDate(minDate)}</span>
+          )}
+          {showTodayLine && (
+            <span
+              className="absolute -translate-x-1/2 text-xs text-green-400 font-medium whitespace-nowrap"
+              style={{ left: `${todayPct}%` }}
+            >
+              Today · {formatDate(today)}
+            </span>
+          )}
+          {!hideEnd && (
+            <span className="absolute right-0 text-xs text-gray-500">{formatDate(maxDate)}</span>
+          )}
         </div>
 
         {/* Bars */}
         <div className="space-y-2 relative">
-          {/* Today marker */}
+          {/* Today marker line */}
           {showTodayLine && (
             <div
-              className="absolute top-0 bottom-0 w-px bg-green-500/60 z-10 pointer-events-none"
-              style={{ left: `${(todayOffset / totalDays) * 100}%` }}
-            >
-              <span
-                className="absolute -top-5 -translate-x-1/2 text-xs text-green-400 whitespace-nowrap"
-              >
-                Today
-              </span>
-            </div>
+              className="absolute top-0 bottom-0 w-px bg-green-500/50 z-10 pointer-events-none"
+              style={{ left: `${todayPct}%` }}
+            />
           )}
 
           {dated.map((entry, i) => {
