@@ -475,9 +475,14 @@ function CycleBuilderInner() {
   const [editingEntryIdx, setEditingEntryIdx] = useState<number | null>(null);
   const [formError, setFormError] = useState('');
 
+  // Cycle length (drives endDate)
+  const [cycleLengthValue, setCycleLengthValue] = useState('4');
+  const [cycleLengthUnit, setCycleLengthUnit] = useState<'days' | 'weeks'>('weeks');
+
   // Titration sub-form
   const [showTitrationInput, setShowTitrationInput] = useState(false);
-  const [titrationDate, setTitrationDate] = useState('');
+  const [titrationDurationValue, setTitrationDurationValue] = useState('');
+  const [titrationDurationUnit, setTitrationDurationUnit] = useState<'days' | 'weeks'>('days');
   const [titrationDose, setTitrationDose] = useState('');
 
   // Pre-select peptide from query param
@@ -486,6 +491,17 @@ function CycleBuilderInner() {
       setEntryForm((prev) => ({ ...prev, peptideId: addPeptideId }));
     }
   }, [addPeptideId]);
+
+  // Auto-derive endDate from startDate + cycle length
+  useEffect(() => {
+    const days = cycleLengthUnit === 'weeks'
+      ? Number(cycleLengthValue) * 7
+      : Number(cycleLengthValue);
+    if (entryForm.startDate && days > 0) {
+      setEntryForm((f) => ({ ...f, endDate: addDays(f.startDate, days) }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entryForm.startDate, cycleLengthValue, cycleLengthUnit]);
 
   // ── Dose Log state ──
   const [logCycleId, setLogCycleId] = useState<string | null>(null);
@@ -508,16 +524,23 @@ function CycleBuilderInner() {
 
   // ── Titration step handler ──
   function handleAddTitrationStep() {
-    if (!titrationDate) { alert('Please select a date for the dose change.'); return; }
+    const durationDays = titrationDurationUnit === 'weeks'
+      ? Number(titrationDurationValue) * 7
+      : Number(titrationDurationValue);
+    if (!durationDays || durationDays <= 0) { alert('Please enter a valid duration.'); return; }
     if (!titrationDose || Number(titrationDose) <= 0) { alert('Please enter a valid dose amount.'); return; }
-    if (entryForm.startDate && titrationDate <= entryForm.startDate) {
-      alert('Dose change date must be after the cycle start date.'); return;
+    if (!entryForm.startDate) { alert('Please set a start date first.'); return; }
+    const sortedSteps = [...entryForm.titration].sort((a, b) => a.date.localeCompare(b.date));
+    const previousDate = sortedSteps.length > 0 ? sortedSteps[sortedSteps.length - 1].date : entryForm.startDate;
+    const newDate = addDays(previousDate, durationDays);
+    if (entryForm.endDate && newDate > entryForm.endDate) {
+      alert('This dose change falls after the cycle end date.'); return;
     }
     setEntryForm((f) => ({
       ...f,
-      titration: [...f.titration, { date: titrationDate, dose: titrationDose }],
+      titration: [...f.titration, { date: newDate, dose: titrationDose }],
     }));
-    setTitrationDate('');
+    setTitrationDurationValue('');
     setTitrationDose('');
     setShowTitrationInput(false);
   }
@@ -579,13 +602,25 @@ function CycleBuilderInner() {
     }
 
     setEntryForm(emptyForm());
+    setCycleLengthValue('4');
+    setCycleLengthUnit('weeks');
     setShowTitrationInput(false);
-    setTitrationDate('');
+    setTitrationDurationValue('');
+    setTitrationDurationUnit('days');
     setTitrationDose('');
   }
 
   function handleEditEntry(idx: number) {
     const entry = cycleEntries[idx];
+    // Reverse-compute cycle length for the UI
+    const entryDays = diffDays(entry.startDate, entry.endDate);
+    if (entryDays % 7 === 0 && entryDays > 0) {
+      setCycleLengthValue(String(entryDays / 7));
+      setCycleLengthUnit('weeks');
+    } else {
+      setCycleLengthValue(String(Math.max(entryDays, 1)));
+      setCycleLengthUnit('days');
+    }
     setEntryForm({
       peptideId: entry.peptideId,
       dose: String(entry.doseMcg),
@@ -602,6 +637,9 @@ function CycleBuilderInner() {
       titration: entry.titration ? [...entry.titration] : [],
     });
     setShowTitrationInput(false);
+    setTitrationDurationValue('');
+    setTitrationDurationUnit('days');
+    setTitrationDose('');
     setEditingEntryIdx(idx);
   }
 
@@ -1110,14 +1148,31 @@ function CycleBuilderInner() {
                   />
                 </div>
 
-                {/* End date */}
+                {/* Cycle Length */}
                 <div>
-                  <Label>End Date</Label>
-                  <Input
-                    type="date"
-                    value={entryForm.endDate}
-                    onChange={(e) => setEntryForm((f) => ({ ...f, endDate: e.target.value }))}
-                  />
+                  <Label>Cycle Length</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      min="1"
+                      value={cycleLengthValue}
+                      onChange={(e) => setCycleLengthValue(e.target.value)}
+                      className="w-20 flex-shrink-0"
+                    />
+                    <Select
+                      value={cycleLengthUnit}
+                      onChange={(e) => setCycleLengthUnit(e.target.value as 'days' | 'weeks')}
+                    >
+                      <option value="days">Days</option>
+                      <option value="weeks">Weeks</option>
+                    </Select>
+                  </div>
+                  {entryForm.endDate && (
+                    <p className="mt-1.5 text-xs text-gray-500">
+                      Ends: <span className="text-gray-400">{formatDate(entryForm.endDate)}</span>
+                    </p>
+                  )}
                 </div>
 
                 {/* Vial Reconstitution Calculator */}
@@ -1196,9 +1251,14 @@ function CycleBuilderInner() {
                         .sort((a, b) => a.date.localeCompare(b.date))
                         .map((step, si) => {
                           const sc = calcInjectionVolume(step.dose, entryForm.doseUnit, entryForm.vialSize, entryForm.vialWaterMl);
+                          const daysIn = entryForm.startDate ? diffDays(entryForm.startDate, step.date) : null;
+                          const durationLabel = daysIn !== null
+                            ? (daysIn % 7 === 0 ? `${daysIn / 7}w` : `${daysIn}d`)
+                            : null;
                           return (
                             <div key={si} className="flex items-center justify-between rounded-md bg-gray-800 px-3 py-2 text-sm">
                               <span className="text-gray-400">
+                                {durationLabel && <span className="text-gray-500 text-xs mr-1">+{durationLabel}</span>}
                                 {formatDate(step.date)} →{' '}
                                 <span className="font-medium text-white">{step.dose} {entryForm.doseUnit}</span>
                                 {sc && <span className="text-green-400 text-xs"> ({sc.volumeMl} ml / {sc.iu} IU)</span>}
@@ -1223,12 +1283,37 @@ function CycleBuilderInner() {
                     <div className="mt-2 rounded-lg border border-gray-700 bg-gray-800 p-3">
                       <div className="grid grid-cols-2 gap-3 mb-3">
                         <div>
-                          <Label>Date of Dose Change</Label>
-                          <Input
-                            type="date"
-                            value={titrationDate}
-                            onChange={(e) => setTitrationDate(e.target.value)}
-                          />
+                          <Label>Duration at this dose</Label>
+                          <div className="flex gap-2">
+                            <Input
+                              type="number"
+                              inputMode="numeric"
+                              min="1"
+                              value={titrationDurationValue}
+                              onChange={(e) => setTitrationDurationValue(e.target.value)}
+                              placeholder="e.g. 2"
+                              className="w-16 flex-shrink-0"
+                            />
+                            <Select
+                              value={titrationDurationUnit}
+                              onChange={(e) => setTitrationDurationUnit(e.target.value as 'days' | 'weeks')}
+                            >
+                              <option value="days">Days</option>
+                              <option value="weeks">Weeks</option>
+                            </Select>
+                          </div>
+                          {titrationDurationValue && Number(titrationDurationValue) > 0 && entryForm.startDate && (() => {
+                            const dd = titrationDurationUnit === 'weeks'
+                              ? Number(titrationDurationValue) * 7
+                              : Number(titrationDurationValue);
+                            const sorted = [...entryForm.titration].sort((a, b) => a.date.localeCompare(b.date));
+                            const prev = sorted.length > 0 ? sorted[sorted.length - 1].date : entryForm.startDate;
+                            return (
+                              <p className="mt-1 text-xs text-gray-500">
+                                Changes on: <span className="text-gray-400">{formatDate(addDays(prev, dd))}</span>
+                              </p>
+                            );
+                          })()}
                         </div>
                         <div>
                           <Label>New Dose ({entryForm.doseUnit})</Label>
@@ -1251,7 +1336,7 @@ function CycleBuilderInner() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => { setShowTitrationInput(false); setTitrationDate(''); setTitrationDose(''); }}
+                          onClick={() => { setShowTitrationInput(false); setTitrationDurationValue(''); setTitrationDurationUnit('days'); setTitrationDose(''); }}
                           className="px-4 py-1.5 rounded-lg border border-gray-700 text-gray-400 hover:text-gray-200 text-xs transition-colors"
                         >
                           Cancel
