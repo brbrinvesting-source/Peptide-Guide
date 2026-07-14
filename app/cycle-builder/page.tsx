@@ -1152,21 +1152,22 @@ function CycleBuilderInner() {
                 <div>
                   <Label>Cycle Length</Label>
                   <div className="flex gap-2">
-                    <Input
+                    <input
                       type="number"
                       inputMode="numeric"
                       min="1"
                       value={cycleLengthValue}
                       onChange={(e) => setCycleLengthValue(e.target.value)}
-                      className="w-20 flex-shrink-0"
+                      className="w-16 flex-shrink-0 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-gray-100 focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
                     />
-                    <Select
+                    <select
                       value={cycleLengthUnit}
                       onChange={(e) => setCycleLengthUnit(e.target.value as 'days' | 'weeks')}
+                      className="flex-1 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-gray-100 focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
                     >
                       <option value="days">Days</option>
                       <option value="weeks">Weeks</option>
-                    </Select>
+                    </select>
                   </div>
                   {entryForm.endDate && (
                     <p className="mt-1.5 text-xs text-gray-500">
@@ -1285,22 +1286,23 @@ function CycleBuilderInner() {
                         <div>
                           <Label>Duration at this dose</Label>
                           <div className="flex gap-2">
-                            <Input
+                            <input
                               type="number"
                               inputMode="numeric"
                               min="1"
                               value={titrationDurationValue}
                               onChange={(e) => setTitrationDurationValue(e.target.value)}
                               placeholder="e.g. 2"
-                              className="w-16 flex-shrink-0"
+                              className="w-16 flex-shrink-0 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-gray-100 focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
                             />
-                            <Select
+                            <select
                               value={titrationDurationUnit}
                               onChange={(e) => setTitrationDurationUnit(e.target.value as 'days' | 'weeks')}
+                              className="flex-1 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-gray-100 focus:border-green-600 focus:outline-none focus:ring-1 focus:ring-green-600"
                             >
                               <option value="days">Days</option>
                               <option value="weeks">Weeks</option>
-                            </Select>
+                            </select>
                           </div>
                           {titrationDurationValue && Number(titrationDurationValue) > 0 && entryForm.startDate && (() => {
                             const dd = titrationDurationUnit === 'weeks'
