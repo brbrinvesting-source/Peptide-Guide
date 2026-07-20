@@ -2044,6 +2044,11 @@ function CycleBuilderInner() {
                                   );
                                 })()}
                               </p>
+                              {entry.notes && (
+                                <p className="text-xs text-amber-400/80 mt-1 italic">
+                                  📝 {entry.notes}
+                                </p>
+                              )}
                             </div>
                             <div className="flex gap-2 shrink-0">
                               <button
