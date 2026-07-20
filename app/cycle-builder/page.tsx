@@ -728,7 +728,12 @@ function CycleBuilderInner() {
 
   function handleShareCycle(cycle: Cycle) {
     const encoded = encodeCycle(cycle);
-    setShareUrl(`${window.location.origin}/shared?c=${encoded}`);
+    const url = `${window.location.origin}/shared?c=${encoded}`;
+    if (navigator.share) {
+      navigator.share({ title: cycle.name, url }).catch(() => setShareUrl(url));
+    } else {
+      setShareUrl(url);
+    }
   }
 
   function handleExportJson(cycle: Cycle) {
