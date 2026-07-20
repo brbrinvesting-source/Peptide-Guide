@@ -814,24 +814,29 @@ function CycleBuilderInner() {
     saveCycles(
       cycles.map((c) => {
         if (c.id !== logCycleId) return c;
-        const existing = c.logs.findIndex(
+        const existingIdx = c.logs.findIndex(
           (l) => l.date === logDate && l.peptideId === peptideId
         );
         const entry = c.entries.find((e) => e.peptideId === peptideId);
         if (!entry) return c;
-        const newLog: DoseLog = {
-          date: logDate,
-          peptideId,
-          dose: getActiveDose(entry, logDate),
-          doseUnit: entry.doseUnit,
-          taken,
-          notes: notes || undefined,
-        };
         const newLogs = [...c.logs];
-        if (existing >= 0) {
-          newLogs[existing] = newLog;
+        // Clicking the already-active button removes the log entry
+        if (existingIdx >= 0 && c.logs[existingIdx].taken === taken) {
+          newLogs.splice(existingIdx, 1);
         } else {
-          newLogs.push(newLog);
+          const newLog: DoseLog = {
+            date: logDate,
+            peptideId,
+            dose: getActiveDose(entry, logDate),
+            doseUnit: entry.doseUnit,
+            taken,
+            notes: notes || undefined,
+          };
+          if (existingIdx >= 0) {
+            newLogs[existingIdx] = newLog;
+          } else {
+            newLogs.push(newLog);
+          }
         }
         return { ...c, logs: newLogs };
       })
