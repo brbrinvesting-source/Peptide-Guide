@@ -862,7 +862,14 @@ function CycleBuilderInner() {
   // Entries due today in log
   const todayEntries = useMemo(() => {
     if (!logCycle) return [];
-    return logCycle.entries.filter((e) => shouldDoseToday(e, logDate));
+    const timeOrder = (t?: string) => t === 'AM' ? 0 : t === 'PM' ? 1 : 2;
+    return logCycle.entries
+      .filter((e) => shouldDoseToday(e, logDate))
+      .sort((a, b) => {
+        const timeDiff = timeOrder(a.timeOfDay) - timeOrder(b.timeOfDay);
+        if (timeDiff !== 0) return timeDiff;
+        return getPeptideName(a.peptideId).localeCompare(getPeptideName(b.peptideId));
+      });
   }, [logCycle, logDate]);
 
   // Last 7 days for mini calendar
