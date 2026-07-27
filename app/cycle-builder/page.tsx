@@ -514,7 +514,7 @@ function CycleBuilderInner() {
   // ── Bulk date shift state ──
   const [bulkShiftCycleId, setBulkShiftCycleId] = useState<string | null>(null);
   const [bulkShiftSelected, setBulkShiftSelected] = useState<Set<number>>(new Set());
-  const [bulkShiftDays, setBulkShiftDays] = useState('');
+  const [bulkShiftDate, setBulkShiftDate] = useState('');
 
   const logCycle = useMemo(
     () => cycles.find((c) => c.id === logCycleId) ?? null,
@@ -732,26 +732,26 @@ function CycleBuilderInner() {
   }
 
   function handleBulkShiftDates(cycleId: string) {
-    const days = Number(bulkShiftDays);
-    if (isNaN(days) || days === 0 || bulkShiftSelected.size === 0) return;
+    if (!bulkShiftDate || bulkShiftSelected.size === 0) return;
     saveCycles(cycles.map((c) => {
       if (c.id !== cycleId) return c;
       return {
         ...c,
         entries: c.entries.map((entry, i) => {
           if (!bulkShiftSelected.has(i)) return entry;
+          const offset = diffDays(entry.startDate, bulkShiftDate);
           return {
             ...entry,
-            startDate: addDays(entry.startDate, days),
-            endDate: addDays(entry.endDate, days),
-            titration: entry.titration?.map((t) => ({ ...t, date: addDays(t.date, days) })),
+            startDate: bulkShiftDate,
+            endDate: addDays(entry.endDate, offset),
+            titration: entry.titration?.map((t) => ({ ...t, date: addDays(t.date, offset) })),
           };
         }),
       };
     }));
     setBulkShiftCycleId(null);
     setBulkShiftSelected(new Set());
-    setBulkShiftDays('');
+    setBulkShiftDate('');
   }
 
   function handleShareCycle(cycle: Cycle) {
@@ -1872,14 +1872,14 @@ function CycleBuilderInner() {
                       </p>
                       {bulkShiftCycleId === cycle.id ? (
                         <button
-                          onClick={() => { setBulkShiftCycleId(null); setBulkShiftSelected(new Set()); setBulkShiftDays(''); }}
+                          onClick={() => { setBulkShiftCycleId(null); setBulkShiftSelected(new Set()); setBulkShiftDate(''); }}
                           className="text-xs text-gray-400 hover:text-gray-200 transition-colors"
                         >
                           Cancel
                         </button>
                       ) : (
                         <button
-                          onClick={() => { setBulkShiftCycleId(cycle.id); setBulkShiftSelected(new Set()); setBulkShiftDays(''); }}
+                          onClick={() => { setBulkShiftCycleId(cycle.id); setBulkShiftSelected(new Set()); setBulkShiftDate(''); }}
                           className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
                         >
                           Shift Dates
@@ -1974,25 +1974,24 @@ function CycleBuilderInner() {
                           <span className="text-xs text-gray-500">{bulkShiftSelected.size} selected</span>
                         </div>
                         <div className="flex items-center gap-3">
-                          <label className="text-xs text-gray-400 whitespace-nowrap">Shift by days</label>
+                          <label className="text-xs text-gray-400 whitespace-nowrap">New start date</label>
                           <input
-                            type="number"
-                            value={bulkShiftDays}
-                            onChange={(e) => setBulkShiftDays(e.target.value)}
-                            placeholder="e.g. 7 or -3"
-                            className="flex-1 min-w-0 rounded-md bg-gray-700 border border-gray-600 px-3 py-1.5 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+                            type="date"
+                            value={bulkShiftDate}
+                            onChange={(e) => setBulkShiftDate(e.target.value)}
+                            className="flex-1 min-w-0 rounded-md bg-gray-700 border border-gray-600 px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-indigo-500 [color-scheme:dark]"
                           />
                           <button
                             onClick={() => handleBulkShiftDates(cycle.id)}
-                            disabled={bulkShiftSelected.size === 0 || !bulkShiftDays || Number(bulkShiftDays) === 0}
+                            disabled={bulkShiftSelected.size === 0 || !bulkShiftDate}
                             className="rounded-md bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed px-4 py-1.5 text-sm font-medium text-white transition-colors"
                           >
                             Apply
                           </button>
                         </div>
-                        {bulkShiftDays && Number(bulkShiftDays) !== 0 && bulkShiftSelected.size > 0 && (
+                        {bulkShiftDate && bulkShiftSelected.size > 0 && (
                           <p className="text-xs text-gray-500">
-                            Shifts start & end dates of {bulkShiftSelected.size} compound{bulkShiftSelected.size !== 1 ? 's' : ''} by {Number(bulkShiftDays) > 0 ? '+' : ''}{bulkShiftDays} day{Math.abs(Number(bulkShiftDays)) !== 1 ? 's' : ''}
+                            Sets start date of {bulkShiftSelected.size} compound{bulkShiftSelected.size !== 1 ? 's' : ''} to {formatDate(bulkShiftDate)}, preserving each duration
                           </p>
                         )}
                       </div>
