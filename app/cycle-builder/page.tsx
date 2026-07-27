@@ -511,6 +511,11 @@ function CycleBuilderInner() {
   const [logCycleId, setLogCycleId] = useState<string | null>(null);
   const [logDate, setLogDate] = useState(todayStr());
 
+  // ── Bulk date shift state ──
+  const [bulkShiftCycleId, setBulkShiftCycleId] = useState<string | null>(null);
+  const [bulkShiftSelected, setBulkShiftSelected] = useState<Set<number>>(new Set());
+  const [bulkShiftDays, setBulkShiftDays] = useState('');
+
   const logCycle = useMemo(
     () => cycles.find((c) => c.id === logCycleId) ?? null,
     [cycles, logCycleId]
@@ -724,6 +729,29 @@ function CycleBuilderInner() {
     if (!confirm('Delete this cycle? This cannot be undone.')) return;
     saveCycles(cycles.filter((c) => c.id !== id));
     if (logCycleId === id) setLogCycleId(null);
+  }
+
+  function handleBulkShiftDates(cycleId: string) {
+    const days = Number(bulkShiftDays);
+    if (isNaN(days) || days === 0 || bulkShiftSelected.size === 0) return;
+    saveCycles(cycles.map((c) => {
+      if (c.id !== cycleId) return c;
+      return {
+        ...c,
+        entries: c.entries.map((entry, i) => {
+          if (!bulkShiftSelected.has(i)) return entry;
+          return {
+            ...entry,
+            startDate: addDays(entry.startDate, days),
+            endDate: addDays(entry.endDate, days),
+            titration: entry.titration?.map((t) => ({ ...t, date: addDays(t.date, days) })),
+          };
+        }),
+      };
+    }));
+    setBulkShiftCycleId(null);
+    setBulkShiftSelected(new Set());
+    setBulkShiftDays('');
   }
 
   function handleShareCycle(cycle: Cycle) {
@@ -1838,17 +1866,60 @@ function CycleBuilderInner() {
 
                   {/* Peptide list */}
                   <div className="px-5 py-4">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">
-                      Peptides
-                    </p>
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                        Peptides
+                      </p>
+                      {bulkShiftCycleId === cycle.id ? (
+                        <button
+                          onClick={() => { setBulkShiftCycleId(null); setBulkShiftSelected(new Set()); setBulkShiftDays(''); }}
+                          className="text-xs text-gray-400 hover:text-gray-200 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => { setBulkShiftCycleId(cycle.id); setBulkShiftSelected(new Set()); setBulkShiftDays(''); }}
+                          className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                        >
+                          Shift Dates
+                        </button>
+                      )}
+                    </div>
                     <div className="space-y-2">
                       {cycle.entries.map((e, i) => {
                         const calc = e.vialSize && e.vialWaterMl
                           ? calcInjectionVolume(String(e.doseMcg), e.doseUnit, String(e.vialSize), String(e.vialWaterMl))
                           : null;
+                        const isShiftMode = bulkShiftCycleId === cycle.id;
+                        const isSelected = bulkShiftSelected.has(i);
                         return (
-                          <div key={i} className="rounded-lg bg-gray-800 border border-gray-700/50 px-3 py-2.5">
+                          <div
+                            key={i}
+                            className={`rounded-lg border px-3 py-2.5 transition-colors ${
+                              isShiftMode
+                                ? isSelected
+                                  ? 'bg-indigo-900/30 border-indigo-500/60 cursor-pointer'
+                                  : 'bg-gray-800 border-gray-700/50 cursor-pointer hover:border-gray-600'
+                                : 'bg-gray-800 border-gray-700/50'
+                            }`}
+                            onClick={isShiftMode ? () => {
+                              setBulkShiftSelected((prev) => {
+                                const next = new Set(prev);
+                                if (next.has(i)) next.delete(i); else next.add(i);
+                                return next;
+                              });
+                            } : undefined}
+                          >
                             <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                              {isShiftMode && (
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => {}}
+                                  className="w-3.5 h-3.5 rounded border-gray-600 accent-indigo-500 flex-shrink-0 pointer-events-none"
+                                />
+                              )}
                               <span className={`w-2 h-2 rounded-full flex-shrink-0 ${BAR_COLORS[i % BAR_COLORS.length]}`} />
                               <span className="text-sm font-medium text-gray-100">{getPeptideName(e.peptideId)}</span>
                               <span className="text-sm text-gray-400">—</span>
@@ -1883,6 +1954,50 @@ function CycleBuilderInner() {
                         );
                       })}
                     </div>
+
+                    {/* Bulk shift controls */}
+                    {bulkShiftCycleId === cycle.id && (
+                      <div className="mt-3 rounded-lg bg-gray-800/60 border border-gray-700 px-4 py-3 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <button
+                            onClick={() => {
+                              if (bulkShiftSelected.size === cycle.entries.length) {
+                                setBulkShiftSelected(new Set());
+                              } else {
+                                setBulkShiftSelected(new Set(cycle.entries.map((_, i) => i)));
+                              }
+                            }}
+                            className="text-xs text-gray-400 hover:text-gray-200 transition-colors"
+                          >
+                            {bulkShiftSelected.size === cycle.entries.length ? 'Deselect all' : 'Select all'}
+                          </button>
+                          <span className="text-xs text-gray-500">{bulkShiftSelected.size} selected</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <label className="text-xs text-gray-400 whitespace-nowrap">Shift by days</label>
+                          <input
+                            type="number"
+                            value={bulkShiftDays}
+                            onChange={(e) => setBulkShiftDays(e.target.value)}
+                            placeholder="e.g. 7 or -3"
+                            className="flex-1 min-w-0 rounded-md bg-gray-700 border border-gray-600 px-3 py-1.5 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+                          />
+                          <button
+                            onClick={() => handleBulkShiftDates(cycle.id)}
+                            disabled={bulkShiftSelected.size === 0 || !bulkShiftDays || Number(bulkShiftDays) === 0}
+                            className="rounded-md bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed px-4 py-1.5 text-sm font-medium text-white transition-colors"
+                          >
+                            Apply
+                          </button>
+                        </div>
+                        {bulkShiftDays && Number(bulkShiftDays) !== 0 && bulkShiftSelected.size > 0 && (
+                          <p className="text-xs text-gray-500">
+                            Shifts start & end dates of {bulkShiftSelected.size} compound{bulkShiftSelected.size !== 1 ? 's' : ''} by {Number(bulkShiftDays) > 0 ? '+' : ''}{bulkShiftDays} day{Math.abs(Number(bulkShiftDays)) !== 1 ? 's' : ''}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
                     {cycle.notes && (
                       <p className="mt-3 text-xs text-gray-500 leading-relaxed">
                         {cycle.notes}
