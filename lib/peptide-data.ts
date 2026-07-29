@@ -325,6 +325,56 @@ export const peptides: Peptide[] = [
     experienceLevel: 'intermediate',
   },
 
+  // ─── BAM-15 ───────────────────────────────────────────────────────────────
+  {
+    id: 'bam-15',
+    name: 'BAM-15',
+    aliases: ['BAM15', 'Mitochondrial uncoupler BAM-15'],
+    categories: ['metabolic', 'weight-loss'],
+    description: 'BAM-15 is a novel mitochondrial protonophore (uncoupler) that dissipates the mitochondrial proton gradient as heat rather than ATP, dramatically increasing the metabolic rate. Unlike older uncouplers such as DNP, BAM-15 does not cause dangerous hyperthermia in animal models, making it a promising candidate for safe metabolic weight loss and insulin sensitisation.',
+    mechanism: 'Acts as a proton carrier across the inner mitochondrial membrane, short-circuiting the ATP synthase and forcing mitochondria to burn more fuel (fat and glucose) to maintain cellular energy. This produces heat and reduces fat storage without activating thermogenic pathways that raise core body temperature.',
+    primaryBenefits: [
+      'Significant fat mass reduction',
+      'Improved insulin sensitivity',
+      'Increased metabolic rate without hyperthermia',
+      'Preserves lean muscle mass',
+      'Potential benefit in obesity and metabolic syndrome',
+      'No appetite suppression required — works through energy expenditure',
+    ],
+    sideEffects: [
+      'Sweating / mild warmth (dose-dependent)',
+      'Fatigue or reduced exercise tolerance at higher doses',
+      'GI discomfort (nausea, loose stools)',
+      'Very limited human safety data — research compound only',
+      'Potential cardiovascular stress at high doses',
+    ],
+    dosing: {
+      typical: '2–5 mg/kg/day (oral, research context)',
+      range: '1–10 mg/kg/day',
+      frequency: 'Once daily',
+      route: ['oral'],
+      cycleLength: '4–8 weeks',
+      breakLength: '4 weeks',
+      timing: 'AM',
+      notes: 'Human dosing protocols are not established — all data is from rodent studies. Use extreme caution. Start at the lowest possible dose and monitor body temperature, heart rate, and electrolytes. Do not combine with stimulants, DNP, or other uncouplers.',
+    },
+    goals: ['weight-loss', 'visceral-fat-loss', 'energy'],
+    stacks: {
+      synergistic: [
+        { id: 'aod9604', reason: 'AOD9604 mobilises stored fat via β3-adrenergic signalling; BAM-15 then burns it through mitochondrial uncoupling — complementary mechanisms.' },
+        { id: '5-amino-1mq', reason: '5-Amino-1MQ raises NAD+ and SIRT1 activity while BAM-15 accelerates substrate oxidation — additive metabolic benefit.' },
+      ],
+      redundant: [],
+      complementary: [
+        { id: 'tirzepatide', reason: 'GLP-1/GIP agonist reduces caloric intake; BAM-15 increases caloric expenditure — dual-mechanism approach to fat loss.' },
+      ],
+    },
+    halfLife: '~4–6 hours (estimated, rodent data)',
+    storage: 'Store in a cool, dark place away from moisture. Refrigerate if in solution.',
+    researchNotes: 'Noel et al. (2021, Cell Metabolism) demonstrated that BAM-15 reduced fat mass, improved insulin resistance, and suppressed inflammatory markers in diet-induced obese mice without raising core body temperature. No human clinical trials have been completed.',
+    experienceLevel: 'advanced',
+  },
+
   // ─── 8. BPC-157 ───────────────────────────────────────────────────────────
   {
     id: 'bpc-157',
