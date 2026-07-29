@@ -186,6 +186,30 @@ function getActiveDose(entry: CycleEntry, dateStr: string): number {
   return dose;
 }
 
+function calcVialsNeeded(entry: CycleEntry): number | null {
+  if (!entry.vialSize || !entry.startDate || !entry.endDate) return null;
+  const vialSizeMg = Number(entry.vialSize);
+  if (!vialSizeMg || entry.frequency === 'Protocol-specific') return null;
+  const toMg = (dose: number): number | null => {
+    if (entry.doseUnit === 'mg') return dose;
+    if (entry.doseUnit === 'mcg') return dose / 1000;
+    return null; // IU and mg/kg can't be normalised to mg without extra info
+  };
+  let totalDoseMg = 0;
+  const endD = new Date(entry.endDate + 'T00:00:00');
+  for (let d = new Date(entry.startDate + 'T00:00:00'); d <= endD; d.setDate(d.getDate() + 1)) {
+    const yr = d.getFullYear();
+    const mo = String(d.getMonth() + 1).padStart(2, '0');
+    const dy = String(d.getDate()).padStart(2, '0');
+    const dateStr = `${yr}-${mo}-${dy}`;
+    if (!shouldDoseToday(entry, dateStr)) continue;
+    const doseMg = toMg(getActiveDose(entry, dateStr));
+    if (doseMg === null) return null;
+    totalDoseMg += doseMg;
+  }
+  return Math.ceil(totalDoseMg / vialSizeMg);
+}
+
 function getPeptideName(id: string): string {
   const found = peptides.find((p) => p.id === id);
   return found ? found.name : id;
@@ -2019,6 +2043,20 @@ function CycleBuilderInner() {
                                     <span className="text-xs text-gray-300">{e.vialSize} mg in {e.vialWaterMl} ml BAC water</span>
                                   </div>
                                 )}
+                                {/* Vials Needed */}
+                                {e.vialSize && (() => {
+                                  const vials = calcVialsNeeded(e);
+                                  if (vials === null) return null;
+                                  return (
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xs text-gray-500">Vials Needed</span>
+                                      <span className="text-xs font-semibold text-amber-400">
+                                        {vials} vial{vials !== 1 ? 's' : ''}
+                                        {e.titration?.length ? ' (incl. titration)' : ''}
+                                      </span>
+                                    </div>
+                                  );
+                                })()}
                                 {/* Titration */}
                                 {e.titration && e.titration.length > 0 && (
                                   <div>
