@@ -516,6 +516,9 @@ function CycleBuilderInner() {
   const [bulkShiftSelected, setBulkShiftSelected] = useState<Set<number>>(new Set());
   const [bulkShiftDate, setBulkShiftDate] = useState('');
 
+  // ── Entry expand state ──
+  const [expandedEntry, setExpandedEntry] = useState<{cycleId: string; idx: number} | null>(null);
+
   const logCycle = useMemo(
     () => cycles.find((c) => c.id === logCycleId) ?? null,
     [cycles, logCycleId]
@@ -722,6 +725,47 @@ function CycleBuilderInner() {
     setBreakWeeks(cycle.breakAfterWeeks ? String(cycle.breakAfterWeeks) : '');
     setCycleEntries(sortEntries(cycle.entries));
     setEditingCycleId(cycle.id);
+    setActiveTab('build');
+  }
+
+  function handleLoadForEditAtEntry(cycle: Cycle, unsortedIdx: number) {
+    const sorted = sortEntries(cycle.entries);
+    const entry = cycle.entries[unsortedIdx];
+    const sortedIdx = sorted.indexOf(entry);
+    setCycleName(cycle.name);
+    setCycleGoal(cycle.goal);
+    setCycleNotes(cycle.notes ?? '');
+    setBreakWeeks(cycle.breakAfterWeeks ? String(cycle.breakAfterWeeks) : '');
+    setCycleEntries(sorted);
+    setEditingCycleId(cycle.id);
+    const entryDays = diffDays(entry.startDate, entry.endDate);
+    if (entryDays % 7 === 0 && entryDays > 0) {
+      setCycleLengthValue(String(entryDays / 7));
+      setCycleLengthUnit('weeks');
+    } else {
+      setCycleLengthValue(String(Math.max(entryDays, 1)));
+      setCycleLengthUnit('days');
+    }
+    setEntryForm({
+      peptideId: entry.peptideId,
+      dose: String(entry.doseMcg),
+      doseUnit: entry.doseUnit,
+      frequency: entry.frequency as Frequency,
+      customDays: entry.customDays ? [...entry.customDays] : [],
+      timeOfDay: entry.timeOfDay ?? '',
+      route: entry.route,
+      startDate: entry.startDate,
+      endDate: entry.endDate,
+      notes: entry.notes ?? '',
+      vialSize: entry.vialSize ? String(entry.vialSize) : '',
+      vialWaterMl: entry.vialWaterMl ? String(entry.vialWaterMl) : '',
+      titration: entry.titration ? [...entry.titration] : [],
+    });
+    setShowTitrationInput(false);
+    setTitrationDurationValue('');
+    setTitrationDurationUnit('days');
+    setTitrationDose('');
+    setEditingEntryIdx(sortedIdx >= 0 ? sortedIdx : unsortedIdx);
     setActiveTab('build');
   }
 
@@ -1893,62 +1937,119 @@ function CycleBuilderInner() {
                           : null;
                         const isShiftMode = bulkShiftCycleId === cycle.id;
                         const isSelected = bulkShiftSelected.has(i);
+                        const isExpanded = !isShiftMode && expandedEntry?.cycleId === cycle.id && expandedEntry?.idx === i;
                         return (
                           <div
                             key={i}
-                            className={`rounded-lg border px-3 py-2.5 transition-colors ${
+                            className={`rounded-lg border transition-colors ${
                               isShiftMode
                                 ? isSelected
                                   ? 'bg-indigo-900/30 border-indigo-500/60 cursor-pointer'
                                   : 'bg-gray-800 border-gray-700/50 cursor-pointer hover:border-gray-600'
-                                : 'bg-gray-800 border-gray-700/50'
+                                : isExpanded
+                                  ? 'bg-gray-800 border-gray-600'
+                                  : 'bg-gray-800 border-gray-700/50'
                             }`}
-                            onClick={isShiftMode ? () => {
-                              setBulkShiftSelected((prev) => {
-                                const next = new Set(prev);
-                                if (next.has(i)) next.delete(i); else next.add(i);
-                                return next;
-                              });
-                            } : undefined}
                           >
-                            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                              {isShiftMode && (
-                                <input
-                                  type="checkbox"
-                                  checked={isSelected}
-                                  onChange={() => {}}
-                                  className="w-3.5 h-3.5 rounded border-gray-600 accent-indigo-500 flex-shrink-0 pointer-events-none"
-                                />
-                              )}
-                              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${BAR_COLORS[i % BAR_COLORS.length]}`} />
-                              <span className="text-sm font-medium text-gray-100">{getPeptideName(e.peptideId)}</span>
-                              <span className="text-sm text-gray-400">—</span>
-                              <span className="text-sm text-gray-300">{e.doseMcg} {e.doseUnit}</span>
-                              {calc && (
-                                <span className="text-xs text-green-400 font-medium">= {calc.volumeMl} ml / {calc.iu} IU</span>
-                              )}
-                              <span className="text-xs text-gray-500">{displayFrequency(e)}{e.timeOfDay ? ` (${e.timeOfDay})` : ''} · {ROUTE_LABELS[e.route]}</span>
-                            </div>
-                            {e.titration && e.titration.length > 0 && (
-                              <div className="mt-1.5 ml-4 space-y-0.5">
-                                <p className="text-xs text-gray-600">Titration schedule:</p>
-                                {[...e.titration].sort((a, b) => a.date.localeCompare(b.date)).map((step, j) => {
-                                  const sc = e.vialSize && e.vialWaterMl
-                                    ? calcInjectionVolume(step.dose, e.doseUnit, String(e.vialSize), String(e.vialWaterMl))
-                                    : null;
-                                  return (
-                                    <p key={j} className="text-xs text-gray-400">
-                                      {formatDate(step.date)} → <span className="text-gray-200">{step.dose} {e.doseUnit}</span>
-                                      {sc && <span className="text-green-500"> ({sc.volumeMl} ml / {sc.iu} IU)</span>}
-                                    </p>
-                                  );
-                                })}
+                            {/* Tappable header row */}
+                            <div
+                              className={`px-3 py-2.5 ${!isShiftMode ? 'cursor-pointer select-none' : ''}`}
+                              onClick={isShiftMode ? () => {
+                                setBulkShiftSelected((prev) => {
+                                  const next = new Set(prev);
+                                  if (next.has(i)) next.delete(i); else next.add(i);
+                                  return next;
+                                });
+                              } : () => {
+                                setExpandedEntry(isExpanded ? null : { cycleId: cycle.id, idx: i });
+                              }}
+                            >
+                              <div className="flex items-center gap-x-2">
+                                {isShiftMode && (
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={() => {}}
+                                    className="w-3.5 h-3.5 rounded border-gray-600 accent-indigo-500 flex-shrink-0 pointer-events-none"
+                                  />
+                                )}
+                                <span className={`w-2 h-2 rounded-full flex-shrink-0 ${BAR_COLORS[i % BAR_COLORS.length]}`} />
+                                <span className="text-sm font-medium text-gray-100 flex-1">{getPeptideName(e.peptideId)}</span>
+                                <span className="text-sm text-gray-300">{e.doseMcg} {e.doseUnit}</span>
+                                {calc && (
+                                  <span className="text-xs text-green-400 font-medium">{calc.volumeMl} ml</span>
+                                )}
+                                {!isShiftMode && (
+                                  <svg
+                                    className={`w-3.5 h-3.5 text-gray-500 flex-shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                  >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                )}
                               </div>
-                            )}
-                            {e.vialSize && e.vialWaterMl && (
-                              <p className="mt-1 ml-4 text-xs text-gray-600">
-                                Vial: {e.vialSize} mg in {e.vialWaterMl} ml BAC water
-                              </p>
+                              <div className="mt-0.5 ml-4 text-xs text-gray-500">
+                                {displayFrequency(e)}{e.timeOfDay ? ` (${e.timeOfDay})` : ''} · {ROUTE_LABELS[e.route]}
+                              </div>
+                            </div>
+
+                            {/* Expanded details panel */}
+                            {isExpanded && (
+                              <div className="border-t border-gray-700 px-3 py-3 space-y-2.5">
+                                {/* Date range */}
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-gray-500">Dates</span>
+                                  <span className="text-xs text-gray-300">
+                                    {formatDate(e.startDate)} → {formatDate(e.endDate)}
+                                    <span className="text-gray-500 ml-1">({calcDuration(e.startDate, e.endDate)})</span>
+                                  </span>
+                                </div>
+                                {/* Dose detail */}
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-gray-500">Dose</span>
+                                  <span className="text-xs text-gray-300">
+                                    {e.doseMcg} {e.doseUnit}
+                                    {calc && <span className="text-green-400 ml-1">= {calc.volumeMl} ml / {calc.iu} IU</span>}
+                                  </span>
+                                </div>
+                                {/* Vial */}
+                                {e.vialSize && e.vialWaterMl && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs text-gray-500">Vial</span>
+                                    <span className="text-xs text-gray-300">{e.vialSize} mg in {e.vialWaterMl} ml BAC water</span>
+                                  </div>
+                                )}
+                                {/* Titration */}
+                                {e.titration && e.titration.length > 0 && (
+                                  <div>
+                                    <p className="text-xs text-gray-500 mb-1">Titration schedule</p>
+                                    <div className="space-y-0.5 ml-2">
+                                      {[...e.titration].sort((a, b) => a.date.localeCompare(b.date)).map((step, j) => {
+                                        const sc = e.vialSize && e.vialWaterMl
+                                          ? calcInjectionVolume(step.dose, e.doseUnit, String(e.vialSize), String(e.vialWaterMl))
+                                          : null;
+                                        return (
+                                          <p key={j} className="text-xs text-gray-400">
+                                            {formatDate(step.date)} → <span className="text-gray-200">{step.dose} {e.doseUnit}</span>
+                                            {sc && <span className="text-green-500"> ({sc.volumeMl} ml / {sc.iu} IU)</span>}
+                                          </p>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                )}
+                                {/* Entry notes */}
+                                {e.notes && (
+                                  <p className="text-xs text-gray-500 italic">{e.notes}</p>
+                                )}
+                                {/* Edit button */}
+                                <button
+                                  onClick={() => handleLoadForEditAtEntry(cycle, i)}
+                                  className="w-full mt-1 rounded-md bg-gray-700 hover:bg-gray-600 border border-gray-600 px-3 py-2 text-xs font-medium text-gray-200 transition-colors text-center"
+                                >
+                                  Edit this entry
+                                </button>
+                              </div>
                             )}
                           </div>
                         );
