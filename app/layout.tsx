@@ -1,6 +1,12 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import NavBar from '@/components/NavBar';
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#16a34a',
+};
 
 export const metadata: Metadata = {
   title: 'Peptide Guide | Research-Backed Peptide Information',
