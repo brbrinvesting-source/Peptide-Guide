@@ -39,6 +39,18 @@ const EXPERIENCE_COLORS: Record<ExperienceLevel, string> = {
   advanced:     'bg-red-900/70 text-red-300 border-red-700',
 };
 
+function addFahrenheit(text: string): string {
+  return text.replace(
+    /(-?\d+(?:\.\d+)?)(?:[–-](-?\d+(?:\.\d+)?))?°C/g,
+    (_, a, b) => {
+      const toF = (c: string) => Math.round(Number(c) * 9 / 5 + 32);
+      return b !== undefined
+        ? `${a}–${b}°C (${toF(a)}–${toF(b)}°F)`
+        : `${a}°C (${toF(a)}°F)`;
+    }
+  );
+}
+
 function Card({
   title,
   children,
@@ -349,7 +361,7 @@ export default async function PeptideDetailPage({
                   <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-gray-500">
                     Storage
                   </p>
-                  <p className="text-sm text-gray-300 leading-relaxed">{peptide.storage}</p>
+                  <p className="text-sm text-gray-300 leading-relaxed">{addFahrenheit(peptide.storage)}</p>
                 </div>
                 {peptide.reconstitution && (
                   <div className="border-t border-gray-800 pt-3">
@@ -357,7 +369,7 @@ export default async function PeptideDetailPage({
                       Reconstitution
                     </p>
                     <p className="text-sm text-gray-300 leading-relaxed">
-                      {peptide.reconstitution}
+                      {addFahrenheit(peptide.reconstitution)}
                     </p>
                   </div>
                 )}
