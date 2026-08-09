@@ -8,3 +8,13 @@ dist/
 *.tsbuildinfo
 next-env.d.ts
 .DS_Store
+
+# database
+prisma/dev.db
+prisma/dev.db-journal
+
+# private file storage (COAs)
+storage/
+
+# uploaded product images (dev)
+public/uploads/

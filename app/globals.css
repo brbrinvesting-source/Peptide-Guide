@@ -1,63 +1,226 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
-:root {
-  --background: #030712;
-  --background-secondary: #111827;
-  --background-card: #0f172a;
-  --foreground: #f1f5f9;
-  --foreground-muted: #94a3b8;
-  --accent-primary: #22c55e;
-  --accent-hover: #16a34a;
-  --accent-subtle: rgba(34, 197, 94, 0.1);
-  --border-color: rgba(148, 163, 184, 0.1);
-  --border-accent: rgba(34, 197, 94, 0.3);
+/* ---------------------------------------------------------------------------
+   All-Access Peptides design system
+   Dark, premium, scientific. Black ground, white type, thin white borders,
+   sparing gold accents, subtle hexagonal texture.
+--------------------------------------------------------------------------- */
+
+@theme {
+  --color-ink: #0a0a0a; /* page ground */
+  --color-panel: #111214; /* raised surfaces */
+  --color-panel-2: #17181b; /* hover / nested surfaces */
+  --color-line: rgba(255, 255, 255, 0.14); /* thin white borders */
+  --color-line-strong: rgba(255, 255, 255, 0.28);
+  --color-fg: #f5f5f4; /* primary text */
+  --color-muted: #9b9b96; /* secondary text */
+  --color-gold: #c9a961; /* accent — use sparingly */
+  --color-gold-bright: #e0c684;
+  --color-danger: #e5484d;
+  --color-success: #46a758;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-display: Georgia, 'Times New Roman', serif;
 }
 
 html {
-  scroll-behavior: smooth;
+  color-scheme: dark;
 }
 
 body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: var(--color-ink);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* Subtle hexagonal lattice texture for hero/section backgrounds */
+.hex-texture {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='97' viewBox='0 0 56 97'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.045' stroke-width='1'%3E%3Cpath d='M28 0L56 16.17v32.33L28 64.67 0 48.5V16.17z'/%3E%3Cpath d='M28 64.67L56 80.83V97H0V80.83z'/%3E%3C/g%3E%3C/svg%3E");
 }
 
-::-webkit-scrollbar-track {
-  background: var(--background);
+/* Thin gold keyline used under section headings */
+.gold-keyline {
+  position: relative;
+}
+.gold-keyline::after {
+  content: '';
+  display: block;
+  width: 3rem;
+  height: 1px;
+  background: var(--color-gold);
+  margin-top: 0.75rem;
+}
+.gold-keyline.gold-keyline-center::after {
+  margin-left: auto;
+  margin-right: auto;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 3px;
+/* Uppercase micro-labels */
+.microlabel {
+  font-size: 0.6875rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-muted);
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-primary);
-}
-
-* {
-  scrollbar-width: thin;
-  scrollbar-color: #334155 var(--background);
-}
-
-/* Focus ring */
-*:focus-visible {
-  outline: 2px solid var(--accent-primary);
+/* Focus visibility */
+:focus-visible {
+  outline: 2px solid var(--color-gold);
   outline-offset: 2px;
 }
 
-/* Selection */
-::selection {
-  background-color: rgba(34, 197, 94, 0.25);
-  color: #f1f5f9;
+/* Form controls */
+.field {
+  width: 100%;
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: 0.375rem;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.9375rem;
+  color: var(--color-fg);
+  transition: border-color 120ms ease;
+}
+.field::placeholder {
+  color: rgba(155, 155, 150, 0.6);
+}
+.field:focus {
+  border-color: var(--color-gold);
+  outline: none;
+}
+select.field {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239b9b96' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.9rem center;
+  padding-right: 2.25rem;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.8rem 1.5rem;
+  transition: all 140ms ease;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.btn-gold {
+  background: var(--color-gold);
+  color: #0a0a0a;
+  border: 1px solid var(--color-gold);
+}
+.btn-gold:hover:not(:disabled) {
+  background: var(--color-gold-bright);
+  border-color: var(--color-gold-bright);
+}
+.btn-outline {
+  background: transparent;
+  color: var(--color-fg);
+  border: 1px solid var(--color-line-strong);
+}
+.btn-outline:hover:not(:disabled) {
+  border-color: var(--color-fg);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--color-muted);
+  border: 1px solid transparent;
+}
+.btn-ghost:hover:not(:disabled) {
+  color: var(--color-fg);
+}
+.btn-danger {
+  background: transparent;
+  color: var(--color-danger);
+  border: 1px solid rgba(229, 72, 77, 0.4);
+}
+.btn-danger:hover:not(:disabled) {
+  border-color: var(--color-danger);
+}
+.btn-sm {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.75rem;
+}
+
+/* Panels */
+.panel {
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  border-radius: 0.5rem;
+}
+
+/* Status badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid;
+}
+.badge-instock {
+  color: var(--color-success);
+  border-color: rgba(70, 167, 88, 0.4);
+}
+.badge-lowstock {
+  color: var(--color-gold);
+  border-color: rgba(201, 169, 97, 0.5);
+}
+.badge-soldout {
+  color: var(--color-muted);
+  border-color: var(--color-line);
+}
+.badge-neutral {
+  color: var(--color-muted);
+  border-color: var(--color-line);
+}
+.badge-gold {
+  color: var(--color-gold);
+  border-color: rgba(201, 169, 97, 0.5);
+}
+.badge-danger {
+  color: var(--color-danger);
+  border-color: rgba(229, 72, 77, 0.4);
+}
+
+/* Data tables (admin) */
+.data-table {
+  width: 100%;
+  font-size: 0.875rem;
+  border-collapse: collapse;
+}
+.data-table th {
+  text-align: left;
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  font-weight: 600;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--color-line);
+  white-space: nowrap;
+}
+.data-table td {
+  padding: 0.7rem 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  vertical-align: middle;
+}
+.data-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
 }

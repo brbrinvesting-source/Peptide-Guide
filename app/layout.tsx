@@ -1,37 +1,40 @@
-import type { Metadata, Viewport } from 'next';
-import './globals.css';
-import NavBar from '@/components/NavBar';
-
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  themeColor: '#16a34a',
-};
+import type { Metadata, Viewport } from 'next'
+import './globals.css'
+import { SiteHeader } from '@/components/SiteHeader'
+import { SiteFooter } from '@/components/SiteFooter'
+import { siteUrl } from '@/lib/site'
 
 export const metadata: Metadata = {
-  title: 'Peptide Guide | Research-Backed Peptide Information',
-  description:
-    'A comprehensive, research-backed reference for peptides — covering mechanisms, dosing protocols, goal-based recommendations, stacking guides, and cycle building tools.',
-  keywords: ['peptides', 'peptide guide', 'BPC-157', 'GHK-Cu', 'research peptides', 'peptide dosing', 'peptide stacking'],
-  openGraph: {
-    title: 'Peptide Guide | Research-Backed Peptide Information',
-    description:
-      'Comprehensive peptide reference covering mechanisms, dosing, goal-based recommendations, stacking, and cycle building.',
-    type: 'website',
+  metadataBase: new URL(siteUrl()),
+  title: {
+    default: 'All-Access Peptides — Research Compounds & COA Documentation',
+    template: '%s — All-Access Peptides',
   },
-};
+  description:
+    'Research-use-only compounds with transparent Certificates of Analysis. For research use only — not for human or veterinary consumption.',
+  openGraph: {
+    siteName: 'All-Access Peptides',
+    type: 'website',
+    title: 'All-Access Peptides',
+    description:
+      'Research-use-only compounds with transparent Certificates of Analysis.',
+  },
+}
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export const viewport: Viewport = {
+  themeColor: '#0a0a0a',
+  width: 'device-width',
+  initialScale: 1,
+}
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
-      <body className="bg-gray-950 text-gray-100 min-h-screen antialiased">
-        <NavBar />
+    <html lang="en">
+      <body className="flex min-h-screen flex-col">
+        <SiteHeader />
         <main className="flex-1">{children}</main>
+        <SiteFooter />
       </body>
     </html>
-  );
+  )
 }

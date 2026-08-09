@@ -1,10 +1,9 @@
 export default function Loading() {
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-4 border-gray-700 border-t-green-500 rounded-full animate-spin" />
-        <p className="text-gray-400 text-sm">Loading...</p>
-      </div>
+    <div className="flex min-h-[50vh] items-center justify-center" role="status" aria-label="Loading">
+      <svg width="40" height="44" viewBox="0 0 48 48" className="animate-pulse text-gold" aria-hidden="true">
+        <path d="M24 2 L43 13 V35 L24 46 L5 35 V13 Z" stroke="currentColor" strokeWidth="1.5" fill="none" />
+      </svg>
     </div>
-  );
+  )
 }

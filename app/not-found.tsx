@@ -1,27 +1,23 @@
-import Link from 'next/link';
+import Link from 'next/link'
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+    <div className="hex-texture flex min-h-[60vh] items-center justify-center px-4 py-20">
       <div className="text-center">
-        <h1 className="text-6xl font-bold text-green-500 mb-4">404</h1>
-        <h2 className="text-2xl font-semibold text-gray-100 mb-2">Page Not Found</h2>
-        <p className="text-gray-400 mb-8">The peptide or page you&apos;re looking for doesn&apos;t exist.</p>
-        <div className="flex gap-4 justify-center">
-          <Link
-            href="/"
-            className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
-          >
-            Go Home
+        <p className="font-display text-6xl text-gold">404</p>
+        <h1 className="mt-4 text-2xl font-bold tracking-tight">Page not found</h1>
+        <p className="mt-3 text-sm text-muted">
+          The page you&apos;re looking for doesn&apos;t exist or has moved.
+        </p>
+        <div className="mt-8 flex justify-center gap-3">
+          <Link href="/" className="btn btn-gold">
+            Home
           </Link>
-          <Link
-            href="/peptides"
-            className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-gray-100 rounded-lg font-medium transition-colors border border-gray-700"
-          >
-            Browse Library
+          <Link href="/catalog" className="btn btn-outline">
+            Catalog
           </Link>
         </div>
       </div>
     </div>
-  );
+  )
 }

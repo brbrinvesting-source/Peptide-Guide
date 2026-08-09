@@ -1,13 +1,21 @@
 {
-  "name": "peptide-guide",
+  "name": "all-access-peptides",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "All-Access Peptides — research-use-only ecommerce platform",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint app lib components scripts",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:setup": "prisma migrate deploy && tsx prisma/seed.ts",
+    "create-admin": "tsx scripts/create-admin.ts"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "repository": {
     "type": "git",
@@ -18,23 +26,31 @@
   "license": "ISC",
   "dependencies": {
     "@netlify/plugin-nextjs": "^5.15.12",
+    "@prisma/client": "^6.19.3",
+    "@stripe/react-stripe-js": "^6.8.0",
+    "@stripe/stripe-js": "^9.13.0",
     "@tailwindcss/postcss": "^4.3.1",
     "@types/lz-string": "^1.3.34",
     "@types/node": "^26.0.1",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.5.2",
+    "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
-    "eslint": "^10.6.0",
+    "eslint": "^9.39.5",
     "eslint-config-next": "^16.2.9",
     "lucide-react": "^1.21.0",
     "lz-string": "^1.5.0",
     "next": "^16.2.9",
     "postcss": "^8.5.15",
+    "prisma": "^6.19.3",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "stripe": "^22.4.0",
     "tailwindcss": "^4.3.1",
-    "typescript": "^6.0.3"
+    "tsx": "^4.23.11",
+    "typescript": "^6.0.3",
+    "zod": "^4.4.3"
   }
 }
