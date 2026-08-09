@@ -31,7 +31,11 @@ const BADGE_CLASS = {
 export function ProductCard({ product, bulkTiers }: { product: CatalogProduct; bulkTiers: BulkTier[] }) {
   const status = stockStatus(product.inventoryQty, product.lowStockThreshold)
   const purchasable = product.priceCents !== null && status !== 'SOLD_OUT'
-  const bestTier = bulkTiers.length > 0 ? bulkTiers[bulkTiers.length - 1] : null
+  // Don't assume caller sort order — pick the tier with the highest discount.
+  const bestTier =
+    bulkTiers.length > 0
+      ? bulkTiers.reduce((best, t) => (t.percentOff > best.percentOff ? t : best))
+      : null
 
   return (
     <article className="panel group flex flex-col overflow-hidden transition-colors hover:border-line-strong">

@@ -46,7 +46,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   })
   if (!product || !product.active) notFound()
 
-  const bulkTiers = await getBulkTiers()
+  // getBulkTiers() returns highest-minQty-first (for pricing's early-return
+  // lookup) — the table below needs ascending order to build "N–M units" rows.
+  const bulkTiers = (await getBulkTiers()).sort((a, b) => a.minQty - b.minQty)
   const status = stockStatus(product.inventoryQty, product.lowStockThreshold)
   const purchasable = product.priceCents !== null && status !== 'SOLD_OUT'
   const currentCoa = product.coas.find((c) => c.isCurrent) ?? null
