@@ -43,23 +43,34 @@ export function VialImage({
         {/* body */}
         <rect x="34" y="35" width="52" height="112" rx="6" fill="#101114" stroke="rgba(255,255,255,0.4)" strokeWidth="1.25" />
         {/* label */}
-        <rect x="38" y="52" width="44" height="76" rx="2" fill="#f5f5f4" />
-        <path d="M60 58 L66 61.5 V68.5 L60 72 L54 68.5 V61.5 Z" fill="none" stroke="#0a0a0a" strokeWidth="1.2" />
-        <text x="60" y="67.5" textAnchor="middle" fontFamily="Georgia, serif" fontWeight="700" fontSize="6" fill="#0a0a0a">
-          AA
+        <rect x="38" y="52" width="44" height="76" rx="2" fill="#0d0e10" stroke="rgba(255,255,255,0.18)" strokeWidth="0.6" />
+        {/* AA mark: two peak strokes + gold ascending data-line */}
+        <path d="M46 66 L52.5 52 L59 66" stroke="#f5f5f4" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <path d="M51 66 L57.5 52 L64 66" stroke="#f5f5f4" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <polyline points="43,63 48,60 53,62 58,55 63,57 67,50" stroke="#c9a961" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <circle cx="43" cy="63" r="1" fill="#c9a961" />
+        <circle cx="53" cy="62" r="1" fill="#c9a961" />
+        <circle cx="63" cy="57" r="1" fill="#c9a961" />
+        <circle cx="67" cy="50" r="1" fill="#c9a961" />
+        <text x="60" y="75" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="700" fontSize="4.2" letterSpacing="0.6" fill="#f5f5f4">
+          ALL-ACCESS
         </text>
-        <text x="60" y="86" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="700" fontSize="6.4" letterSpacing="0.4" fill="#0a0a0a">
+        <text x="60" y="79.5" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="600" fontSize="3.4" letterSpacing="1.1" fill="#c9a961">
+          PEPTIDES
+        </text>
+        <rect x="41" y="84" width="38" height="7" fill="#f5f5f4" />
+        <text x="60" y="89" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="700" fontSize="4" letterSpacing="0.3" fill="#0a0a0a">
           {label.toUpperCase()}
         </text>
-        <line x1="44" y1="93" x2="76" y2="93" stroke="#c9a961" strokeWidth="1" />
-        <text x="60" y="103" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="600" fontSize="7.2" fill="#0a0a0a">
-          {vialSize}
-        </text>
-        <text x="60" y="116" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="3.6" fill="#5a5a5a">
+        <text x="60" y="99" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="600" fontSize="4.6" fill="#f5f5f4">
           FOR RESEARCH USE ONLY
         </text>
-        <text x="60" y="121.5" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="3.2" fill="#8a8a8a">
-          NOT FOR HUMAN CONSUMPTION
+        <line x1="45" y1="103" x2="75" y2="103" stroke="rgba(255,255,255,0.25)" strokeWidth="0.5" />
+        <text x="60" y="112" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="600" fontSize="6.2" fill="#f5f5f4">
+          {vialSize}
+        </text>
+        <text x="60" y="121.5" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="3" fill="#9b9b96">
+          NOT FOR HUMAN OR VETERINARY CONSUMPTION
         </text>
       </svg>
     </div>

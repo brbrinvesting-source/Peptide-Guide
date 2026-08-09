@@ -104,12 +104,16 @@ export default async function CoaCenterPage({
                 <h2 className="text-sm font-bold tracking-[0.08em] uppercase">
                   {product.name} — {product.vialSize}
                 </h2>
-                {coa ? (
-                  <span className="badge badge-gold">COA available</span>
-                ) : product.coaComingSoon ? (
-                  <span className="badge badge-neutral">COA coming soon</span>
-                ) : (
-                  <span className="badge badge-neutral">No COA published</span>
+                {coa && <span className="badge badge-gold">COA available</span>}
+                {coa?.purityVerified && (
+                  <span className="badge badge-gold">
+                    Verified Purity{coa.purityPercent !== null ? ` ${coa.purityPercent}%` : ''}
+                  </span>
+                )}
+                {!coa && (
+                  <span className="badge badge-neutral">
+                    {product.coaComingSoon ? 'COA coming soon' : 'No COA published'}
+                  </span>
                 )}
               </div>
               <p className="mt-1.5 text-xs text-muted">

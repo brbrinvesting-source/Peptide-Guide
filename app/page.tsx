@@ -16,7 +16,11 @@ export default async function HomePage() {
       where: { active: true, featured: true },
       include: {
         images: { orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }], take: 1 },
-        coas: { where: { isCurrent: true, active: true }, select: { id: true }, take: 1 },
+        coas: {
+          where: { isCurrent: true, active: true },
+          select: { id: true, purityVerified: true, purityPercent: true },
+          take: 1,
+        },
       },
       orderBy: { sortOrder: 'asc' },
       take: 4,
@@ -39,12 +43,23 @@ export default async function HomePage() {
     imageAlt: p.images[0]?.alt ?? null,
     hasCurrentCoa: p.coas.length > 0,
     currentCoaId: p.coas[0]?.id ?? null,
+    purityVerified: p.coas[0]?.purityVerified ?? false,
+    purityPercent: p.coas[0]?.purityPercent ?? null,
   }))
 
   return (
     <div>
       {/* HERO */}
       <section className="hex-texture relative overflow-hidden border-b border-line">
+        {/* Top strip — echoes the vial ad's US-shipping bar with truthful, operational copy */}
+        <div className="border-b border-line/70 bg-ink/60">
+          <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2.5">
+            <span aria-hidden="true" className="text-sm leading-none">🇺🇸</span>
+            <p className="text-[0.65rem] font-semibold tracking-[0.22em] text-muted uppercase">
+              U.S.-based supplier · Ships to all 50 states · COA documentation per product
+            </p>
+          </div>
+        </div>
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:py-24 lg:grid-cols-2">
           <div>
             <p className="microlabel text-gold">For research use only</p>
@@ -78,15 +93,12 @@ export default async function HomePage() {
                 </>
               )}
             </div>
-            <ul className="mt-10 grid max-w-md grid-cols-3 gap-4 border-t border-line pt-6">
-              {[
-                ['COAs', 'Available per product'],
-                ['US Only', 'Ships to all 50 states'],
-                [`${formatCents(threshold)}+`, 'Free shipping'],
-              ].map(([title, sub]) => (
+            <ul className="mt-10 grid max-w-lg grid-cols-3 gap-4 border-t border-line pt-6">
+              {trustItems(threshold).map(({ Icon, title, sub }) => (
                 <li key={title}>
-                  <p className="text-sm font-bold tracking-wide text-fg">{title}</p>
-                  <p className="mt-1 text-[0.7rem] leading-snug text-muted">{sub}</p>
+                  <Icon className="h-5 w-5 text-gold" />
+                  <p className="mt-2.5 text-xs font-bold tracking-wide text-fg">{title}</p>
+                  <p className="mt-1 text-[0.68rem] leading-snug text-muted">{sub}</p>
                 </li>
               ))}
             </ul>
@@ -183,5 +195,42 @@ export default async function HomePage() {
         </div>
       </section>
     </div>
+  )
+}
+
+function trustItems(thresholdCents: number): { Icon: typeof ShieldIcon; title: string; sub: string }[] {
+  return [
+    { Icon: ShieldIcon, title: 'COA-Backed Transparency', sub: 'Documentation available per product' },
+    { Icon: FlaskIcon, title: 'Trusted Nationwide', sub: 'Ships to all 50 U.S. states' },
+    { Icon: TruckIcon, title: `Free Shipping ${formatCents(thresholdCents)}+`, sub: 'On qualifying orders' },
+  ]
+}
+
+function ShieldIcon({ className = '' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <path d="M12 2.5 20 6v6c0 5-3.4 8.4-8 9.5-4.6-1.1-8-4.5-8-9.5V6z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+      <path d="M8.5 12.2l2.4 2.4 4.6-5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function FlaskIcon({ className = '' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <path d="M9.5 2.5h5M10 3v6.2L4.8 18a1.6 1.6 0 001.4 2.5h11.6a1.6 1.6 0 001.4-2.5L14 9.2V3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M7.6 15h8.8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function TruckIcon({ className = '' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className={className}>
+      <path d="M2.5 6.5h11v9h-11z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+      <path d="M13.5 10h4l3 3v2.5h-7z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+      <circle cx="7" cy="17.5" r="1.6" stroke="currentColor" strokeWidth="1.4" />
+      <circle cx="17.5" cy="17.5" r="1.6" stroke="currentColor" strokeWidth="1.4" />
+    </svg>
   )
 }

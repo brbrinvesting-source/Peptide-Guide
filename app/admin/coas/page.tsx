@@ -2,6 +2,7 @@ import { requireAdmin } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { setCoaStatusAction } from '@/app/actions/admin'
 import { CoaUploadForm } from './CoaUploadForm'
+import { CoaVerifyForm } from './CoaVerifyForm'
 
 export default async function AdminCoasPage({
   searchParams,
@@ -60,6 +61,7 @@ export default async function AdminCoasPage({
                 <th>COA #</th>
                 <th>Lot</th>
                 <th>Status</th>
+                <th>Purity</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -78,6 +80,15 @@ export default async function AdminCoasPage({
                       <span className="badge badge-neutral">Historical</span>
                     ) : (
                       <span className="badge badge-danger">Inactive</span>
+                    )}
+                  </td>
+                  <td>
+                    {c.purityVerified ? (
+                      <span className="badge badge-gold">
+                        Verified{c.purityPercent !== null ? ` ${c.purityPercent}%` : ''}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted">Not verified</span>
                     )}
                   </td>
                   <td>
@@ -104,11 +115,17 @@ export default async function AdminCoasPage({
                           <button type="submit" className="text-muted hover:text-success">Reactivate</button>
                         </form>
                       )}
+                      <details className="inline-block">
+                        <summary className="cursor-pointer text-muted hover:text-gold">Verify…</summary>
+                        <div className="w-64 py-2">
+                          <CoaVerifyForm coaId={c.id} purityVerified={c.purityVerified} purityPercent={c.purityPercent} />
+                        </div>
+                      </details>
                     </div>
                   </td>
                 </tr>
               ))}
-              {coas.length === 0 && <tr><td colSpan={7} className="py-8 text-center text-muted">No COAs uploaded yet.</td></tr>}
+              {coas.length === 0 && <tr><td colSpan={8} className="py-8 text-center text-muted">No COAs uploaded yet.</td></tr>}
             </tbody>
           </table>
         </div>

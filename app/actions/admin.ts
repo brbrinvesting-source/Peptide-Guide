@@ -640,6 +640,20 @@ export async function uploadCoaAction(
   const lotNumber = str(formData, 'lotNumber', 100)
   const makeCurrent = formData.get('makeCurrent') === 'on'
 
+  const purityVerified = formData.get('purityVerified') === 'on'
+  const purityPercentRaw = str(formData, 'purityPercent', 10)
+  let purityPercent: number | null = null
+  if (purityPercentRaw !== '') {
+    const n = Number(purityPercentRaw)
+    if (!Number.isFinite(n) || n < 0 || n > 100) {
+      return { error: 'Purity percent must be a number between 0 and 100.' }
+    }
+    purityPercent = n
+  }
+  if (purityVerified && purityPercent === null) {
+    return { error: 'Enter the purity percent documented in this COA to mark it verified.' }
+  }
+
   const buffer = Buffer.from(await file.arrayBuffer())
   // Basic content check: PDF magic bytes
   if (buffer.subarray(0, 5).toString() !== '%PDF-') {
@@ -680,6 +694,8 @@ export async function uploadCoaAction(
         coaNumber,
         isCurrent: makeCurrent,
         active: true,
+        purityVerified,
+        purityPercent,
         uploadedById: admin.id,
       },
     })
@@ -690,7 +706,7 @@ export async function uploadCoaAction(
     action: 'COA_UPLOADED',
     objectType: 'Coa',
     objectId: productId,
-    after: { product: product.sku, laboratory, coaNumber, lotNumber, makeCurrent },
+    after: { product: product.sku, laboratory, coaNumber, lotNumber, makeCurrent, purityVerified, purityPercent },
   })
   revalidatePath('/admin/coas')
   revalidatePath('/coas')
@@ -721,6 +737,50 @@ export async function setCoaStatusAction(formData: FormData): Promise<void> {
   revalidatePath('/admin/coas')
   revalidatePath('/coas')
   revalidatePath(`/products/${coa.product.slug}`)
+}
+
+/**
+ * Flip the "Verified Purity" claim on an existing COA — the mechanism for
+ * turning it on the moment lab testing completes, without re-uploading the
+ * document. The claim must always be backed by a percent figure actually
+ * documented in the COA; it is never inferred from the file's presence.
+ */
+export async function updateCoaVerificationAction(
+  _prev: AdminActionState,
+  formData: FormData
+): Promise<AdminActionState> {
+  const admin = await requireAdmin()
+  const id = str(formData, 'id')
+  const coa = await prisma.coa.findUnique({ where: { id }, include: { product: true } })
+  if (!coa) return { error: 'COA not found.' }
+
+  const purityVerified = formData.get('purityVerified') === 'on'
+  const purityPercentRaw = str(formData, 'purityPercent', 10)
+  let purityPercent: number | null = null
+  if (purityPercentRaw !== '') {
+    const n = Number(purityPercentRaw)
+    if (!Number.isFinite(n) || n < 0 || n > 100) {
+      return { error: 'Purity percent must be a number between 0 and 100.' }
+    }
+    purityPercent = n
+  }
+  if (purityVerified && purityPercent === null) {
+    return { error: 'Enter the purity percent documented in this COA to mark it verified.' }
+  }
+
+  await prisma.coa.update({ where: { id }, data: { purityVerified, purityPercent } })
+  await audit({
+    userId: admin.id,
+    action: 'COA_VERIFICATION_UPDATED',
+    objectType: 'Coa',
+    objectId: id,
+    before: { purityVerified: coa.purityVerified, purityPercent: coa.purityPercent },
+    after: { purityVerified, purityPercent },
+  })
+  revalidatePath('/admin/coas')
+  revalidatePath('/coas')
+  revalidatePath(`/products/${coa.product.slug}`)
+  return { success: purityVerified ? 'Marked as verified purity.' : 'Verification claim cleared.' }
 }
 
 // ---------------------------------------------------------------------------

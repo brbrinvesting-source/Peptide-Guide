@@ -51,12 +51,34 @@ export function CoaUploadForm({
         <input type="checkbox" name="makeCurrent" defaultChecked className="h-4 w-4 accent-[#c9a961]" />
         Set as current COA (previous becomes historical)
       </label>
+
+      <div className="rounded-md border border-gold/30 p-3">
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" name="purityVerified" className="h-4 w-4 accent-[#c9a961]" />
+          Mark &ldquo;Verified Purity&rdquo; on the storefront
+        </label>
+        <label className="microlabel mt-2.5 block">
+          Purity % documented in this COA
+          <input
+            name="purityPercent"
+            inputMode="decimal"
+            placeholder="e.g. 99.1"
+            className="field mt-1.5"
+          />
+        </label>
+        <p className="mt-2 text-[0.65rem] leading-relaxed text-muted">
+          Only enable once lab testing is complete and this document states the figure. This can
+          be toggled later from the table without re-uploading.
+        </p>
+      </div>
+
       <SubmitButton className="btn btn-gold btn-sm w-full" pendingLabel="Uploading…">
         Upload COA
       </SubmitButton>
       <p className="text-[0.65rem] leading-relaxed text-muted">
         Enter only information that appears in the document. The storefront displays &ldquo;COA
-        available&rdquo; — never verification or purity claims beyond the document itself.
+        available&rdquo; by default — the verified-purity badge above is the only stronger claim,
+        and it is opt-in per document.
       </p>
     </form>
   )

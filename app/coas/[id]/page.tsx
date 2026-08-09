@@ -43,6 +43,11 @@ export default async function CoaViewerPage({ params }: { params: Promise<{ id: 
             {coa.coaNumber && ` · ${coa.coaNumber}`}
             {coa.lot && ` · Lot ${coa.lot.lotNumber}`}
           </p>
+          {coa.purityVerified && (
+            <span className="badge badge-gold mt-2 inline-flex">
+              Verified Purity{coa.purityPercent !== null ? ` — ${coa.purityPercent}%` : ''}
+            </span>
+          )}
         </div>
         <a href={`/api/coa/${coa.id}/file?download=1`} className="btn btn-gold btn-sm">
           Download COA

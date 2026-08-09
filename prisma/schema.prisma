@@ -171,6 +171,11 @@ model Coa {
   coaNumber        String?
   isCurrent        Boolean   @default(false)
   active           Boolean   @default(true)
+  // Admin-controlled verification claim. Must only be enabled once the
+  // uploaded COA actually documents the stated purity — never set by default
+  // and never inferred automatically from the presence of a file.
+  purityVerified   Boolean   @default(false)
+  purityPercent    Float?
   uploadedById     String?
   uploadedBy       User?     @relation(fields: [uploadedById], references: [id])
   createdAt        DateTime  @default(now())

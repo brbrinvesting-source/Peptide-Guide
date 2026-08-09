@@ -1,35 +1,53 @@
 import Link from 'next/link'
 
+/**
+ * The All-Access Peptides mark: two mountain-peak strokes forming "AA"
+ * (no crossbars — open chevrons, as on the vial label) with a gold dotted
+ * line-graph ascending across them left to right.
+ */
 export function AAMark({ size = 36 }: { size?: number }) {
-  // Minimal "AA" monogram inside a thin hexagonal frame — echoes the vial mark.
   return (
     <svg
       width={size}
-      height={size}
-      viewBox="0 0 48 48"
+      height={size * 0.78}
+      viewBox="0 0 120 94"
       fill="none"
       aria-hidden="true"
       className="shrink-0"
     >
+      {/* Left peak */}
       <path
-        d="M24 2 L43 13 V35 L24 46 L5 35 V13 Z"
+        d="M28 80 L52 12 L76 80"
         stroke="currentColor"
-        strokeWidth="1.5"
+        strokeWidth="6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         fill="none"
       />
-      <text
-        x="24"
-        y="30.5"
-        textAnchor="middle"
-        fontFamily="Georgia, serif"
-        fontWeight="700"
-        fontSize="17"
-        letterSpacing="0.5"
-        fill="currentColor"
-      >
-        AA
-      </text>
-      <path d="M15 36.5 H33" stroke="#c9a961" strokeWidth="1.25" />
+      {/* Right peak (overlapping, forms the second "A") */}
+      <path
+        d="M44 80 L68 12 L92 80"
+        stroke="currentColor"
+        strokeWidth="6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      {/* Gold ascending data-line across the peaks */}
+      <polyline
+        points="14,68 34,58 50,64 66,38 82,44 106,20"
+        stroke="#c9a961"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      <circle cx="14" cy="68" r="3.5" fill="#c9a961" />
+      <circle cx="34" cy="58" r="3.5" fill="#c9a961" />
+      <circle cx="50" cy="64" r="3.5" fill="#c9a961" />
+      <circle cx="66" cy="38" r="3.5" fill="#c9a961" />
+      <circle cx="82" cy="44" r="3.5" fill="#c9a961" />
+      <circle cx="106" cy="20" r="3.5" fill="#c9a961" />
     </svg>
   )
 }
@@ -37,7 +55,7 @@ export function AAMark({ size = 36 }: { size?: number }) {
 export function Logo({ compact = false }: { compact?: boolean }) {
   return (
     <Link href="/" className="flex items-center gap-3 text-fg" aria-label="All-Access Peptides home">
-      <AAMark size={compact ? 30 : 36} />
+      <AAMark size={compact ? 34 : 42} />
       {!compact && (
         <span className="hidden flex-col leading-tight sm:flex">
           <span className="text-sm font-bold tracking-[0.22em]">ALL-ACCESS</span>
@@ -45,5 +63,13 @@ export function Logo({ compact = false }: { compact?: boolean }) {
         </span>
       )}
     </Link>
+  )
+}
+
+export function Tagline({ className = '' }: { className?: string }) {
+  return (
+    <p className={`text-[0.65rem] font-medium tracking-[0.28em] text-muted uppercase ${className}`}>
+      Pure Science. Proven Results.
+    </p>
   )
 }

@@ -18,6 +18,8 @@ export interface CatalogProduct {
   imageAlt: string | null
   hasCurrentCoa: boolean
   currentCoaId: string | null
+  purityVerified: boolean
+  purityPercent: number | null
 }
 
 const BADGE_CLASS = {
@@ -47,6 +49,11 @@ export function ProductCard({ product, bulkTiers }: { product: CatalogProduct; b
         <span className={`absolute top-3 left-3 ${BADGE_CLASS[status]} bg-ink/80`}>
           {STOCK_LABELS[status]}
         </span>
+        {product.purityVerified && (
+          <span className="badge badge-gold absolute top-3 right-3 bg-ink/80">
+            Verified{product.purityPercent !== null ? ` ${product.purityPercent}%` : ''}
+          </span>
+        )}
       </Link>
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="flex-1">

@@ -56,7 +56,11 @@ export default async function CatalogPage({
       where,
       include: {
         images: { orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }], take: 1 },
-        coas: { where: { isCurrent: true, active: true }, select: { id: true }, take: 1 },
+        coas: {
+          where: { isCurrent: true, active: true },
+          select: { id: true, purityVerified: true, purityPercent: true },
+          take: 1,
+        },
       },
       orderBy: SORTS[sort],
       skip: (page - 1) * perPage,
@@ -78,6 +82,8 @@ export default async function CatalogPage({
     imageAlt: p.images[0]?.alt ?? null,
     hasCurrentCoa: p.coas.length > 0,
     currentCoaId: p.coas[0]?.id ?? null,
+    purityVerified: p.coas[0]?.purityVerified ?? false,
+    purityPercent: p.coas[0]?.purityPercent ?? null,
   }))
 
   const totalPages = Math.max(1, Math.ceil(total / perPage))

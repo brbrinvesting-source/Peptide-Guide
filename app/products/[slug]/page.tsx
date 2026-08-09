@@ -56,7 +56,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     where: { categoryId: product.categoryId, active: true, id: { not: product.id } },
     include: {
       images: { orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }], take: 1 },
-      coas: { where: { isCurrent: true, active: true }, select: { id: true }, take: 1 },
+      coas: {
+        where: { isCurrent: true, active: true },
+        select: { id: true, purityVerified: true, purityPercent: true },
+        take: 1,
+      },
     },
     orderBy: { sortOrder: 'asc' },
     take: 4,
@@ -75,6 +79,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     imageAlt: p.images[0]?.alt ?? null,
     hasCurrentCoa: p.coas.length > 0,
     currentCoaId: p.coas[0]?.id ?? null,
+    purityVerified: p.coas[0]?.purityVerified ?? false,
+    purityPercent: p.coas[0]?.purityPercent ?? null,
   }))
 
   const specs = (product.specifications ?? '')
@@ -111,7 +117,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
         {/* Purchase column */}
         <div>
-          <span className={BADGE_CLASS[status]}>{STOCK_LABELS[status]}</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={BADGE_CLASS[status]}>{STOCK_LABELS[status]}</span>
+            {currentCoa?.purityVerified && (
+              <span className="badge badge-gold">
+                Verified Purity{currentCoa.purityPercent !== null ? ` — ${currentCoa.purityPercent}%` : ''}
+              </span>
+            )}
+          </div>
           <h1 className="mt-3 text-3xl font-bold tracking-tight">{product.name}</h1>
           <p className="mt-1 text-sm tracking-[0.16em] text-muted uppercase">
             {product.vialSize} · SKU {product.sku}
@@ -210,7 +223,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <div className="mt-6 space-y-4">
             <div className="panel flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <span className="badge badge-gold">Current COA</span>
+                <span className="badge badge-gold">Current COA</span>{' '}
+                {currentCoa.purityVerified && (
+                  <span className="badge badge-gold">
+                    Verified Purity{currentCoa.purityPercent !== null ? ` — ${currentCoa.purityPercent}%` : ''}
+                  </span>
+                )}
                 <dl className="mt-3 grid grid-cols-2 gap-x-8 gap-y-1.5 text-sm sm:grid-cols-4">
                   {currentCoa.testingDate && (
                     <div>

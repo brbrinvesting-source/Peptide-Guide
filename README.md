@@ -46,7 +46,7 @@ npm run dev
 | Tax | Destination-based via Stripe Tax (configurable: stripe / flat / none) |
 | Shipping | US-only (50 states), configurable methods + free-shipping threshold (default $250) |
 | COAs | Product → lot/batch → COA architecture; replacing a current COA keeps history; PDFs served only to authenticated users |
-| Claims | UI shows "COA available" only — no verification/purity claims are ever auto-generated |
+| Claims | Default UI shows "COA available" only. A "Verified Purity" badge (with the documented %) is an **admin-controlled, opt-in toggle per COA** — off by default, never inferred from a file upload, meant to be flipped on the moment lab testing for that lot completes |
 | Admin | Role-based (SUPER_ADMIN / ADMIN), audited actions, payment status never manually settable |
 
 ## Scripts

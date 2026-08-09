@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { getSettings, SETTING_KEYS } from '@/lib/settings'
 import { RESEARCH_DISCLAIMER_SHORT } from '@/lib/constants'
-import { AAMark } from './Logo'
+import { AAMark, Tagline } from './Logo'
 
 export async function SiteFooter() {
   const settings = await getSettings([
@@ -50,6 +50,7 @@ export async function SiteFooter() {
                 <span className="text-[0.65rem] tracking-[0.42em] text-gold">PEPTIDES</span>
               </span>
             </div>
+            <Tagline className="mt-2" />
             <p className="mt-4 max-w-xs text-xs leading-relaxed text-muted">
               Research compounds with transparent documentation. {RESEARCH_DISCLAIMER_SHORT}
             </p>
