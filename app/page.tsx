@@ -8,6 +8,7 @@ import {
   ArrowRight,
   FlaskConical,
   ChevronRight,
+  HelpCircle,
 } from 'lucide-react';
 
 const stats = [
@@ -114,6 +115,15 @@ export default function HomePage() {
             >
               My Cycle
               <CalendarDays className="w-4 h-4" aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="mt-4">
+            <Link
+              href="/how-to-use"
+              className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300 transition-colors"
+            >
+              <HelpCircle className="w-3.5 h-3.5" aria-hidden="true" />
+              How to use the app
             </Link>
           </div>
         </div>
