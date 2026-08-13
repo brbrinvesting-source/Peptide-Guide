@@ -342,64 +342,75 @@ function GanttTimeline({ entries }: { entries: CycleEntry[] }) {
   const hideStart = showTodayLine && todayPct < 18;
   const hideEnd = showTodayLine && todayPct > 82;
 
+  // Clamp today label: left-align near start, right-align near end, center otherwise
+  const todayLabelStyle: React.CSSProperties =
+    todayPct <= 8 ? {} : todayPct >= 92 ? { right: 0 } : { left: `${todayPct}%` };
+  const todayLabelClass =
+    todayPct <= 8
+      ? 'left-0'
+      : todayPct >= 92
+      ? 'right-0'
+      : 'absolute -translate-x-1/2';
+
   return (
     <div className="mt-6 rounded-xl border border-gray-800 bg-gray-900 p-5">
       <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-4">
         Visual Timeline
       </h3>
-      <div className="relative">
-        {/* Three-point date axis: start | today | end */}
-        <div className="relative h-5 mb-2">
-          {!hideStart && (
-            <span className="absolute left-0 text-xs text-gray-500">{formatDate(minDate)}</span>
-          )}
-          {showTodayLine && (
-            <span
-              className="absolute -translate-x-1/2 text-xs text-green-400 font-medium whitespace-nowrap"
-              style={{ left: `${todayPct}%` }}
-            >
-              Today · {formatDate(today)}
-            </span>
-          )}
-          {!hideEnd && (
-            <span className="absolute right-0 text-xs text-gray-500">{formatDate(maxDate)}</span>
-          )}
+      <div className="space-y-2">
+        {/* Axis row — spacer matches label width so dates align with bars */}
+        <div className="flex items-start gap-2">
+          <div className="w-24 shrink-0" />
+          <div className="flex-1 relative h-5">
+            {!hideStart && (
+              <span className="absolute left-0 text-xs text-gray-500 leading-none">{formatDate(minDate)}</span>
+            )}
+            {showTodayLine && (
+              <span
+                className={`absolute text-xs text-green-400 font-medium whitespace-nowrap leading-none ${todayLabelClass}`}
+                style={todayPct > 8 && todayPct < 92 ? { left: `${todayPct}%` } : undefined}
+              >
+                Today · {formatDate(today)}
+              </span>
+            )}
+            {!hideEnd && (
+              <span className="absolute right-0 text-xs text-gray-500 leading-none">{formatDate(maxDate)}</span>
+            )}
+          </div>
         </div>
 
         {/* Bars */}
-        <div className="space-y-2">
-          {dated.map((entry, i) => {
-            const startOffset = diffDays(minDate, entry.startDate);
-            const duration = diffDays(entry.startDate, entry.endDate);
-            const leftPct = (startOffset / totalDays) * 100;
-            const widthPct = (duration / totalDays) * 100;
-            const colorClass = BAR_COLORS[i % BAR_COLORS.length];
-            const activeToday = showTodayLine && today >= entry.startDate && today <= entry.endDate;
+        {dated.map((entry, i) => {
+          const startOffset = diffDays(minDate, entry.startDate);
+          const duration = diffDays(entry.startDate, entry.endDate);
+          const leftPct = (startOffset / totalDays) * 100;
+          const widthPct = (duration / totalDays) * 100;
+          const colorClass = BAR_COLORS[i % BAR_COLORS.length];
+          const activeToday = showTodayLine && today >= entry.startDate && today <= entry.endDate;
 
-            return (
-              <div key={i} className="flex items-center gap-2">
-                <span className="text-xs text-gray-400 w-24 shrink-0 truncate">
-                  {getPeptideName(entry.peptideId)}
-                </span>
-                <div className="flex-1 h-6 relative bg-gray-800 rounded-full overflow-hidden">
+          return (
+            <div key={i} className="flex items-center gap-2">
+              <span className="text-xs text-gray-400 w-24 shrink-0 truncate">
+                {getPeptideName(entry.peptideId)}
+              </span>
+              <div className="flex-1 h-6 relative bg-gray-800 rounded-full overflow-hidden">
+                <div
+                  className={`absolute h-full rounded-full opacity-80 ${colorClass}`}
+                  style={{
+                    left: `${leftPct}%`,
+                    width: `${Math.max(widthPct, 2)}%`,
+                  }}
+                />
+                {activeToday && (
                   <div
-                    className={`absolute h-full rounded-full opacity-80 ${colorClass}`}
-                    style={{
-                      left: `${leftPct}%`,
-                      width: `${Math.max(widthPct, 2)}%`,
-                    }}
+                    className="absolute top-0 bottom-0 w-0.5 bg-white/70 z-10 pointer-events-none"
+                    style={{ left: `${todayPct}%` }}
                   />
-                  {activeToday && (
-                    <div
-                      className="absolute top-0 bottom-0 w-0.5 bg-white/70 z-10 pointer-events-none"
-                      style={{ left: `${todayPct}%` }}
-                    />
-                  )}
-                </div>
+                )}
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
