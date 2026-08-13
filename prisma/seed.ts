@@ -23,10 +23,10 @@ interface SeedProduct {
 }
 
 const PRODUCTS: SeedProduct[] = [
-  // Retatrutide
-  { name: 'Reta GLP3', vialSize: '10 mg', category: 'retatrutide', sku: 'RETA-10' },
-  { name: 'Reta GLP3', vialSize: '20 mg', category: 'retatrutide', sku: 'RETA-20' },
-  { name: 'Reta GLP3', vialSize: '30 mg', category: 'retatrutide', sku: 'RETA-30' },
+  // Retatrutide — branded "AA-R3" rather than referencing the compound name directly
+  { name: 'AA-R3', vialSize: '10 mg', category: 'retatrutide', sku: 'AAR3-10' },
+  { name: 'AA-R3', vialSize: '20 mg', category: 'retatrutide', sku: 'AAR3-20' },
+  { name: 'AA-R3', vialSize: '30 mg', category: 'retatrutide', sku: 'AAR3-30' },
   // Tirzepatide
   { name: 'Tirzep GLP2', vialSize: '10 mg', category: 'tirzepatide', sku: 'TIRZ-10' },
   { name: 'Tirzep GLP2', vialSize: '15 mg', category: 'tirzepatide', sku: 'TIRZ-15' },
@@ -79,6 +79,16 @@ const PRODUCTS: SeedProduct[] = [
 const DISCONTINUED_SKUS = ['BACWATER-10']
 const DISCONTINUED_CATEGORY_SLUGS = ['supplies']
 
+// Renamed products. Kept here only so the seed can migrate any copy left
+// over in a previously-seeded database — updated IN PLACE (same row, same
+// id) so admin-entered price/inventory/images/COAs/orders stay attached to
+// the product rather than being lost to a delete-and-recreate.
+const RENAMES: { fromSku: string; toSku: string; toName: string }[] = [
+  { fromSku: 'RETA-10', toSku: 'AAR3-10', toName: 'AA-R3' },
+  { fromSku: 'RETA-20', toSku: 'AAR3-20', toName: 'AA-R3' },
+  { fromSku: 'RETA-30', toSku: 'AAR3-30', toName: 'AA-R3' },
+]
+
 function slugify(name: string, vialSize: string): string {
   return `${name} ${vialSize}`
     .toLowerCase()
@@ -125,6 +135,17 @@ async function main() {
       update: { name: c.name, sortOrder: i },
     })
     categoryMap.set(c.slug, row.id)
+  }
+
+  console.log('Applying product renames...')
+  for (const r of RENAMES) {
+    const existing = await prisma.product.findUnique({ where: { sku: r.fromSku } })
+    if (!existing) continue // nothing to migrate — a fresh DB seeds directly under the new name/SKU
+    await prisma.product.update({
+      where: { id: existing.id },
+      data: { name: r.toName, sku: r.toSku, slug: slugify(r.toName, existing.vialSize) },
+    })
+    console.log(`  ${r.fromSku} -> ${r.toSku} (${r.toName})`)
   }
 
   console.log('Seeding products (no prices, no inventory — set via admin)...')
