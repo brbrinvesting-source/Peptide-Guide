@@ -6,8 +6,7 @@ const prisma = new PrismaClient()
 // assigned here — both are entered later through the admin dashboard.
 
 const CATEGORIES = [
-  { name: 'Retatrutide', slug: 'retatrutide' },
-  { name: 'Tirzepatide', slug: 'tirzepatide' },
+  { name: 'Weight Loss Research', slug: 'weight-loss-research' },
   { name: 'Recovery / Research', slug: 'recovery-research' },
   { name: 'Blends', slug: 'blends' },
   { name: 'GH / Secretagogue Research', slug: 'gh-secretagogue-research' },
@@ -23,17 +22,17 @@ interface SeedProduct {
 }
 
 const PRODUCTS: SeedProduct[] = [
-  // Retatrutide — branded "AA-R3" rather than referencing the compound name directly
-  { name: 'AA-R3', vialSize: '10 mg', category: 'retatrutide', sku: 'AAR3-10' },
-  { name: 'AA-R3', vialSize: '20 mg', category: 'retatrutide', sku: 'AAR3-20' },
-  { name: 'AA-R3', vialSize: '30 mg', category: 'retatrutide', sku: 'AAR3-30' },
-  // Tirzepatide
-  { name: 'Tirzep GLP2', vialSize: '10 mg', category: 'tirzepatide', sku: 'TIRZ-10' },
-  { name: 'Tirzep GLP2', vialSize: '15 mg', category: 'tirzepatide', sku: 'TIRZ-15' },
-  { name: 'Tirzep GLP2', vialSize: '20 mg', category: 'tirzepatide', sku: 'TIRZ-20' },
-  { name: 'Tirzep GLP2', vialSize: '30 mg', category: 'tirzepatide', sku: 'TIRZ-30' },
-  { name: 'Tirzep GLP2', vialSize: '40 mg', category: 'tirzepatide', sku: 'TIRZ-40' },
-  { name: 'Tirzep GLP2', vialSize: '60 mg', category: 'tirzepatide', sku: 'TIRZ-60' },
+  // Weight Loss Research — AA-R3 (retatrutide) and Tirzep GLP2 (tirzepatide)
+  // share one category rather than naming the compounds directly.
+  { name: 'AA-R3', vialSize: '10 mg', category: 'weight-loss-research', sku: 'AAR3-10' },
+  { name: 'AA-R3', vialSize: '20 mg', category: 'weight-loss-research', sku: 'AAR3-20' },
+  { name: 'AA-R3', vialSize: '30 mg', category: 'weight-loss-research', sku: 'AAR3-30' },
+  { name: 'Tirzep GLP2', vialSize: '10 mg', category: 'weight-loss-research', sku: 'TIRZ-10' },
+  { name: 'Tirzep GLP2', vialSize: '15 mg', category: 'weight-loss-research', sku: 'TIRZ-15' },
+  { name: 'Tirzep GLP2', vialSize: '20 mg', category: 'weight-loss-research', sku: 'TIRZ-20' },
+  { name: 'Tirzep GLP2', vialSize: '30 mg', category: 'weight-loss-research', sku: 'TIRZ-30' },
+  { name: 'Tirzep GLP2', vialSize: '40 mg', category: 'weight-loss-research', sku: 'TIRZ-40' },
+  { name: 'Tirzep GLP2', vialSize: '60 mg', category: 'weight-loss-research', sku: 'TIRZ-60' },
   // Recovery / Research
   { name: 'BPC-157', vialSize: '10 mg', category: 'recovery-research', sku: 'BPC-10' },
   { name: 'TB-500', vialSize: '10 mg', category: 'recovery-research', sku: 'TB500-10' },
@@ -78,6 +77,12 @@ const PRODUCTS: SeedProduct[] = [
 // remove any copy left over in a previously-seeded database.
 const DISCONTINUED_SKUS = ['BACWATER-10']
 const DISCONTINUED_CATEGORY_SLUGS = ['supplies']
+
+// Categories merged into another category above (their products now list
+// the merged slug directly, so the upsert loop reassigns them automatically
+// on every run). Kept here only so the seed can remove the old, now-empty
+// category rows left over in a previously-seeded database.
+const MERGED_CATEGORY_SLUGS = ['retatrutide', 'tirzepatide']
 
 // Renamed products. Kept here only so the seed can migrate any copy left
 // over in a previously-seeded database — updated IN PLACE (same row, same
@@ -204,6 +209,24 @@ async function main() {
       await prisma.category.delete({ where: { id: category.id } })
       console.log(`  Empty category "${slug}" removed.`)
     }
+  }
+
+  console.log('Removing categories merged into others...')
+  for (const slug of MERGED_CATEGORY_SLUGS) {
+    const category = await prisma.category.findUnique({
+      where: { slug },
+      include: { _count: { select: { products: true } } },
+    })
+    if (!category) continue
+    if (category._count.products > 0) {
+      // Shouldn't happen — the product upsert loop above reassigns every
+      // product to its new category slug first. Leave it rather than
+      // silently deleting a category that still holds products.
+      console.log(`  "${slug}" still has ${category._count.products} product(s) — left in place.`)
+      continue
+    }
+    await prisma.category.delete({ where: { id: category.id } })
+    console.log(`  Merged category "${slug}" removed.`)
   }
 
   console.log('Seeding default shipping method...')
