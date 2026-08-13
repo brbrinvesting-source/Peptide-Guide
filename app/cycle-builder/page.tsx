@@ -342,40 +342,25 @@ function GanttTimeline({ entries }: { entries: CycleEntry[] }) {
   const hideStart = showTodayLine && todayPct < 18;
   const hideEnd = showTodayLine && todayPct > 82;
 
-  // Clamp today label: left-align near start, right-align near end, center otherwise
-  const todayLabelStyle: React.CSSProperties =
-    todayPct <= 8 ? {} : todayPct >= 92 ? { right: 0 } : { left: `${todayPct}%` };
-  const todayLabelClass =
-    todayPct <= 8
-      ? 'left-0'
-      : todayPct >= 92
-      ? 'right-0'
-      : 'absolute -translate-x-1/2';
-
   return (
     <div className="mt-6 rounded-xl border border-gray-800 bg-gray-900 p-5">
       <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-4">
         Visual Timeline
       </h3>
       <div className="space-y-2">
-        {/* Axis row — spacer matches label width so dates align with bars */}
+        {/* Axis row: Today in the name column, cycle start/end over the bar track */}
         <div className="flex items-start gap-2">
-          <div className="w-24 shrink-0" />
-          <div className="flex-1 relative h-5">
-            {!hideStart && (
-              <span className="absolute left-0 text-xs text-gray-500 leading-none">{formatDate(minDate)}</span>
-            )}
+          <div className="w-24 shrink-0">
             {showTodayLine && (
-              <span
-                className={`absolute text-xs text-green-400 font-medium whitespace-nowrap leading-none ${todayLabelClass}`}
-                style={todayPct > 8 && todayPct < 92 ? { left: `${todayPct}%` } : undefined}
-              >
-                Today · {formatDate(today)}
-              </span>
+              <div className="leading-tight">
+                <span className="text-xs font-medium text-green-400">Today</span>
+                <span className="block text-xs text-gray-500">{formatDate(today)}</span>
+              </div>
             )}
-            {!hideEnd && (
-              <span className="absolute right-0 text-xs text-gray-500 leading-none">{formatDate(maxDate)}</span>
-            )}
+          </div>
+          <div className="flex-1 flex justify-between">
+            <span className="text-xs text-gray-500">{formatDate(minDate)}</span>
+            <span className="text-xs text-gray-500">{formatDate(maxDate)}</span>
           </div>
         </div>
 
