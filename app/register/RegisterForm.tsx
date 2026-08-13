@@ -3,6 +3,7 @@
 import { useActionState } from 'react'
 import { registerAction, type FormState } from '@/app/actions/auth'
 import { Alert, SubmitButton } from '@/components/forms'
+import { RESEARCHER_ATTESTATION_TEXT } from '@/lib/constants'
 
 export function RegisterForm() {
   const [state, formAction] = useActionState<FormState, FormData>(registerAction, {})
@@ -44,6 +45,17 @@ export function RegisterForm() {
           className="field"
           placeholder="Repeat your password"
         />
+      </div>
+      <div className="rounded-md border border-gold/40 bg-panel-2 p-4">
+        <label className="flex items-start gap-3 text-sm leading-relaxed">
+          <input
+            type="checkbox"
+            name="researcherAttestation"
+            required
+            className="mt-1 h-4 w-4 shrink-0 accent-[#c9a961]"
+          />
+          <span>{RESEARCHER_ATTESTATION_TEXT}</span>
+        </label>
       </div>
       <SubmitButton pendingLabel="Creating account…">Create Account</SubmitButton>
     </form>

@@ -13,7 +13,6 @@ const CATEGORIES = [
   { name: 'GH / Secretagogue Research', slug: 'gh-secretagogue-research' },
   { name: 'Copper / Cosmetic Research', slug: 'copper-cosmetic-research' },
   { name: 'Cellular / Metabolic Research', slug: 'cellular-metabolic-research' },
-  { name: 'Supplies', slug: 'supplies' },
 ]
 
 interface SeedProduct {
@@ -73,9 +72,12 @@ const PRODUCTS: SeedProduct[] = [
   { name: 'Epithalon', vialSize: '50 mg', category: 'cellular-metabolic-research', sku: 'EPI-50' },
   { name: 'Glutathione', vialSize: '1500 mg', category: 'cellular-metabolic-research', sku: 'GLUT-1500' },
   { name: 'HCG', vialSize: '10,000 IU', category: 'cellular-metabolic-research', sku: 'HCG-10K' },
-  // Supplies
-  { name: 'Bacteriostatic Water', vialSize: '10 mL', category: 'supplies', sku: 'BACWATER-10' },
 ]
+
+// Discontinued — no longer sold. Kept here only so the seed can find and
+// remove any copy left over in a previously-seeded database.
+const DISCONTINUED_SKUS = ['BACWATER-10']
+const DISCONTINUED_CATEGORY_SLUGS = ['supplies']
 
 function slugify(name: string, vialSize: string): string {
   return `${name} ${vialSize}`
@@ -98,7 +100,7 @@ const CONTENT_PAGES = [
   {
     slug: 'research-disclaimer',
     title: 'Research Use Disclaimer',
-    body: `All products offered by All-Access Peptides are supplied strictly FOR RESEARCH USE ONLY.\n\nProducts are NOT for human or veterinary consumption of any kind, including but not limited to ingestion, injection, topical application, or any other route of administration.\n\nProducts sold by All-Access Peptides are not medications, are not dietary supplements, and are not FDA-approved for the treatment, cure, mitigation, prevention, or diagnosis of any disease or condition. No statement on this website should be interpreted as a medical, therapeutic, or efficacy claim of any kind.\n\nBy purchasing, the customer represents that they are a qualified researcher or are purchasing on behalf of a research organization, and that products will be handled by individuals trained in safe laboratory practices.\n\nEvery order requires an affirmative acknowledgement of this disclaimer before payment can be submitted.`,
+    body: `All products offered by All-Access Peptides are supplied strictly FOR RESEARCH USE ONLY.\n\nProducts are NOT for human or veterinary consumption of any kind, including but not limited to ingestion, injection, topical application, or any other route of administration.\n\nProducts sold by All-Access Peptides are not medications, are not dietary supplements, and are not FDA-approved for the treatment, cure, mitigation, prevention, or diagnosis of any disease or condition. No statement on this website should be interpreted as a medical, therapeutic, or efficacy claim of any kind.\n\nAll-Access Peptides does not provide, and this website does not contain, any dosing, titration, reconstitution, or administration protocols or guidance of any kind. Customers seeking such information should look elsewhere; providing it is outside the scope of a research supplier.\n\nEvery account holder is required to affirmatively certify, at registration, that they are a qualified researcher or are creating the account on behalf of a research institution or organization. By purchasing, the customer additionally represents that products will be handled by individuals trained in safe laboratory practices.\n\nEvery order also requires a separate affirmative acknowledgement of this disclaimer before payment can be submitted.`,
   },
   {
     slug: 'shipping-policy',
@@ -151,6 +153,36 @@ async function main() {
         sortOrder: i,
       },
     })
+  }
+
+  console.log('Removing discontinued products...')
+  for (const sku of DISCONTINUED_SKUS) {
+    const product = await prisma.product.findUnique({ where: { sku } })
+    if (!product) continue
+    const orderItemCount = await prisma.orderItem.count({ where: { productId: product.id } })
+    if (orderItemCount > 0) {
+      // Never destroy historical order data — hide it instead.
+      await prisma.product.update({ where: { id: product.id }, data: { active: false, featured: false } })
+      console.log(`  ${sku} has order history — deactivated instead of deleted.`)
+      continue
+    }
+    await prisma.cartItem.deleteMany({ where: { productId: product.id } })
+    await prisma.inventoryTransaction.deleteMany({ where: { productId: product.id } })
+    await prisma.coa.deleteMany({ where: { productId: product.id } })
+    await prisma.lot.deleteMany({ where: { productId: product.id } })
+    await prisma.productImage.deleteMany({ where: { productId: product.id } })
+    await prisma.product.delete({ where: { id: product.id } })
+    console.log(`  ${sku} removed.`)
+  }
+  for (const slug of DISCONTINUED_CATEGORY_SLUGS) {
+    const category = await prisma.category.findUnique({
+      where: { slug },
+      include: { _count: { select: { products: true } } },
+    })
+    if (category && category._count.products === 0) {
+      await prisma.category.delete({ where: { id: category.id } })
+      console.log(`  Empty category "${slug}" removed.`)
+    }
   }
 
   console.log('Seeding default shipping method...')

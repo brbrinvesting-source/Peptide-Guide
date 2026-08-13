@@ -30,6 +30,11 @@ model User {
   emailVerifiedAt DateTime?
   marketingOptOut Boolean  @default(false)
   disabled       Boolean   @default(false)
+  // Required self-attestation captured at registration: the account holder
+  // certifies they are registering as a researcher / on behalf of a research
+  // organization. Enforced server-side — registration is rejected without it.
+  researcherAttestedAt      DateTime?
+  researcherAttestationVersion String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 

@@ -29,7 +29,7 @@ npm run dev
 - Storefront: http://localhost:3000 — Admin: http://localhost:3000/admin
 - With `EMAIL_PROVIDER=console`, all emails (verification links, welcome codes, order
   confirmations) are printed to the server console.
-- The seed creates the full 43-product catalog **without prices or inventory** — both are set
+- The seed creates the full 42-product catalog **without prices or inventory** — both are set
   through Admin → Products / Inventory, exactly as in production.
 
 ## Key behaviors
@@ -80,7 +80,19 @@ Timing (default 90 min), subject line, and opt-out behavior are configurable in 
 
 - No medical, therapeutic, or efficacy claims anywhere in UI, seed data, or emails
 - Research-use notice on homepage, product pages, checkout (required checkbox), and all emails
+- **Registration requires a researcher attestation.** Every new account must check a required,
+  server-enforced certification ("I certify that I am creating this account as a qualified
+  researcher…") before the account is created; the acceptance timestamp and text version are
+  stored on the account and audit-logged. Version is configurable via
+  `legal.researcherAttestationVersion` in Admin → Settings (bump it if the wording changes)
+- **No dosing/titration/reconstitution content anywhere.** There is no dosing calculator, cycle
+  builder, or reconstitution guide in this codebase, and the admin product form explicitly warns
+  against entering any such content in descriptions or specifications
+- **No general-use supplies.** Bacteriostatic Water and any other non-research-labeled supply
+  item are excluded from the catalog; the seed script actively removes them (or deactivates them
+  if they have order history) from any previously-seeded database
 - Legal pages (Terms, Privacy, Research Disclaimer, Shipping, Refund) are database-backed and
   editable in Admin → Settings; seeded text is placeholder language for counsel review
 - Raw card data never touches the server (Stripe Payment Element); webhook signatures verified
-- Disclaimer acceptances stored with version, text, timestamp, order, and customer
+- Disclaimer acceptances (checkout) and researcher attestations (registration) are both stored
+  with version, text, timestamp, and customer — two separate, independently versioned records

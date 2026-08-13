@@ -20,6 +20,7 @@ import { passwordResetEmail, verificationEmail } from '@/lib/email/templates'
 import { absoluteUrl } from '@/lib/site'
 import { createAndSendWelcomePromotion } from '@/lib/welcome'
 import { audit } from '@/lib/audit'
+import { getSetting, SETTING_KEYS } from '@/lib/settings'
 
 export interface FormState {
   error?: string
@@ -45,6 +46,12 @@ export async function registerAction(_prev: FormState, formData: FormData): Prom
   if (formData.get('password') !== formData.get('confirmPassword')) {
     return { error: 'Passwords do not match.' }
   }
+  if (formData.get('researcherAttestation') !== 'on') {
+    return {
+      error:
+        'You must certify that you are registering as a researcher to create an account.',
+    }
+  }
 
   const email = parsedEmail.data
   const existing = await prisma.user.findUnique({ where: { email } })
@@ -52,8 +59,22 @@ export async function registerAction(_prev: FormState, formData: FormData): Prom
     return { error: 'An account with this email already exists. Try logging in instead.' }
   }
 
+  const attestationVersion = await getSetting(SETTING_KEYS.RESEARCHER_ATTESTATION_VERSION)
   const user = await prisma.user.create({
-    data: { email, passwordHash: await hashPassword(parsedPassword.data) },
+    data: {
+      email,
+      passwordHash: await hashPassword(parsedPassword.data),
+      researcherAttestedAt: new Date(),
+      researcherAttestationVersion: attestationVersion,
+    },
+  })
+  await audit({
+    userId: user.id,
+    action: 'RESEARCHER_ATTESTATION_ACCEPTED',
+    objectType: 'User',
+    objectId: user.id,
+    after: { version: attestationVersion },
+    ip: meta.ip,
   })
 
   const token = await createAuthToken(user.id, 'EMAIL_VERIFICATION', 60 * 24)

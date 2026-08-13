@@ -84,7 +84,11 @@ export function ProductForm({
 
         <div>
           <label htmlFor="description" className="microlabel mb-1.5 block">Description</label>
-          <textarea id="description" name="description" rows={5} defaultValue={product?.description} className="field" placeholder="Factual, research-oriented product information. No medical or efficacy claims." />
+          <textarea id="description" name="description" rows={5} defaultValue={product?.description} className="field" placeholder="Factual, research-oriented product information. No medical, efficacy, dosing, titration, or human-use content of any kind." />
+          <p className="mt-1.5 text-[0.65rem] leading-relaxed text-danger/90">
+            Do not enter dosing, titration, reconstitution, or administration instructions, or any
+            language suggesting human or veterinary use — research use only.
+          </p>
         </div>
         <div>
           <label htmlFor="specifications" className="microlabel mb-1.5 block">Specifications (one per line, &quot;Label: value&quot;)</label>

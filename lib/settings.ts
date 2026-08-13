@@ -20,6 +20,7 @@ export const SETTING_KEYS = {
   TAX_PROVIDER: 'tax.provider', // 'stripe' | 'flat' | 'none'
   TAX_FLAT_RATE_BPS: 'tax.flatRateBps', // basis points fallback when provider = 'flat'
   DISCLAIMER_VERSION: 'legal.disclaimerVersion',
+  RESEARCHER_ATTESTATION_VERSION: 'legal.researcherAttestationVersion',
 } as const
 
 export interface BulkTier {
@@ -47,6 +48,7 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   [SETTING_KEYS.TAX_PROVIDER]: 'stripe',
   [SETTING_KEYS.TAX_FLAT_RATE_BPS]: '0',
   [SETTING_KEYS.DISCLAIMER_VERSION]: '1.0',
+  [SETTING_KEYS.RESEARCHER_ATTESTATION_VERSION]: '1.0',
 }
 
 export async function getSetting(key: string): Promise<string> {

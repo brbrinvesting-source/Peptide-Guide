@@ -57,6 +57,9 @@ export const RESEARCH_DISCLAIMER_SHORT =
 export const CHECKOUT_ACKNOWLEDGEMENT_TEXT =
   'I understand and agree that the products purchased through All-Access Peptides are intended for research purposes only and are not intended for human or veterinary consumption.'
 
+export const RESEARCHER_ATTESTATION_TEXT =
+  'I certify that I am creating this account as a qualified researcher, or on behalf of a research institution or organization, and that any products purchased through this account will be used solely for laboratory research purposes — not for personal, human, or veterinary use. All-Access Peptides does not provide dosing, titration, or administration guidance of any kind.'
+
 export function formatCents(cents: number): string {
   return (cents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' })
 }

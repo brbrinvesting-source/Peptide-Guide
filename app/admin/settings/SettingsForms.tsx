@@ -25,6 +25,7 @@ const K = {
   ADMIN_NOTIFICATION_EMAIL: 'email.adminNotificationAddress',
   TAX_PROVIDER: 'tax.provider',
   TAX_FLAT_RATE_BPS: 'tax.flatRateBps',
+  RESEARCHER_ATTESTATION_VERSION: 'legal.researcherAttestationVersion',
 }
 
 interface ShippingMethodRow {
@@ -210,6 +211,24 @@ export function SettingsForms({
           </details>
         </div>
       </section>
+
+      <SettingsSection
+        title="Researcher attestation"
+        description="Required at registration — every new account must check this before it can be created. The text is fixed in code (lib/constants.ts); bump the version below if it's ever revised, so older acceptances stay distinguishable from new ones."
+      >
+        <div className="rounded-md border border-line/60 bg-ink/40 p-3 text-xs leading-relaxed text-muted">
+          &ldquo;I certify that I am creating this account as a qualified researcher, or on behalf
+          of a research institution or organization, and that any products purchased through this
+          account will be used solely for laboratory research purposes — not for personal, human,
+          or veterinary use. All-Access Peptides does not provide dosing, titration, or
+          administration guidance of any kind.&rdquo;
+        </div>
+        <Field
+          label="Attestation version"
+          name={K.RESEARCHER_ATTESTATION_VERSION}
+          defaultValue={v(K.RESEARCHER_ATTESTATION_VERSION)}
+        />
+      </SettingsSection>
 
       <section className="panel p-5 lg:col-span-2">
         <p className="microlabel text-gold">Legal &amp; informational pages</p>
