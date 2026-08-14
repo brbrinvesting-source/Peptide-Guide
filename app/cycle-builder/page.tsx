@@ -311,7 +311,7 @@ const QUICK_ADD_TEMPLATES: {
   {
     id: 'klow-blend',
     label: 'KLOW Blend',
-    sublabel: '1mg · Daily · 12 wk',
+    sublabel: '1mg → 2mg titration · Daily · 12 wk',
     peptideId: 'klow-blend',
     dose: '1',
     doseUnit: 'mg',
@@ -323,7 +323,9 @@ const QUICK_ADD_TEMPLATES: {
     vialWaterMl: '2',
     cycleLengthValue: '12',
     cycleLengthUnit: 'weeks',
-    titration: [],
+    titration: [
+      { offsetDays: 7, dose: '2' },
+    ],
   },
 ];
 
