@@ -60,6 +60,19 @@ export const CHECKOUT_ACKNOWLEDGEMENT_TEXT =
 export const RESEARCHER_ATTESTATION_TEXT =
   'I certify that I am creating this account as a qualified researcher, or on behalf of a research institution or organization, and that any products purchased through this account will be used solely for laboratory research purposes — not for personal, human, or veterinary use. All-Access Peptides does not provide dosing, titration, or administration guidance of any kind.'
 
+// Site-entry gate — shown once per visitor (cookie-gated) before any page
+// content is reachable, independent of and prior to account registration.
+export const SITE_GATE_MIN_AGE = 21
+// The third statement (Terms/Privacy/Research Disclaimer agreement) is
+// rendered directly in SiteGateModal with real links rather than as plain
+// text here, so there's one source of truth for its wording.
+export const SITE_GATE_STATEMENTS = {
+  age: `I am ${SITE_GATE_MIN_AGE} years of age or older.`,
+  researchUse:
+    'I understand that all products are for research use only and are not for human or veterinary consumption.',
+}
+export const SITE_GATE_COOKIE = 'aap_gate_accepted'
+
 export function formatCents(cents: number): string {
   return (cents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' })
 }

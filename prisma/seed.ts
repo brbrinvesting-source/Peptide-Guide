@@ -22,17 +22,17 @@ interface SeedProduct {
 }
 
 const PRODUCTS: SeedProduct[] = [
-  // Weight Loss Research — AA-R3 (retatrutide) and Tirzep GLP2 (tirzepatide)
+  // Weight Loss Research — AA-R3 (retatrutide) and AA-T2 (tirzepatide)
   // share one category rather than naming the compounds directly.
   { name: 'AA-R3', vialSize: '10 mg', category: 'weight-loss-research', sku: 'AAR3-10' },
   { name: 'AA-R3', vialSize: '20 mg', category: 'weight-loss-research', sku: 'AAR3-20' },
   { name: 'AA-R3', vialSize: '30 mg', category: 'weight-loss-research', sku: 'AAR3-30' },
-  { name: 'Tirzep GLP2', vialSize: '10 mg', category: 'weight-loss-research', sku: 'TIRZ-10' },
-  { name: 'Tirzep GLP2', vialSize: '15 mg', category: 'weight-loss-research', sku: 'TIRZ-15' },
-  { name: 'Tirzep GLP2', vialSize: '20 mg', category: 'weight-loss-research', sku: 'TIRZ-20' },
-  { name: 'Tirzep GLP2', vialSize: '30 mg', category: 'weight-loss-research', sku: 'TIRZ-30' },
-  { name: 'Tirzep GLP2', vialSize: '40 mg', category: 'weight-loss-research', sku: 'TIRZ-40' },
-  { name: 'Tirzep GLP2', vialSize: '60 mg', category: 'weight-loss-research', sku: 'TIRZ-60' },
+  { name: 'AA-T2', vialSize: '10 mg', category: 'weight-loss-research', sku: 'AAT2-10' },
+  { name: 'AA-T2', vialSize: '15 mg', category: 'weight-loss-research', sku: 'AAT2-15' },
+  { name: 'AA-T2', vialSize: '20 mg', category: 'weight-loss-research', sku: 'AAT2-20' },
+  { name: 'AA-T2', vialSize: '30 mg', category: 'weight-loss-research', sku: 'AAT2-30' },
+  { name: 'AA-T2', vialSize: '40 mg', category: 'weight-loss-research', sku: 'AAT2-40' },
+  { name: 'AA-T2', vialSize: '60 mg', category: 'weight-loss-research', sku: 'AAT2-60' },
   // Recovery / Research
   { name: 'BPC-157', vialSize: '10 mg', category: 'recovery-research', sku: 'BPC-10' },
   { name: 'TB-500', vialSize: '10 mg', category: 'recovery-research', sku: 'TB500-10' },
@@ -92,6 +92,12 @@ const RENAMES: { fromSku: string; toSku: string; toName: string }[] = [
   { fromSku: 'RETA-10', toSku: 'AAR3-10', toName: 'AA-R3' },
   { fromSku: 'RETA-20', toSku: 'AAR3-20', toName: 'AA-R3' },
   { fromSku: 'RETA-30', toSku: 'AAR3-30', toName: 'AA-R3' },
+  { fromSku: 'TIRZ-10', toSku: 'AAT2-10', toName: 'AA-T2' },
+  { fromSku: 'TIRZ-15', toSku: 'AAT2-15', toName: 'AA-T2' },
+  { fromSku: 'TIRZ-20', toSku: 'AAT2-20', toName: 'AA-T2' },
+  { fromSku: 'TIRZ-30', toSku: 'AAT2-30', toName: 'AA-T2' },
+  { fromSku: 'TIRZ-40', toSku: 'AAT2-40', toName: 'AA-T2' },
+  { fromSku: 'TIRZ-60', toSku: 'AAT2-60', toName: 'AA-T2' },
 ]
 
 function slugify(name: string, vialSize: string): string {
@@ -105,7 +111,7 @@ const CONTENT_PAGES = [
   {
     slug: 'terms',
     title: 'Terms & Conditions',
-    body: `PLACEHOLDER — final legal language to be supplied by counsel.\n\nThese Terms & Conditions govern use of the All-Access Peptides website and the purchase of products offered through it.\n\n1. Research Use Only. All products sold through this website are intended strictly for laboratory research purposes only and are not for human or veterinary consumption of any kind.\n\n2. Eligibility. You must be at least 18 years of age and must maintain an account in good standing to purchase.\n\n3. Orders. All orders are subject to acceptance and product availability. We reserve the right to refuse or cancel any order.\n\n4. Pricing. Prices, promotions, and availability are subject to change without notice.\n\n5. Limitation of Liability. To the maximum extent permitted by law, All-Access Peptides disclaims all warranties, express or implied, regarding products supplied for research use.\n\nContact us with any questions about these terms.`,
+    body: `PLACEHOLDER — final legal language to be supplied by counsel.\n\nThese Terms & Conditions govern use of the All-Access Peptides website and the purchase of products offered through it.\n\n1. Research Use Only. All products sold through this website are intended strictly for laboratory research purposes only and are not for human or veterinary consumption of any kind.\n\n2. Eligibility. You must be at least 21 years of age, a qualified researcher or purchasing on behalf of a research institution or organization, and must maintain an account in good standing to purchase.\n\n3. Orders. All orders are subject to acceptance and product availability. We reserve the right to refuse or cancel any order.\n\n4. Pricing. Prices, promotions, and availability are subject to change without notice.\n\n5. Limitation of Liability. To the maximum extent permitted by law, All-Access Peptides disclaims all warranties, express or implied, regarding products supplied for research use.\n\nContact us with any questions about these terms.`,
   },
   {
     slug: 'privacy',
