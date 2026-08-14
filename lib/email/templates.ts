@@ -1,5 +1,6 @@
 import 'server-only'
 import { formatCents, RESEARCH_DISCLAIMER_SHORT } from '../constants'
+import { absoluteUrl } from '../site'
 
 // Brand-consistent transactional email layout: black/white, subtle gold
 // accents, single clear CTA, mobile-friendly single column.
@@ -31,8 +32,7 @@ export function layout(opts: {
     <tr><td align="center">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#111111;border:1px solid rgba(255,255,255,0.14);border-radius:8px">
         <tr><td style="padding:28px 32px 20px;border-bottom:1px solid rgba(255,255,255,0.1);text-align:center">
-          <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#ffffff;letter-spacing:0.18em">AA</div>
-          <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:${GOLD};letter-spacing:0.32em;margin-top:4px">ALL-ACCESS PEPTIDES</div>
+          <img src="${absoluteUrl('/brand/aa-logo.png')}" width="150" height="100" alt="All-Access Peptides" style="display:inline-block;border:0" />
         </td></tr>
         <tr><td style="padding:32px;font-family:Arial,Helvetica,sans-serif;color:#e5e5e5;font-size:15px;line-height:1.6">
           <h1 style="margin:0 0 16px;font-size:20px;color:#ffffff;letter-spacing:0.02em">${escapeHtml(opts.title)}</h1>

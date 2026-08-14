@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { AAMark, Tagline } from './Logo'
+import { LogoImage, Tagline } from './Logo'
 import { SITE_GATE_COOKIE, SITE_GATE_STATEMENTS } from '@/lib/constants'
 
 // Full-site entry gate. Purely a legal/UX checkpoint (not an access-control
@@ -46,8 +46,8 @@ export function SiteGateModal() {
     >
       <div className="hex-texture panel w-full max-w-md p-6 sm:p-8">
         <div className="text-center">
-          <div className="mx-auto mb-3 flex justify-center text-fg">
-            <AAMark size={48} />
+          <div className="mx-auto mb-3 flex justify-center">
+            <LogoImage height={72} priority />
           </div>
           <Tagline className="mb-4" />
           <h1 id="site-gate-heading" className="text-2xl font-bold tracking-tight">

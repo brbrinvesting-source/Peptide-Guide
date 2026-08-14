@@ -1,4 +1,4 @@
-import { AAMark, Tagline } from './Logo'
+import { LogoImage, Tagline } from './Logo'
 
 export function AuthShell({
   title,
@@ -13,8 +13,8 @@ export function AuthShell({
     <div className="hex-texture flex min-h-[70vh] items-center justify-center px-4 py-16">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-3 flex justify-center text-fg">
-            <AAMark size={48} />
+          <div className="mx-auto mb-3 flex justify-center">
+            <LogoImage height={72} priority />
           </div>
           <Tagline className="mb-3" />
           <h1 className="text-2xl font-bold tracking-tight">{title}</h1>

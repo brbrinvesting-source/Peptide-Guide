@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { getSettings, SETTING_KEYS } from '@/lib/settings'
 import { RESEARCH_DISCLAIMER_SHORT } from '@/lib/constants'
-import { AAMark, Tagline } from './Logo'
+import { LogoImage, Tagline } from './Logo'
 
 export async function SiteFooter() {
   const settings = await getSettings([
@@ -43,14 +43,8 @@ export async function SiteFooter() {
       <div className="mx-auto max-w-6xl px-4 py-12">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <div className="flex items-center gap-3 text-fg">
-              <AAMark size={40} />
-              <span className="flex flex-col leading-tight">
-                <span className="text-sm font-bold tracking-[0.22em]">ALL-ACCESS</span>
-                <span className="text-[0.65rem] tracking-[0.42em] text-gold">PEPTIDES</span>
-              </span>
-            </div>
-            <Tagline className="mt-2" />
+            <LogoImage height={64} />
+            <Tagline className="mt-3" />
             <p className="mt-4 max-w-xs text-xs leading-relaxed text-muted">
               Research compounds with transparent documentation. {RESEARCH_DISCLAIMER_SHORT}
             </p>

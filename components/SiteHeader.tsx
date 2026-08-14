@@ -33,8 +33,8 @@ export async function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-ink/95 backdrop-blur">
-      <div className="relative mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
-        <Logo />
+      <div className="relative mx-auto flex h-20 max-w-6xl items-center justify-between gap-4 px-4">
+        <Logo height={56} />
         <nav aria-label="Primary" className="hidden items-center gap-7 md:flex">
           {links.map((l) => (
             <Link

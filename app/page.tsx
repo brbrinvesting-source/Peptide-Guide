@@ -4,7 +4,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { getBulkTiers, getFreeShippingThresholdCents } from '@/lib/settings'
 import { formatCents } from '@/lib/constants'
 import { ProductCard, type CatalogProduct } from '@/components/ProductCard'
-import { AAMark } from '@/components/Logo'
+import { LogoImage } from '@/components/Logo'
 import { VialImage } from '@/components/VialImage'
 
 export default async function HomePage() {
@@ -107,8 +107,8 @@ export default async function HomePage() {
             <div className="panel h-full w-full overflow-hidden">
               <VialImage name="All-Access" vialSize="Research Series" />
             </div>
-            <div className="absolute -right-3 -bottom-3 flex items-center gap-2 rounded-md border border-gold/50 bg-ink px-4 py-2.5">
-              <AAMark size={22} />
+            <div className="absolute -right-3 -bottom-3 flex items-center gap-2.5 rounded-md border border-gold/50 bg-ink px-4 py-2.5">
+              <LogoImage height={32} />
               <span className="text-[0.65rem] tracking-[0.24em] text-gold uppercase">
                 Catalog access with account
               </span>
