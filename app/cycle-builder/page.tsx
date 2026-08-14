@@ -249,6 +249,84 @@ const emptyForm = () => ({
   titration: [] as TitrationStep[],
 });
 
+// ─── Quick Add Templates ──────────────────────────────────────────────────────
+
+const QUICK_ADD_TEMPLATES: {
+  id: string;
+  label: string;
+  sublabel: string;
+  peptideId: string;
+  dose: string;
+  doseUnit: DoseUnit;
+  frequency: Frequency;
+  customDays: number[];
+  timeOfDay: '' | 'AM' | 'PM';
+  route: AdminRoute;
+  vialSize: string;
+  vialWaterMl: string;
+  cycleLengthValue: string;
+  cycleLengthUnit: 'days' | 'weeks';
+  titration: { offsetDays: number; dose: string }[];
+}[] = [
+  {
+    id: 'retatrutide',
+    label: 'Retatrutide',
+    sublabel: '1mg → 4mg titration · Weekly · 16 wk',
+    peptideId: 'retatrutide',
+    dose: '1',
+    doseUnit: 'mg',
+    frequency: 'Weekly',
+    customDays: [],
+    timeOfDay: 'AM',
+    route: 'subcutaneous',
+    vialSize: '30',
+    vialWaterMl: '3',
+    cycleLengthValue: '16',
+    cycleLengthUnit: 'weeks',
+    titration: [
+      { offsetDays: 21, dose: '2' },
+      { offsetDays: 42, dose: '3' },
+      { offsetDays: 63, dose: '4' },
+      { offsetDays: 84, dose: '2' },
+      { offsetDays: 98, dose: '1' },
+    ],
+  },
+  {
+    id: 'mots-c',
+    label: 'MOTS-C',
+    sublabel: '1mg · Mon–Fri · 12 wk',
+    peptideId: 'mots-c',
+    dose: '1',
+    doseUnit: 'mg',
+    frequency: 'Custom Days',
+    customDays: [1, 2, 3, 4, 5],
+    timeOfDay: 'AM',
+    route: 'subcutaneous',
+    vialSize: '40',
+    vialWaterMl: '2',
+    cycleLengthValue: '12',
+    cycleLengthUnit: 'weeks',
+    titration: [],
+  },
+  {
+    id: 'klow-blend',
+    label: 'KLOW Blend',
+    sublabel: '1mg · Daily · 12 wk',
+    peptideId: 'klow-blend',
+    dose: '1',
+    doseUnit: 'mg',
+    frequency: 'Daily',
+    customDays: [],
+    timeOfDay: 'PM',
+    route: 'subcutaneous',
+    vialSize: '80',
+    vialWaterMl: '2',
+    cycleLengthValue: '12',
+    cycleLengthUnit: 'weeks',
+    titration: [],
+  },
+];
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function TabButton({
@@ -509,6 +587,9 @@ function CycleBuilderInner() {
   const [titrationDurationUnit, setTitrationDurationUnit] = useState<'days' | 'weeks'>('days');
   const [titrationDose, setTitrationDose] = useState('');
 
+  // Template titration: duration-based steps that recompute when startDate changes
+  const [templateTitration, setTemplateTitration] = useState<{ offsetDays: number; dose: string }[]>([]);
+
   // Pre-select peptide from query param
   useEffect(() => {
     if (addPeptideId) {
@@ -526,6 +607,17 @@ function CycleBuilderInner() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entryForm.startDate, cycleLengthValue, cycleLengthUnit]);
+
+  // When a quick-add template has titration, compute absolute dates once startDate is set
+  useEffect(() => {
+    if (templateTitration.length === 0 || !entryForm.startDate) return;
+    const steps = templateTitration.map(({ offsetDays, dose }) => ({
+      date: addDays(entryForm.startDate, offsetDays),
+      dose,
+    }));
+    setEntryForm((f) => ({ ...f, titration: steps }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entryForm.startDate, templateTitration]);
 
   // ── Dose Log state ──
   const [logCycleId, setLogCycleId] = useState<string | null>(null);
@@ -554,6 +646,34 @@ function CycleBuilderInner() {
     return `${weeks} week${weeks !== 1 ? 's' : ''}`;
   }
 
+  // ── Quick add handler ──
+  function handleQuickAdd(t: typeof QUICK_ADD_TEMPLATES[number]) {
+    setEntryForm({
+      peptideId: t.peptideId,
+      dose: t.dose,
+      doseUnit: t.doseUnit,
+      frequency: t.frequency,
+      customDays: [...t.customDays],
+      timeOfDay: t.timeOfDay,
+      route: t.route,
+      startDate: '',
+      endDate: '',
+      notes: '',
+      vialSize: t.vialSize,
+      vialWaterMl: t.vialWaterMl,
+      titration: [],
+    });
+    setCycleLengthValue(t.cycleLengthValue);
+    setCycleLengthUnit(t.cycleLengthUnit);
+    setTemplateTitration(t.titration);
+    setEditingEntryIdx(null);
+    setFormError('');
+    setShowTitrationInput(false);
+    setTitrationDurationValue('');
+    setTitrationDurationUnit('days');
+    setTitrationDose('');
+  }
+
   // ── Titration step handler ──
   function handleAddTitrationStep() {
     const durationDays = titrationDurationUnit === 'weeks'
@@ -572,6 +692,7 @@ function CycleBuilderInner() {
       ...f,
       titration: [...f.titration, { date: newDate, dose: titrationDose }],
     }));
+    setTemplateTitration([]);
     setTitrationDurationValue('');
     setTitrationDose('');
     setShowTitrationInput(false);
@@ -640,6 +761,7 @@ function CycleBuilderInner() {
     setTitrationDurationValue('');
     setTitrationDurationUnit('days');
     setTitrationDose('');
+    setTemplateTitration([]);
   }
 
   function handleEditEntry(idx: number) {
@@ -1121,6 +1243,28 @@ function CycleBuilderInner() {
               </div>
             </div>
 
+            {/* Quick Add */}
+            {editingEntryIdx === null && (
+              <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">
+                  Quick Add
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {QUICK_ADD_TEMPLATES.map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => handleQuickAdd(t)}
+                      className="flex flex-col items-start px-3.5 py-2.5 rounded-lg border border-gray-700 hover:border-green-500/50 bg-gray-800 hover:bg-gray-750 transition-colors text-left"
+                    >
+                      <span className="text-xs font-semibold text-gray-200">{t.label}</span>
+                      <span className="text-xs text-gray-500 mt-0.5">{t.sublabel}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Add peptide form */}
             <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
               <h2 className="text-base font-semibold text-gray-100 mb-5">
@@ -1379,10 +1523,13 @@ function CycleBuilderInner() {
                               </span>
                               <button
                                 type="button"
-                                onClick={() => setEntryForm((f) => ({
-                                  ...f,
-                                  titration: f.titration.filter((_, j) => j !== si),
-                                }))}
+                                onClick={() => {
+                                  setTemplateTitration([]);
+                                  setEntryForm((f) => ({
+                                    ...f,
+                                    titration: f.titration.filter((_, j) => j !== si),
+                                  }));
+                                }}
                                 className="ml-3 text-xs text-red-500 hover:text-red-400 transition-colors"
                               >
                                 Remove
@@ -1491,6 +1638,7 @@ function CycleBuilderInner() {
                     onClick={() => {
                       setEditingEntryIdx(null);
                       setEntryForm(emptyForm());
+                      setTemplateTitration([]);
                       setFormError('');
                     }}
                     className="px-4 py-2 rounded-lg border border-gray-700 text-gray-400 hover:text-gray-200 text-sm transition-colors"
