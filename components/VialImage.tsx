@@ -1,5 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 
+import { AAMarkGraphic } from './Logo'
+
 // Consistent product imagery. When the admin has uploaded a photo it is used;
 // otherwise a brand-consistent vial rendering (clearly a placeholder, not a
 // photograph) keeps the catalog uniform.
@@ -44,14 +46,10 @@ export function VialImage({
         <rect x="34" y="35" width="52" height="112" rx="6" fill="#101114" stroke="rgba(255,255,255,0.4)" strokeWidth="1.25" />
         {/* label */}
         <rect x="38" y="52" width="44" height="76" rx="2" fill="#0d0e10" stroke="rgba(255,255,255,0.18)" strokeWidth="0.6" />
-        {/* AA mark: two peak strokes + gold ascending data-line */}
-        <path d="M46 66 L52.5 52 L59 66" stroke="#f5f5f4" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-        <path d="M51 66 L57.5 52 L64 66" stroke="#f5f5f4" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-        <polyline points="43,63 48,60 53,62 58,55 63,57 67,50" stroke="#c9a961" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-        <circle cx="43" cy="63" r="1" fill="#c9a961" />
-        <circle cx="53" cy="62" r="1" fill="#c9a961" />
-        <circle cx="63" cy="57" r="1" fill="#c9a961" />
-        <circle cx="67" cy="50" r="1" fill="#c9a961" />
+        {/* AA mark — same geometry as the shared Logo component */}
+        <g transform="translate(47,48) scale(0.2167)">
+          <AAMarkGraphic fill="#f5f5f4" />
+        </g>
         <text x="60" y="75" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="700" fontSize="4.2" letterSpacing="0.6" fill="#f5f5f4">
           ALL-ACCESS
         </text>
