@@ -34,6 +34,31 @@ export default async function CheckoutPage() {
   const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ''
   const insuranceCents = await getInsuranceCents(pricing.merchandiseTotalCents)
 
+  const lastOrder = await prisma.order.findFirst({
+    where: { userId: user.id, shippingAddressId: { not: null } },
+    orderBy: { createdAt: 'desc' },
+    include: { shippingAddress: true, billingAddress: true },
+  })
+  const toAddressValue = (a: NonNullable<typeof lastOrder>['shippingAddress']) =>
+    a
+      ? {
+          name: a.name,
+          line1: a.line1,
+          line2: a.line2 ?? '',
+          city: a.city,
+          state: a.state,
+          postalCode: a.postalCode,
+          phone: a.phone ?? '',
+        }
+      : null
+  const savedShipping = toAddressValue(lastOrder?.shippingAddress ?? null)
+  const savedBillingRaw = toAddressValue(lastOrder?.billingAddress ?? null)
+  const savedBillingSame =
+    !savedBillingRaw ||
+    (savedShipping !== null &&
+      savedBillingRaw.line1 === savedShipping.line1 &&
+      savedBillingRaw.postalCode === savedShipping.postalCode)
+
   return (
     <CheckoutClient
       customer={{ email: user.email }}
@@ -52,6 +77,8 @@ export default async function CheckoutPage() {
       }}
       promoCode={pricing.promo && !pricing.promo.error ? pricing.promo.code : null}
       insuranceCents={insuranceCents}
+      savedShipping={savedShipping}
+      savedBilling={savedBillingSame ? null : savedBillingRaw}
       shippingMethods={shippingMethods.map((m) => ({
         id: m.id,
         name: m.name,

@@ -50,6 +50,8 @@ export function CheckoutClient(props: {
   totals: Totals
   promoCode: string | null
   insuranceCents: number | null
+  savedShipping: AddressValue | null
+  savedBilling: AddressValue | null
   shippingMethods: {
     id: string
     name: string
@@ -61,9 +63,9 @@ export function CheckoutClient(props: {
   acknowledgementText: string
   stripePublishableKey: string
 }) {
-  const [shipping, setShippingRaw] = useState<AddressValue>(emptyAddress)
-  const [billingSame, setBillingSame] = useState(true)
-  const [billing, setBilling] = useState<AddressValue>(emptyAddress)
+  const [shipping, setShippingRaw] = useState<AddressValue>(props.savedShipping ?? emptyAddress)
+  const [billingSame, setBillingSame] = useState(!props.savedBilling)
+  const [billing, setBilling] = useState<AddressValue>(props.savedBilling ?? emptyAddress)
   const [shippingMethodId, setShippingMethodId] = useState(props.shippingMethods[0].id)
   const [insuranceElected, setInsuranceElected] = useState(false)
   const [accepted, setAccepted] = useState(false)
@@ -206,9 +208,20 @@ export function CheckoutClient(props: {
 
               {/* Shipping */}
               <section aria-labelledby="shipping-heading">
-                <h2 id="shipping-heading" className="microlabel">
-                  2 · Shipping address (U.S. only)
-                </h2>
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <h2 id="shipping-heading" className="microlabel">
+                    2 · Shipping address (U.S. only)
+                  </h2>
+                  {props.savedShipping && (
+                    <button
+                      type="button"
+                      onClick={() => setShipping(emptyAddress)}
+                      className="text-xs text-muted underline-offset-2 hover:text-fg hover:underline"
+                    >
+                      Filled from your last order — clear
+                    </button>
+                  )}
+                </div>
                 <AddressFields value={shipping} onChange={setShipping} idPrefix="ship" />
               </section>
 
