@@ -15,8 +15,8 @@ async function main() {
   const password = process.env.INITIAL_ADMIN_PASSWORD
 
   if (!email || !password) {
-    console.error('Set INITIAL_ADMIN_EMAIL and INITIAL_ADMIN_PASSWORD environment variables.')
-    process.exit(1)
+    console.log('Skipping admin bootstrap: INITIAL_ADMIN_EMAIL / INITIAL_ADMIN_PASSWORD not set.')
+    process.exit(0)
   }
   if (password.length < 12) {
     console.error('Admin password must be at least 12 characters.')

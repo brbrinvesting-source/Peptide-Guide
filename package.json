@@ -4,7 +4,7 @@
   "description": "All-Access Peptides — research-use-only ecommerce platform",
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && prisma migrate deploy && next build",
+    "build": "prisma generate && prisma migrate deploy && tsx scripts/create-admin.ts && next build",
     "start": "next start",
     "lint": "eslint app lib components scripts",
     "db:generate": "prisma generate",
