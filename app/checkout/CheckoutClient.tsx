@@ -44,7 +44,7 @@ interface FinalTotals {
 }
 
 export function CheckoutClient(props: {
-  customer: { email: string; name: string }
+  customer: { email: string }
   lines: { name: string; vialSize: string; quantity: number; lineTotalCents: number }[]
   totals: Totals
   promoCode: string | null
@@ -59,7 +59,6 @@ export function CheckoutClient(props: {
   acknowledgementText: string
   stripePublishableKey: string
 }) {
-  const [customerName, setCustomerName] = useState(props.customer.name)
   const [shipping, setShippingRaw] = useState<AddressValue>(emptyAddress)
   const [billingSame, setBillingSame] = useState(true)
   const [billing, setBilling] = useState<AddressValue>(emptyAddress)
@@ -152,7 +151,7 @@ export function CheckoutClient(props: {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          customerName,
+          customerName: shipping.name,
           shipping: { ...shipping, line2: shipping.line2 || '', phone: shipping.phone || '' },
           billingSameAsShipping: billingSame,
           billing: billingSame ? null : billing,
@@ -192,26 +191,11 @@ export function CheckoutClient(props: {
                 <h2 id="customer-heading" className="microlabel">
                   1 · Customer
                 </h2>
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <label htmlFor="customerName" className="mb-1.5 block text-xs text-muted">
-                      Full name
-                    </label>
-                    <input
-                      id="customerName"
-                      required
-                      value={customerName}
-                      onChange={(e) => setCustomerName(e.target.value)}
-                      autoComplete="name"
-                      className="field"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="email" className="mb-1.5 block text-xs text-muted">
-                      Email
-                    </label>
-                    <input id="email" value={props.customer.email} readOnly className="field opacity-60" />
-                  </div>
+                <div className="mt-3">
+                  <label htmlFor="email" className="mb-1.5 block text-xs text-muted">
+                    Email
+                  </label>
+                  <input id="email" value={props.customer.email} readOnly className="field opacity-60 sm:max-w-xs" />
                 </div>
               </section>
 

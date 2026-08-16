@@ -34,7 +34,7 @@ export default async function CheckoutPage() {
 
   return (
     <CheckoutClient
-      customer={{ email: user.email, name: [user.firstName, user.lastName].filter(Boolean).join(' ') }}
+      customer={{ email: user.email }}
       lines={pricing.lines.map((l) => ({
         name: l.name,
         vialSize: l.vialSize,
