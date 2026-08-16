@@ -106,8 +106,17 @@ export async function sendEmail(type: EmailType, msg: EmailMessage, meta?: unkno
   const settings = await getSettings([
     SETTING_KEYS.EMAIL_SENDER_NAME,
     SETTING_KEYS.EMAIL_SENDER_ADDRESS,
+    SETTING_KEYS.WELCOME_SENDER_NAME,
+    SETTING_KEYS.WELCOME_SENDER_ADDRESS,
   ])
-  const from = `${settings[SETTING_KEYS.EMAIL_SENDER_NAME]} <${settings[SETTING_KEYS.EMAIL_SENDER_ADDRESS]}>`
+  const useWelcomeSender = type === 'WELCOME' && settings[SETTING_KEYS.WELCOME_SENDER_ADDRESS]
+  const senderName = useWelcomeSender
+    ? settings[SETTING_KEYS.WELCOME_SENDER_NAME] || settings[SETTING_KEYS.EMAIL_SENDER_NAME]
+    : settings[SETTING_KEYS.EMAIL_SENDER_NAME]
+  const senderAddress = useWelcomeSender
+    ? settings[SETTING_KEYS.WELCOME_SENDER_ADDRESS]
+    : settings[SETTING_KEYS.EMAIL_SENDER_ADDRESS]
+  const from = `${senderName} <${senderAddress}>`
   try {
     await getProvider().send({ ...msg, from })
     await prisma.emailEvent.create({

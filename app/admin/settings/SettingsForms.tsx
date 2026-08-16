@@ -22,6 +22,8 @@ const K = {
   ABANDONED_CART_SUBJECT: 'email.abandonedCartSubject',
   EMAIL_SENDER_NAME: 'email.senderName',
   EMAIL_SENDER_ADDRESS: 'email.senderAddress',
+  WELCOME_SENDER_NAME: 'email.welcomeSenderName',
+  WELCOME_SENDER_ADDRESS: 'email.welcomeSenderAddress',
   ADMIN_NOTIFICATION_EMAIL: 'email.adminNotificationAddress',
   TAX_PROVIDER: 'tax.provider',
   TAX_FLAT_RATE_BPS: 'tax.flatRateBps',
@@ -180,6 +182,20 @@ export function SettingsForms({
         <div className="grid grid-cols-2 gap-3">
           <Field label="Sender name" name={K.EMAIL_SENDER_NAME} defaultValue={v(K.EMAIL_SENDER_NAME)} />
           <Field label="Sender address" name={K.EMAIL_SENDER_ADDRESS} defaultValue={v(K.EMAIL_SENDER_ADDRESS)} />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Field
+            label="Welcome email sender name"
+            name={K.WELCOME_SENDER_NAME}
+            defaultValue={v(K.WELCOME_SENDER_NAME)}
+            hint="Optional override for the welcome email only. Empty = use sender name above."
+          />
+          <Field
+            label="Welcome email sender address"
+            name={K.WELCOME_SENDER_ADDRESS}
+            defaultValue={v(K.WELCOME_SENDER_ADDRESS)}
+            hint="Optional override. Empty = use sender address above."
+          />
         </div>
         <Field
           label="Admin notification email"

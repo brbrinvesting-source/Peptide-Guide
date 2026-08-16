@@ -16,6 +16,8 @@ export const SETTING_KEYS = {
   ABANDONED_CART_SUBJECT: 'email.abandonedCartSubject',
   EMAIL_SENDER_NAME: 'email.senderName',
   EMAIL_SENDER_ADDRESS: 'email.senderAddress',
+  WELCOME_SENDER_NAME: 'email.welcomeSenderName',
+  WELCOME_SENDER_ADDRESS: 'email.welcomeSenderAddress',
   ADMIN_NOTIFICATION_EMAIL: 'email.adminNotificationAddress',
   TAX_PROVIDER: 'tax.provider', // 'stripe' | 'flat' | 'none'
   TAX_FLAT_RATE_BPS: 'tax.flatRateBps', // basis points fallback when provider = 'flat'
@@ -44,6 +46,8 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   [SETTING_KEYS.ABANDONED_CART_SUBJECT]: 'You left something behind',
   [SETTING_KEYS.EMAIL_SENDER_NAME]: 'All-Access Peptides',
   [SETTING_KEYS.EMAIL_SENDER_ADDRESS]: 'no-reply@all-accesspeptides.com',
+  [SETTING_KEYS.WELCOME_SENDER_NAME]: '',
+  [SETTING_KEYS.WELCOME_SENDER_ADDRESS]: '',
   [SETTING_KEYS.ADMIN_NOTIFICATION_EMAIL]: '',
   [SETTING_KEYS.TAX_PROVIDER]: 'stripe',
   [SETTING_KEYS.TAX_FLAT_RATE_BPS]: '0',
