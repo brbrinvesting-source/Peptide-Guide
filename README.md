@@ -11,7 +11,7 @@ bulk + promo discounts, transactional email, and a full admin back office.
 ## Stack
 
 - **Next.js 16** (App Router, server components + server actions) · TypeScript · Tailwind CSS 4
-- **Prisma ORM** — SQLite in development, Postgres-ready for production (money stored as integer cents)
+- **Prisma ORM** — Postgres (money stored as integer cents; dev and prod both use a real Postgres instance, e.g. Netlify DB / Neon)
 - **Stripe** (Payment Element + verified webhooks + Stripe Tax) behind a payment-provider abstraction
 - **Email** behind a provider abstraction — Resend over HTTPS, or `console` provider in dev
 - **Private file storage** for COA PDFs (never in `public/`), served through authenticated routes

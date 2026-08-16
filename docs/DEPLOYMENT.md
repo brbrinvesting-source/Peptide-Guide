@@ -3,32 +3,32 @@
 ## 1. Requirements
 
 - Node.js 20+ (22 recommended)
-- A **Postgres** database (production) — SQLite is for development only
+- A **Postgres** database (this project uses Netlify DB, which is Neon under the hood — provision
+  it from the Netlify site's **Database** tab)
 - A **Stripe** account (payments; enable **Stripe Tax** for dynamic sales tax)
 - A transactional email provider (Resend supported out of the box)
-- A host that supports Next.js SSR **with a persistent or external file store** for COA PDFs
+- A host that supports Next.js SSR **with a persistent or external file store** for COA PDFs —
+  this project deploys on **Netlify**, whose functions have an *ephemeral* filesystem (see §7)
 
-## 2. Switching the database to Postgres
+## 2. Database
 
-1. In `prisma/schema.prisma` change:
-   ```prisma
-   datasource db {
-     provider = "postgresql"
-     url      = env("DATABASE_URL")
-   }
-   ```
-2. Set `DATABASE_URL=postgresql://user:pass@host:5432/dbname`
-3. Regenerate migrations for Postgres (one-time, from a clean schema):
-   ```bash
-   rm -rf prisma/migrations
-   npx prisma migrate dev --name init   # against a dev Postgres
-   ```
-4. Deploy migrations in production with `npx prisma migrate deploy`, then `npm run db:seed`.
+The schema targets Postgres directly (`prisma/schema.prisma`, `datasource db { provider =
+"postgresql" }`). To bootstrap a brand new database (only needed once, or after a schema change
+with no migrations committed yet):
+
+```bash
+DATABASE_URL="<your Postgres connection string>" npx prisma migrate dev --name init
+```
+
+This creates `prisma/migrations/` and applies it directly. Commit and push that folder — every
+subsequent Netlify build runs `prisma migrate deploy` automatically (it's part of the `build`
+script in `package.json`), so future schema changes just need a normal migration committed to
+the repo; no manual production migration step required after this first one.
 
 Notes:
 - All money fields are integer cents — no decimal-type concerns.
 - Search uses `contains`; on Postgres add `mode: 'insensitive'` in the catalog/COA queries or
-  add trigram indexes if case-sensitivity becomes an issue (SQLite LIKE was case-insensitive).
+  add trigram indexes if case-sensitivity becomes an issue.
 
 ## 3. Environment variables
 
@@ -95,14 +95,19 @@ Schedule every 15 minutes (cron, GitHub Actions, hosting scheduler):
   an external image URL instead — on serverless/immutable-filesystem hosts, use the URL option
   with your CDN/bucket.
 
-## 8. Hosting notes
+## 8. Hosting notes (Netlify)
 
-- The repo includes `netlify.toml` for Netlify's Next runtime. On Netlify (or any serverless
-  host) the filesystem is ephemeral: use Postgres, an external object store for
-  `FILE_STORAGE_DIR` (or a follow-up S3 storage adapter), and image URLs rather than local
-  uploads. A single VM/container (e.g. Fly.io, Railway, a VPS behind nginx with TLS) is the
-  simplest fully-supported production shape.
-- HTTPS is required in production (secure session cookies + HSTS are already configured).
+- The repo includes `netlify.toml`, already configured for Netlify's official Next.js runtime
+  (`@netlify/plugin-nextjs`) — connecting the GitHub repo as a new Netlify site should need no
+  extra build configuration.
+- **Netlify's functions have an ephemeral filesystem.** `FILE_STORAGE_DIR` (COA PDFs) and
+  admin-uploaded product image *files* will not persist between requests/deploys on Netlify as
+  currently implemented — only the "paste an image URL" option is safe to use for product images
+  on Netlify today. Before uploading real COAs in production, this needs an external object
+  store (Cloudflare R2 or S3) wired into `lib/storage.ts`, whose interface was deliberately kept
+  small for exactly this swap. Flag this before relying on COA uploads in production.
+- HTTPS is provisioned automatically once a custom domain's DNS is verified in Netlify's
+  **Domain management**.
 
 ## 9. Post-deploy verification
 

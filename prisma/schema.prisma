@@ -1,17 +1,16 @@
 // All-Access Peptides — database schema
 //
 // Money is stored as INTEGER CENTS everywhere (no floats).
-// Dev database is SQLite; for production switch the datasource provider to
-// "postgresql" and regenerate migrations (see docs/DEPLOYMENT.md).
-// Enum-like fields use strings validated in lib/constants.ts so the schema
-// stays portable between SQLite and Postgres.
+// Postgres (Neon via Netlify DB in production). Enum-like fields use plain
+// strings validated in lib/constants.ts rather than native Postgres enums,
+// kept from the schema's original SQLite-compatible design.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
