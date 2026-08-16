@@ -123,6 +123,7 @@ export function orderConfirmationEmail(opts: {
   bulkDiscountCents: number
   promoDiscountCents: number
   shippingCents: number
+  insuranceCents: number
   taxCents: number
   totalCents: number
   orderUrl: string
@@ -133,6 +134,7 @@ export function orderConfirmationEmail(opts: {
       ${opts.bulkDiscountCents > 0 ? `<tr><td style="padding:4px 0;color:#8a8a8a">Bulk discount</td><td style="text-align:right;color:${GOLD}">−${formatCents(opts.bulkDiscountCents)}</td></tr>` : ''}
       ${opts.promoDiscountCents > 0 ? `<tr><td style="padding:4px 0;color:#8a8a8a">Promo discount</td><td style="text-align:right;color:${GOLD}">−${formatCents(opts.promoDiscountCents)}</td></tr>` : ''}
       <tr><td style="padding:4px 0;color:#8a8a8a">Shipping</td><td style="text-align:right;color:#e5e5e5">${opts.shippingCents === 0 ? 'FREE' : formatCents(opts.shippingCents)}</td></tr>
+      ${opts.insuranceCents > 0 ? `<tr><td style="padding:4px 0;color:#8a8a8a">Shipping insurance</td><td style="text-align:right;color:#e5e5e5">${formatCents(opts.insuranceCents)}</td></tr>` : ''}
       <tr><td style="padding:4px 0;color:#8a8a8a">Tax</td><td style="text-align:right;color:#e5e5e5">${formatCents(opts.taxCents)}</td></tr>
       <tr><td style="padding:10px 0;color:#ffffff;font-weight:700;border-top:1px solid rgba(255,255,255,0.14)">Total</td><td style="text-align:right;color:#ffffff;font-weight:700;border-top:1px solid rgba(255,255,255,0.14);padding:10px 0">${formatCents(opts.totalCents)}</td></tr>
     </table>`

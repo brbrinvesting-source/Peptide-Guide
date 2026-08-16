@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { requireUser } from '@/lib/auth'
 import { loadActiveCart, priceCart } from '@/lib/cart'
 import { prisma } from '@/lib/db'
+import { getInsuranceCents } from '@/lib/settings'
 import { CHECKOUT_ACKNOWLEDGEMENT_TEXT } from '@/lib/constants'
 import { CheckoutClient } from './CheckoutClient'
 
@@ -31,6 +32,7 @@ export default async function CheckoutPage() {
   }
 
   const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ''
+  const insuranceCents = await getInsuranceCents(pricing.merchandiseTotalCents)
 
   return (
     <CheckoutClient
@@ -49,6 +51,7 @@ export default async function CheckoutPage() {
         freeShippingQualified: pricing.freeShippingQualified,
       }}
       promoCode={pricing.promo && !pricing.promo.error ? pricing.promo.code : null}
+      insuranceCents={insuranceCents}
       shippingMethods={shippingMethods.map((m) => ({
         id: m.id,
         name: m.name,

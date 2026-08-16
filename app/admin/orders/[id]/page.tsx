@@ -66,6 +66,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
               {order.bulkDiscountCents > 0 && <div className="flex justify-between"><dt className="text-muted">Bulk discount</dt><dd className="text-gold">−{formatCents(order.bulkDiscountCents)}</dd></div>}
               {order.promoDiscountCents > 0 && <div className="flex justify-between"><dt className="text-muted">Promo ({order.promoCodeText})</dt><dd className="text-gold">−{formatCents(order.promoDiscountCents)}</dd></div>}
               <div className="flex justify-between"><dt className="text-muted">Shipping ({order.shippingMethodName ?? '—'})</dt><dd>{formatCents(order.shippingCents)}</dd></div>
+              {order.insuranceCents > 0 && <div className="flex justify-between"><dt className="text-muted">Shipping insurance</dt><dd>{formatCents(order.insuranceCents)}</dd></div>}
               <div className="flex justify-between"><dt className="text-muted">Tax</dt><dd>{formatCents(order.taxCents)}</dd></div>
               <div className="flex justify-between border-t border-line pt-2 text-base font-bold"><dt>Total</dt><dd>{formatCents(order.totalCents)}</dd></div>
             </dl>

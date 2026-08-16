@@ -98,6 +98,12 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                 <dt className="text-muted">Shipping {order.shippingMethodName && `(${order.shippingMethodName})`}</dt>
                 <dd>{order.shippingCents === 0 ? 'FREE' : formatCents(order.shippingCents)}</dd>
               </div>
+              {order.insuranceCents > 0 && (
+                <div className="flex justify-between">
+                  <dt className="text-muted">Shipping insurance</dt>
+                  <dd>{formatCents(order.insuranceCents)}</dd>
+                </div>
+              )}
               <div className="flex justify-between">
                 <dt className="text-muted">Tax</dt>
                 <dd>{formatCents(order.taxCents)}</dd>

@@ -39,6 +39,7 @@ interface FinalTotals {
   bulkDiscountCents: number
   promoDiscountCents: number
   shippingCents: number
+  insuranceCents: number
   taxCents: number
   totalCents: number
 }
@@ -48,6 +49,7 @@ export function CheckoutClient(props: {
   lines: { name: string; vialSize: string; quantity: number; lineTotalCents: number }[]
   totals: Totals
   promoCode: string | null
+  insuranceCents: number | null
   shippingMethods: {
     id: string
     name: string
@@ -63,6 +65,7 @@ export function CheckoutClient(props: {
   const [billingSame, setBillingSame] = useState(true)
   const [billing, setBilling] = useState<AddressValue>(emptyAddress)
   const [shippingMethodId, setShippingMethodId] = useState(props.shippingMethods[0].id)
+  const [insuranceElected, setInsuranceElected] = useState(false)
   const [accepted, setAccepted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -137,6 +140,7 @@ export function CheckoutClient(props: {
     : selectedMethod.isLive
       ? (liveRates[selectedMethod.id] ?? null)
       : selectedMethod.priceCents
+  const insurancePreviewCents = insuranceElected ? (props.insuranceCents ?? 0) : 0
 
   async function continueToPayment(e: React.FormEvent) {
     e.preventDefault()
@@ -156,6 +160,7 @@ export function CheckoutClient(props: {
           billingSameAsShipping: billingSame,
           billing: billingSame ? null : billing,
           shippingMethodId,
+          insuranceElected,
           acceptedDisclaimer: accepted,
         }),
       })
@@ -294,6 +299,30 @@ export function CheckoutClient(props: {
                 </div>
               </section>
 
+              {/* Shipping insurance */}
+              {props.insuranceCents !== null && (
+                <section aria-labelledby="insurance-heading">
+                  <h2 id="insurance-heading" className="microlabel">
+                    5 · Shipping insurance (optional)
+                  </h2>
+                  <label className="mt-3 flex cursor-pointer items-center justify-between gap-4 rounded-md border border-line px-4 py-3.5 text-sm transition-colors hover:border-line-strong">
+                    <span className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={insuranceElected}
+                        onChange={(e) => setInsuranceElected(e.target.checked)}
+                        className="h-4 w-4 accent-[#c9a961]"
+                      />
+                      <span>
+                        <span className="font-semibold">Add shipping insurance</span>
+                        <span className="block text-xs text-muted">Covers loss or damage in transit</span>
+                      </span>
+                    </span>
+                    <span className="font-semibold">{formatCents(props.insuranceCents)}</span>
+                  </label>
+                </section>
+              )}
+
               {/* Research acknowledgement */}
               <section aria-labelledby="ack-heading" className="panel border-gold/40 p-4">
                 <h2 id="ack-heading" className="sr-only">
@@ -401,6 +430,12 @@ export function CheckoutClient(props: {
                         : formatCents(shippingPreviewCents)
                 }
               />
+              {((payment?.totals.insuranceCents ?? insurancePreviewCents) > 0) && (
+                <Row
+                  label="Shipping insurance"
+                  value={formatCents(payment ? payment.totals.insuranceCents : insurancePreviewCents)}
+                />
+              )}
               <Row label="Tax" value={payment ? formatCents(payment.totals.taxCents) : 'Calculated next step'} />
               <div className="flex justify-between border-t border-line pt-3 text-base font-bold">
                 <dt>Total</dt>
@@ -408,8 +443,8 @@ export function CheckoutClient(props: {
                   {payment
                     ? formatCents(payment.totals.totalCents)
                     : shippingPreviewCents === null
-                      ? `${formatCents(props.totals.merchandiseTotalCents)} + shipping + tax`
-                      : `${formatCents(props.totals.merchandiseTotalCents + shippingPreviewCents)} + tax`}
+                      ? `${formatCents(props.totals.merchandiseTotalCents + insurancePreviewCents)} + shipping + tax`
+                      : `${formatCents(props.totals.merchandiseTotalCents + shippingPreviewCents + insurancePreviewCents)} + tax`}
                 </dd>
               </div>
             </dl>

@@ -23,6 +23,7 @@ const bodySchema = z.object({
   billingSameAsShipping: z.boolean(),
   billing: addressSchema.nullable().optional(),
   shippingMethodId: z.string().min(1),
+  insuranceElected: z.boolean().optional().default(false),
   acceptedDisclaimer: z.literal(true),
 })
 
@@ -76,6 +77,7 @@ export async function POST(req: NextRequest) {
         ? null
         : { ...body.billing, line2: body.billing.line2 || undefined, phone: body.billing.phone || undefined },
     shippingMethodId: body.shippingMethodId,
+    insuranceElected: body.insuranceElected,
     acceptedDisclaimer: body.acceptedDisclaimer,
     cart,
   })
@@ -89,6 +91,7 @@ export async function POST(req: NextRequest) {
       bulkDiscountCents: true,
       promoDiscountCents: true,
       shippingCents: true,
+      insuranceCents: true,
       taxCents: true,
       totalCents: true,
     },

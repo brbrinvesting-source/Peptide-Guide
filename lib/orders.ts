@@ -3,7 +3,7 @@ import { prisma } from './db'
 import { priceCart, resolveShippingCents, type LoadedCart } from './cart'
 import { calculateTax } from './tax'
 import { getPaymentProvider } from './payments/provider'
-import { getSetting, SETTING_KEYS } from './settings'
+import { getSetting, getInsuranceCents, SETTING_KEYS } from './settings'
 import { sendEmail } from './email/provider'
 import {
   adminNotificationEmail,
@@ -41,6 +41,7 @@ export async function createPendingOrder(params: {
   shipping: CheckoutAddressInput
   billing: CheckoutAddressInput | null
   shippingMethodId: string
+  insuranceElected: boolean
   acceptedDisclaimer: boolean
   cart: LoadedCart
 }): Promise<
@@ -69,6 +70,12 @@ export async function createPendingOrder(params: {
   })
   if (!ship.ok) return { ok: false, error: ship.error }
 
+  // Insurance is priced on merchandise subtotal only, untaxed. Recalculated
+  // here regardless of what the client displayed as a preview.
+  const insuranceCents = params.insuranceElected
+    ? ((await getInsuranceCents(pricing.merchandiseTotalCents)) ?? 0)
+    : 0
+
   let taxCents: number
   try {
     const tax = await calculateTax({
@@ -85,7 +92,7 @@ export async function createPendingOrder(params: {
     }
   }
 
-  const totalCents = pricing.merchandiseTotalCents + ship.cents + taxCents
+  const totalCents = pricing.merchandiseTotalCents + ship.cents + insuranceCents + taxCents
   if (totalCents < 50) return { ok: false, error: 'Order total is below the payment minimum.' }
 
   const disclaimerVersion = await getSetting(SETTING_KEYS.DISCLAIMER_VERSION)
@@ -109,6 +116,7 @@ export async function createPendingOrder(params: {
         bulkDiscountCents: pricing.bulkDiscountCents,
         promoDiscountCents: pricing.promoDiscountCents,
         shippingCents: ship.cents,
+        insuranceCents,
         taxCents,
         totalCents,
         promoCodeId: params.cart.promoCodeId,
@@ -327,6 +335,7 @@ async function sendOrderPaidNotifications(orderId: string): Promise<void> {
     bulkDiscountCents: order.bulkDiscountCents,
     promoDiscountCents: order.promoDiscountCents,
     shippingCents: order.shippingCents,
+    insuranceCents: order.insuranceCents,
     taxCents: order.taxCents,
     totalCents: order.totalCents,
     orderUrl,

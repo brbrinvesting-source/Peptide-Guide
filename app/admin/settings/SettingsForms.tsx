@@ -25,6 +25,8 @@ const K = {
   SHIP_PACKAGE_WIDTH_IN: 'shipping.packageWidthIn',
   SHIP_PACKAGE_HEIGHT_IN: 'shipping.packageHeightIn',
   SHIP_PACKAGING_BUFFER_OZ: 'shipping.packagingBufferOz',
+  SHIPPING_INSURANCE_ENABLED: 'shipping.insuranceEnabled',
+  SHIPPING_INSURANCE_TIERS: 'shipping.insuranceTiers',
   BULK_TIERS: 'discounts.bulkTiers',
   WELCOME_DISCOUNT_PERCENT: 'discounts.welcomePercent',
   WELCOME_PROMO_ENABLED: 'discounts.welcomeEnabled',
@@ -217,6 +219,29 @@ export function SettingsForms({
             hint="Added to item weight for box/padding."
           />
         </div>
+      </SettingsSection>
+
+      <SettingsSection
+        title="Shipping insurance"
+        description="Optional add-on customers can elect at checkout, priced by tier on the merchandise subtotal (before shipping/tax/discounts)."
+      >
+        <label className="microlabel block">
+          Offer shipping insurance
+          <select
+            name={K.SHIPPING_INSURANCE_ENABLED}
+            defaultValue={v(K.SHIPPING_INSURANCE_ENABLED)}
+            className="field mt-1.5"
+          >
+            <option value="true">Enabled</option>
+            <option value="false">Disabled</option>
+          </select>
+        </label>
+        <Field
+          label="Insurance tiers (JSON)"
+          name={K.SHIPPING_INSURANCE_TIERS}
+          defaultValue={v(K.SHIPPING_INSURANCE_TIERS)}
+          hint='Ascending by maxCents; the last tier can use "maxCents":null for "and up". e.g. [{"maxCents":10000,"priceCents":200},{"maxCents":null,"priceCents":3000}]'
+        />
       </SettingsSection>
 
       <SettingsSection

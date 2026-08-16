@@ -20,6 +20,11 @@ export const SETTING_KEYS = {
   SHIP_PACKAGE_HEIGHT_IN: 'shipping.packageHeightIn',
   SHIP_PACKAGING_BUFFER_OZ: 'shipping.packagingBufferOz',
   BULK_TIERS: 'discounts.bulkTiers', // JSON: [{minQty, percentOff}]
+  SHIPPING_INSURANCE_ENABLED: 'shipping.insuranceEnabled',
+  // JSON: [{maxCents, priceCents}], ascending by maxCents. Last tier's
+  // maxCents may be null to mean "and up". Priced on merchandise subtotal
+  // only (before shipping/tax/discounts already applied).
+  SHIPPING_INSURANCE_TIERS: 'shipping.insuranceTiers',
   WELCOME_DISCOUNT_PERCENT: 'discounts.welcomePercent',
   WELCOME_PROMO_ENABLED: 'discounts.welcomeEnabled',
   WELCOME_PROMO_CODE: 'discounts.welcomeCode',
@@ -61,6 +66,22 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   [SETTING_KEYS.BULK_TIERS]: JSON.stringify([
     { minQty: 5, percentOff: 5 },
     { minQty: 10, percentOff: 10 },
+  ]),
+  [SETTING_KEYS.SHIPPING_INSURANCE_ENABLED]: 'true',
+  [SETTING_KEYS.SHIPPING_INSURANCE_TIERS]: JSON.stringify([
+    { maxCents: 10000, priceCents: 200 },
+    { maxCents: 20000, priceCents: 300 },
+    { maxCents: 30000, priceCents: 400 },
+    { maxCents: 40000, priceCents: 550 },
+    { maxCents: 50000, priceCents: 650 },
+    { maxCents: 60000, priceCents: 800 },
+    { maxCents: 70000, priceCents: 900 },
+    { maxCents: 80000, priceCents: 1050 },
+    { maxCents: 90000, priceCents: 1150 },
+    { maxCents: 100000, priceCents: 1300 },
+    { maxCents: 150000, priceCents: 2000 },
+    { maxCents: 200000, priceCents: 2500 },
+    { maxCents: null, priceCents: 3000 },
   ]),
   [SETTING_KEYS.WELCOME_DISCOUNT_PERCENT]: '20',
   [SETTING_KEYS.WELCOME_PROMO_ENABLED]: 'true',
@@ -119,4 +140,29 @@ export async function getBulkTiers(): Promise<BulkTier[]> {
 export async function getFreeShippingThresholdCents(): Promise<number> {
   const v = parseInt(await getSetting(SETTING_KEYS.FREE_SHIPPING_THRESHOLD_CENTS), 10)
   return Number.isFinite(v) && v >= 0 ? v : 25000
+}
+
+export interface InsuranceTier {
+  maxCents: number | null // null = no upper bound ("and up")
+  priceCents: number
+}
+
+export async function getInsuranceTiers(): Promise<InsuranceTier[]> {
+  try {
+    const raw = await getSetting(SETTING_KEYS.SHIPPING_INSURANCE_TIERS)
+    const tiers = JSON.parse(raw) as InsuranceTier[]
+    return tiers
+      .filter((t) => (t.maxCents === null || (Number.isInteger(t.maxCents) && t.maxCents > 0)) && t.priceCents > 0)
+      .sort((a, b) => (a.maxCents === null ? 1 : b.maxCents === null ? -1 : a.maxCents - b.maxCents))
+  } catch {
+    return []
+  }
+}
+
+/** Shipping insurance price for a merchandise subtotal, or null if unavailable/disabled. */
+export async function getInsuranceCents(merchandiseTotalCents: number): Promise<number | null> {
+  if ((await getSetting(SETTING_KEYS.SHIPPING_INSURANCE_ENABLED)) !== 'true') return null
+  const tiers = await getInsuranceTiers()
+  const tier = tiers.find((t) => t.maxCents === null || merchandiseTotalCents < t.maxCents)
+  return tier ? tier.priceCents : null
 }
