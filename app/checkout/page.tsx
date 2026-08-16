@@ -55,6 +55,7 @@ export default async function CheckoutPage() {
         priceCents: m.priceCents,
         deliveryEstimate: m.deliveryEstimate,
         freeShippingEligible: m.freeShippingEligible,
+        isLive: m.rateType === 'LIVE_CARRIER',
       }))}
       acknowledgementText={CHECKOUT_ACKNOWLEDGEMENT_TEXT}
       stripePublishableKey={publishableKey}

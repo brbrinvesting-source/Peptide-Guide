@@ -54,18 +54,72 @@ export function CheckoutClient(props: {
     priceCents: number
     deliveryEstimate: string | null
     freeShippingEligible: boolean
+    isLive: boolean
   }[]
   acknowledgementText: string
   stripePublishableKey: string
 }) {
   const [customerName, setCustomerName] = useState(props.customer.name)
-  const [shipping, setShipping] = useState<AddressValue>(emptyAddress)
+  const [shipping, setShippingRaw] = useState<AddressValue>(emptyAddress)
   const [billingSame, setBillingSame] = useState(true)
   const [billing, setBilling] = useState<AddressValue>(emptyAddress)
   const [shippingMethodId, setShippingMethodId] = useState(props.shippingMethods[0].id)
   const [accepted, setAccepted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const hasLiveMethods = props.shippingMethods.some((m) => m.isLive)
+  const [liveRates, setLiveRates] = useState<Record<string, number>>({})
+  const [liveRateErrors, setLiveRateErrors] = useState<Record<string, string>>({})
+  const [fetchingRates, setFetchingRates] = useState(false)
+
+  // Any address edit invalidates previously-fetched live rates.
+  function setShipping(v: AddressValue) {
+    setShippingRaw(v)
+    if (hasLiveMethods) {
+      setLiveRates({})
+      setLiveRateErrors({})
+    }
+  }
+
+  const addressComplete =
+    shipping.name.trim().length > 1 &&
+    shipping.line1.trim().length > 2 &&
+    shipping.city.trim().length > 1 &&
+    shipping.state !== '' &&
+    /^\d{5}(-\d{4})?$/.test(shipping.postalCode.trim())
+
+  async function fetchLiveRates() {
+    setFetchingRates(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/checkout/shipping-rates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          shipping: { ...shipping, line2: shipping.line2 || '', phone: shipping.phone || '' },
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error ?? 'Could not calculate live shipping rates.')
+        return
+      }
+      const rates: Record<string, number> = {}
+      const errors: Record<string, string> = {}
+      for (const [methodId, result] of Object.entries(
+        data.rates as Record<string, { cents: number } | { error: string }>
+      )) {
+        if ('cents' in result) rates[methodId] = result.cents
+        else errors[methodId] = result.error
+      }
+      setLiveRates(rates)
+      setLiveRateErrors(errors)
+    } catch {
+      setError('Network error while calculating shipping rates. Please try again.')
+    } finally {
+      setFetchingRates(false)
+    }
+  }
   const [payment, setPayment] = useState<{
     clientSecret: string
     orderNumber: string
@@ -78,14 +132,20 @@ export function CheckoutClient(props: {
   )
 
   const selectedMethod = props.shippingMethods.find((m) => m.id === shippingMethodId)!
-  const shippingPreviewCents =
-    props.totals.freeShippingQualified && selectedMethod.freeShippingEligible
-      ? 0
+  const isFreeSelected = props.totals.freeShippingQualified && selectedMethod.freeShippingEligible
+  const shippingPreviewCents = isFreeSelected
+    ? 0
+    : selectedMethod.isLive
+      ? (liveRates[selectedMethod.id] ?? null)
       : selectedMethod.priceCents
 
   async function continueToPayment(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
+    if (selectedMethod.isLive && !isFreeSelected && liveRates[selectedMethod.id] === undefined) {
+      setError('Please calculate live shipping rates for your address before continuing.')
+      return
+    }
     setSubmitting(true)
     try {
       const res = await fetch('/api/checkout/intent', {
@@ -185,13 +245,35 @@ export function CheckoutClient(props: {
                 <h2 id="method-heading" className="microlabel">
                   4 · Shipping method
                 </h2>
+                {hasLiveMethods && (
+                  <div className="mt-3 flex items-center gap-3 rounded-md border border-line/60 bg-ink/40 px-4 py-3">
+                    <button
+                      type="button"
+                      onClick={fetchLiveRates}
+                      disabled={!addressComplete || fetchingRates}
+                      className="btn btn-outline btn-sm shrink-0"
+                    >
+                      {fetchingRates ? 'Calculating…' : 'Calculate expedited shipping rates'}
+                    </button>
+                    <p className="text-xs text-muted">
+                      {addressComplete
+                        ? 'Get live 2-Day / Next Day pricing for your address.'
+                        : 'Complete your shipping address above first.'}
+                    </p>
+                  </div>
+                )}
                 <div className="mt-3 space-y-2">
                   {props.shippingMethods.map((m) => {
                     const free = props.totals.freeShippingQualified && m.freeShippingEligible
+                    const liveCents = liveRates[m.id]
+                    const liveError = liveRateErrors[m.id]
+                    const liveUnresolved = m.isLive && !free && liveCents === undefined
                     return (
                       <label
                         key={m.id}
-                        className={`flex cursor-pointer items-center justify-between gap-4 rounded-md border px-4 py-3.5 text-sm transition-colors ${
+                        className={`flex items-center justify-between gap-4 rounded-md border px-4 py-3.5 text-sm transition-colors ${
+                          liveUnresolved ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                        } ${
                           shippingMethodId === m.id ? 'border-gold bg-gold/5' : 'border-line hover:border-line-strong'
                         }`}
                       >
@@ -200,6 +282,7 @@ export function CheckoutClient(props: {
                             type="radio"
                             name="shippingMethod"
                             checked={shippingMethodId === m.id}
+                            disabled={liveUnresolved}
                             onChange={() => setShippingMethodId(m.id)}
                             className="h-4 w-4 accent-[#c9a961]"
                           />
@@ -211,7 +294,15 @@ export function CheckoutClient(props: {
                           </span>
                         </span>
                         <span className={free ? 'font-bold text-gold' : 'font-semibold'}>
-                          {free ? 'FREE' : formatCents(m.priceCents)}
+                          {free
+                            ? 'FREE'
+                            : m.isLive
+                              ? liveError
+                                ? <span className="text-xs font-normal text-danger">{liveError}</span>
+                                : liveCents !== undefined
+                                  ? formatCents(liveCents)
+                                  : <span className="text-xs font-normal text-muted">Calculate above</span>
+                              : formatCents(m.priceCents)}
                         </span>
                       </label>
                     )
@@ -236,7 +327,12 @@ export function CheckoutClient(props: {
                 </label>
               </section>
 
-              <button type="submit" className="btn btn-gold w-full" disabled={!accepted || submitting} aria-busy={submitting}>
+              <button
+                type="submit"
+                className="btn btn-gold w-full"
+                disabled={!accepted || submitting || shippingPreviewCents === null}
+                aria-busy={submitting}
+              >
                 {submitting ? 'Calculating shipping & tax…' : 'Continue to Payment'}
               </button>
             </form>
@@ -314,9 +410,11 @@ export function CheckoutClient(props: {
                     ? payment.totals.shippingCents === 0
                       ? 'FREE'
                       : formatCents(payment.totals.shippingCents)
-                    : shippingPreviewCents === 0
-                      ? 'FREE'
-                      : formatCents(shippingPreviewCents)
+                    : shippingPreviewCents === null
+                      ? 'Calculate above'
+                      : shippingPreviewCents === 0
+                        ? 'FREE'
+                        : formatCents(shippingPreviewCents)
                 }
               />
               <Row label="Tax" value={payment ? formatCents(payment.totals.taxCents) : 'Calculated next step'} />
@@ -325,7 +423,9 @@ export function CheckoutClient(props: {
                 <dd>
                   {payment
                     ? formatCents(payment.totals.totalCents)
-                    : `${formatCents(props.totals.merchandiseTotalCents + shippingPreviewCents)} + tax`}
+                    : shippingPreviewCents === null
+                      ? `${formatCents(props.totals.merchandiseTotalCents)} + shipping + tax`
+                      : `${formatCents(props.totals.merchandiseTotalCents + shippingPreviewCents)} + tax`}
                 </dd>
               </div>
             </dl>

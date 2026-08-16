@@ -106,6 +106,8 @@ model Product {
   vialSize          String // e.g. "10 mg", "10 mL", "10,000 IU"
   // Price in cents. Null = not yet priced by admin; product cannot be purchased.
   priceCents        Int?
+  // Shipping weight per unit, ounces. Used to compute live carrier rates.
+  weightOz          Float    @default(4)
   inventoryQty      Int      @default(0)
   lowStockThreshold Int      @default(5)
   description       String?
@@ -434,6 +436,10 @@ model DisclaimerAcceptance {
 model ShippingMethod {
   id                   String  @id @default(cuid())
   name                 String
+  // FLAT: priceCents is used directly. LIVE_CARRIER: priceCents is ignored;
+  // price is fetched from the carrier API (carrierServiceToken) per order.
+  rateType             String  @default("FLAT")
+  carrierServiceToken  String? // e.g. Shippo servicelevel token "ups_2nd_day_air"
   priceCents           Int
   deliveryEstimate     String? // e.g. "2–4 business days" — configurable copy, not a guarantee
   active               Boolean @default(true)

@@ -29,6 +29,8 @@ export default async function AdminSettingsPage() {
           active: m.active,
           freeShippingEligible: m.freeShippingEligible,
           sortOrder: m.sortOrder,
+          rateType: m.rateType,
+          carrierServiceToken: m.carrierServiceToken ?? '',
         }))}
         contentPages={contentPages.map((p) => ({
           slug: p.slug,

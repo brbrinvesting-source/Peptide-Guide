@@ -12,6 +12,8 @@ import {
   type PricedLine,
 } from './pricing'
 import type { Cart, CartItem, Product, ProductImage, PromoCode } from '@prisma/client'
+import { getLiveShippingRateCents, type ShipAddress } from './shipping-rates'
+import { getSetting, SETTING_KEYS } from './settings'
 
 export type LoadedCart = Cart & {
   items: (CartItem & {
@@ -242,14 +244,38 @@ export async function priceCart(
   }
 }
 
-/** Resolve shipping cost for a method, honoring the free-shipping threshold. */
+/**
+ * Resolve shipping cost for a method, honoring the free-shipping threshold.
+ * LIVE_CARRIER methods require a destination + cart items (for weight) and
+ * call the carrier rate API — never trust a client-supplied price for these.
+ */
 export async function resolveShippingCents(
   shippingMethodId: string,
-  merchandiseTotalCents: number
+  merchandiseTotalCents: number,
+  live?: { destination: ShipAddress; cart: LoadedCart }
 ): Promise<{ ok: true; cents: number; methodName: string } | { ok: false; error: string }> {
   const method = await prisma.shippingMethod.findUnique({ where: { id: shippingMethodId } })
   if (!method || !method.active) return { ok: false, error: 'Invalid shipping method.' }
   const progress = await getFreeShippingProgress(merchandiseTotalCents)
-  const cents = method.freeShippingEligible && progress.qualified ? 0 : method.priceCents
-  return { ok: true, cents, methodName: method.name }
+  if (method.freeShippingEligible && progress.qualified) {
+    return { ok: true, cents: 0, methodName: method.name }
+  }
+  if (method.rateType === 'LIVE_CARRIER') {
+    if (!method.carrierServiceToken || !live) {
+      return { ok: false, error: 'This shipping method requires a shipping address to be calculated.' }
+    }
+    const bufferOz = parseFloat(await getSetting(SETTING_KEYS.SHIP_PACKAGING_BUFFER_OZ)) || 0
+    const weightOz =
+      bufferOz + live.cart.items.reduce((sum, i) => sum + i.product.weightOz * i.quantity, 0)
+    const rate = await getLiveShippingRateCents({
+      destination: live.destination,
+      weightOz,
+      serviceToken: method.carrierServiceToken,
+    })
+    if (!rate.ok || rate.cents === undefined) {
+      return { ok: false, error: rate.error ?? 'Could not calculate live shipping rate.' }
+    }
+    return { ok: true, cents: rate.cents, methodName: method.name }
+  }
+  return { ok: true, cents: method.priceCents, methodName: method.name }
 }

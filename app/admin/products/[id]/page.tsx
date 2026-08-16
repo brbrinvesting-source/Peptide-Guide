@@ -41,6 +41,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           vialSize: product.vialSize,
           categoryId: product.categoryId,
           priceDollars: product.priceCents !== null ? (product.priceCents / 100).toFixed(2) : '',
+          weightOz: product.weightOz,
           lowStockThreshold: product.lowStockThreshold,
           sortOrder: product.sortOrder,
           description: product.description ?? '',

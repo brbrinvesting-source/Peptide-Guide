@@ -63,7 +63,10 @@ export async function createPendingOrder(params: {
     return { ok: false, error: `Promo code issue: ${pricing.promo.error}` }
   }
 
-  const ship = await resolveShippingCents(params.shippingMethodId, pricing.merchandiseTotalCents)
+  const ship = await resolveShippingCents(params.shippingMethodId, pricing.merchandiseTotalCents, {
+    destination: params.shipping,
+    cart: params.cart,
+  })
   if (!ship.ok) return { ok: false, error: ship.error }
 
   let taxCents: number

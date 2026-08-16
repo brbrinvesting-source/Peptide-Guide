@@ -14,6 +14,17 @@ const K = {
   STORE_CONTACT_EMAIL: 'store.contactEmail',
   STORE_CONTACT_INFO: 'store.contactInfo',
   FREE_SHIPPING_THRESHOLD_CENTS: 'shipping.freeThresholdCents',
+  SHIP_FROM_NAME: 'shipping.fromName',
+  SHIP_FROM_LINE1: 'shipping.fromLine1',
+  SHIP_FROM_LINE2: 'shipping.fromLine2',
+  SHIP_FROM_CITY: 'shipping.fromCity',
+  SHIP_FROM_STATE: 'shipping.fromState',
+  SHIP_FROM_ZIP: 'shipping.fromZip',
+  SHIP_FROM_PHONE: 'shipping.fromPhone',
+  SHIP_PACKAGE_LENGTH_IN: 'shipping.packageLengthIn',
+  SHIP_PACKAGE_WIDTH_IN: 'shipping.packageWidthIn',
+  SHIP_PACKAGE_HEIGHT_IN: 'shipping.packageHeightIn',
+  SHIP_PACKAGING_BUFFER_OZ: 'shipping.packagingBufferOz',
   BULK_TIERS: 'discounts.bulkTiers',
   WELCOME_DISCOUNT_PERCENT: 'discounts.welcomePercent',
   WELCOME_PROMO_ENABLED: 'discounts.welcomeEnabled',
@@ -39,6 +50,8 @@ interface ShippingMethodRow {
   active: boolean
   freeShippingEligible: boolean
   sortOrder: number
+  rateType: string
+  carrierServiceToken: string
 }
 
 interface ContentPageRow {
@@ -166,6 +179,47 @@ export function SettingsForms({
       </SettingsSection>
 
       <SettingsSection
+        title="Shipping origin & packaging"
+        description="Used to calculate live carrier rates (2-Day Air, Next Day Air, etc.). Also required for Shippo domain/rate lookups."
+      >
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Ship-from name" name={K.SHIP_FROM_NAME} defaultValue={v(K.SHIP_FROM_NAME)} />
+          <Field label="Ship-from phone" name={K.SHIP_FROM_PHONE} defaultValue={v(K.SHIP_FROM_PHONE)} />
+        </div>
+        <Field
+          label="Street address"
+          name={K.SHIP_FROM_LINE1}
+          defaultValue={v(K.SHIP_FROM_LINE1)}
+          hint="Required for live rates to work."
+        />
+        <Field label="Apt / suite (optional)" name={K.SHIP_FROM_LINE2} defaultValue={v(K.SHIP_FROM_LINE2)} />
+        <div className="grid grid-cols-3 gap-3">
+          <Field label="City" name={K.SHIP_FROM_CITY} defaultValue={v(K.SHIP_FROM_CITY)} />
+          <Field label="State" name={K.SHIP_FROM_STATE} defaultValue={v(K.SHIP_FROM_STATE)} />
+          <Field label="ZIP" name={K.SHIP_FROM_ZIP} defaultValue={v(K.SHIP_FROM_ZIP)} />
+        </div>
+        <div className="grid grid-cols-4 gap-3">
+          <Field
+            label="Box length (in)"
+            name={K.SHIP_PACKAGE_LENGTH_IN}
+            defaultValue={v(K.SHIP_PACKAGE_LENGTH_IN)}
+          />
+          <Field label="Box width (in)" name={K.SHIP_PACKAGE_WIDTH_IN} defaultValue={v(K.SHIP_PACKAGE_WIDTH_IN)} />
+          <Field
+            label="Box height (in)"
+            name={K.SHIP_PACKAGE_HEIGHT_IN}
+            defaultValue={v(K.SHIP_PACKAGE_HEIGHT_IN)}
+          />
+          <Field
+            label="Packaging buffer (oz)"
+            name={K.SHIP_PACKAGING_BUFFER_OZ}
+            defaultValue={v(K.SHIP_PACKAGING_BUFFER_OZ)}
+            hint="Added to item weight for box/padding."
+          />
+        </div>
+      </SettingsSection>
+
+      <SettingsSection
         title="Tax"
         description="Destination-based sales tax. Stripe Tax computes per-address rates; flat mode is for testing only."
       >
@@ -271,6 +325,7 @@ export function SettingsForms({
 
 function ShippingMethodForm({ method }: { method: ShippingMethodRow | null }) {
   const [state, formAction] = useActionState<AdminActionState, FormData>(saveShippingMethodAction, {})
+  const [rateType, setRateType] = useState(method?.rateType ?? 'FLAT')
   return (
     <form action={formAction} className="space-y-2.5 rounded-md border border-line/60 p-3">
       {state.error && <Alert kind="error">{state.error}</Alert>}
@@ -278,12 +333,41 @@ function ShippingMethodForm({ method }: { method: ShippingMethodRow | null }) {
       {method && <input type="hidden" name="id" value={method.id} />}
       <div className="grid grid-cols-2 gap-2.5">
         <input name="name" required defaultValue={method?.name} placeholder="Method name" aria-label="Method name" className="field" />
-        <input name="price" required inputMode="decimal" defaultValue={method?.price} placeholder="Price USD" aria-label="Price" className="field" />
+        <select
+          name="rateType"
+          value={rateType}
+          onChange={(e) => setRateType(e.target.value)}
+          aria-label="Rate type"
+          className="field"
+        >
+          <option value="FLAT">Flat price</option>
+          <option value="LIVE_CARRIER">Live carrier rate</option>
+        </select>
+        {rateType === 'FLAT' ? (
+          <input name="price" required inputMode="decimal" defaultValue={method?.price} placeholder="Price USD" aria-label="Price" className="field" />
+        ) : (
+          <input
+            name="carrierServiceToken"
+            defaultValue={method?.carrierServiceToken}
+            placeholder="Shippo service token, e.g. ups_2nd_day_air"
+            aria-label="Carrier service token"
+            className="field"
+          />
+        )}
         <input name="deliveryEstimate" defaultValue={method?.deliveryEstimate} placeholder="Delivery estimate (e.g. 2–4 business days)" aria-label="Delivery estimate" className="field col-span-2" />
       </div>
+      {rateType === 'LIVE_CARRIER' && (
+        <p className="text-[0.65rem] leading-relaxed text-muted">
+          Price is fetched live from Shippo for each order&apos;s address and package weight. Common
+          tokens: <code className="text-gold">ups_2nd_day_air</code>,{' '}
+          <code className="text-gold">ups_next_day_air</code>. Requires{' '}
+          <code className="text-gold">SHIPPO_API_KEY</code> and the shipping origin address below to
+          be configured.
+        </p>
+      )}
       <div className="flex flex-wrap items-center gap-4 text-xs">
         <label className="flex items-center gap-1.5"><input type="checkbox" name="active" defaultChecked={method?.active ?? true} className="h-3.5 w-3.5 accent-[#c9a961]" /> Active</label>
-        <label className="flex items-center gap-1.5"><input type="checkbox" name="freeShippingEligible" defaultChecked={method?.freeShippingEligible ?? true} className="h-3.5 w-3.5 accent-[#c9a961]" /> Free above threshold</label>
+        <label className="flex items-center gap-1.5"><input type="checkbox" name="freeShippingEligible" defaultChecked={method?.freeShippingEligible ?? (rateType === 'FLAT')} className="h-3.5 w-3.5 accent-[#c9a961]" /> Free above threshold</label>
         <input name="sortOrder" inputMode="numeric" defaultValue={method?.sortOrder ?? 0} aria-label="Sort order" className="field w-16 py-1.5" />
         <SubmitButton className="btn btn-outline btn-sm" pendingLabel="…">
           {method ? 'Save' : 'Add'}

@@ -11,6 +11,7 @@ export interface ProductFormData {
   vialSize: string
   categoryId: string
   priceDollars: string
+  weightOz: number
   inventoryQty?: number
   lowStockThreshold: number
   sortOrder: number
@@ -65,6 +66,10 @@ export function ProductForm({
           <div>
             <label htmlFor="price" className="microlabel mb-1.5 block">Price (USD)</label>
             <input id="price" name="price" inputMode="decimal" defaultValue={product?.priceDollars} placeholder="Leave empty = not purchasable" className="field" />
+          </div>
+          <div>
+            <label htmlFor="weightOz" className="microlabel mb-1.5 block">Shipping weight (oz)</label>
+            <input id="weightOz" name="weightOz" inputMode="decimal" defaultValue={product?.weightOz ?? 4} placeholder="4" className="field" />
           </div>
           {isNew && (
             <div>

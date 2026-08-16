@@ -30,6 +30,13 @@ function intOrNull(fd: FormData, key: string): number | null {
   return Number.isFinite(n) ? n : null
 }
 
+function floatOrNull(fd: FormData, key: string): number | null {
+  const raw = str(fd, key)
+  if (raw === '') return null
+  const n = Number(raw)
+  return Number.isFinite(n) ? n : null
+}
+
 /** Parse dollars text ("129.99") to cents. Returns null for empty. */
 function dollarsToCents(raw: string): number | null {
   if (raw === '') return null
@@ -67,6 +74,10 @@ export async function saveProductAction(
   }
   const lowStockThreshold = intOrNull(formData, 'lowStockThreshold') ?? 5
   const sortOrder = intOrNull(formData, 'sortOrder') ?? 0
+  const weightOz = floatOrNull(formData, 'weightOz')
+  if (weightOz !== null && weightOz <= 0) {
+    return { error: 'Shipping weight must be greater than zero.' }
+  }
 
   const data = {
     name,
@@ -74,6 +85,7 @@ export async function saveProductAction(
     vialSize,
     categoryId,
     priceCents,
+    weightOz: weightOz ?? 4,
     lowStockThreshold: Math.max(0, lowStockThreshold),
     sortOrder,
     description: str(formData, 'description', 8000) || null,
@@ -517,10 +529,24 @@ export async function saveShippingMethodAction(
   const admin = await requireAdmin()
   const id = str(formData, 'id')
   const name = str(formData, 'name', 120)
-  const priceCents = dollarsToCents(str(formData, 'price'))
-  if (!name || priceCents === null) return { error: 'Name and a valid price are required.' }
+  const rateType = str(formData, 'rateType') === 'LIVE_CARRIER' ? 'LIVE_CARRIER' : 'FLAT'
+  if (!name) return { error: 'Name is required.' }
+
+  let priceCents = 0
+  let carrierServiceToken: string | null = null
+  if (rateType === 'FLAT') {
+    const parsed = dollarsToCents(str(formData, 'price'))
+    if (parsed === null) return { error: 'A valid price is required for a flat-rate method.' }
+    priceCents = parsed
+  } else {
+    carrierServiceToken = str(formData, 'carrierServiceToken', 100)
+    if (!carrierServiceToken) return { error: 'A carrier service token is required for a live-rate method.' }
+  }
+
   const data = {
     name,
+    rateType,
+    carrierServiceToken,
     priceCents,
     deliveryEstimate: str(formData, 'deliveryEstimate', 200) || null,
     active: formData.get('active') === 'on',

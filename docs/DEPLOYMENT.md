@@ -44,6 +44,7 @@ See `.env.example` for the full annotated list. Production checklist:
 | `POSTMARK_API_TOKEN` | ✅ | Or `RESEND_API_KEY`, or `EMAIL_PROVIDER=console` (dev only) |
 | `CRON_SECRET` | ✅ | Long random string for the abandoned-cart endpoint |
 | `FILE_STORAGE_DIR` | ✅ | Persistent volume path for COA PDFs |
+| `SHIPPO_API_KEY` | only if used | Required for any shipping method set to "Live carrier rate" in Admin -> Settings |
 | `INITIAL_ADMIN_EMAIL` / `INITIAL_ADMIN_PASSWORD` | once | Bootstraps/promotes the Super Admin automatically on every build (idempotent — safe to leave set, or remove after the first successful deploy) |
 
 ## 4. Stripe configuration
@@ -60,7 +61,24 @@ See `.env.example` for the full annotated list. Production checklist:
    `flat`/`none` modes, but `stripe` is the intended production mode.)
 4. Test with Stripe test keys + `stripe listen --forward-to localhost:3000/api/webhooks/stripe`.
 
-## 5. First deploy
+## 5. Shipping (live carrier rates, optional)
+
+Shipping methods default to flat prices set in Admin → Settings. To offer live-calculated rates
+(e.g. 2-Day Air, Next Day Air):
+
+1. Create a [Shippo](https://goshippo.com) account and grab an API token (Settings → API) →
+   set `SHIPPO_API_KEY`.
+2. In **Admin → Settings → Shipping origin & packaging**, fill in the ship-from street address
+   (city/state/ZIP default to Glendale, CA 91206) and typical package dimensions.
+3. In **Admin → Settings → Shipping methods**, add a method with rate type "Live carrier rate"
+   and a Shippo service token (e.g. `ups_2nd_day_air`, `ups_next_day_air`).
+4. Set an accurate **shipping weight** per product in **Admin → Products** (defaults to 4 oz) —
+   live rates are calculated from real package weight, so this matters for pricing accuracy.
+
+The live rate is always recalculated server-side at order creation regardless of what the
+customer's browser displayed — the client-side quote is preview-only.
+
+## 6. First deploy
 
 ```bash
 npm ci
@@ -77,7 +95,7 @@ all legal pages (seeded text is placeholder language).
 Set prices/inventory in **Admin → Products / Inventory** and upload COAs in **Admin → COA
 Management** — nothing is hard-coded.
 
-## 6. Scheduled jobs
+## 7. Scheduled jobs
 
 Schedule every 15 minutes (cron, GitHub Actions, hosting scheduler):
 
@@ -85,7 +103,7 @@ Schedule every 15 minutes (cron, GitHub Actions, hosting scheduler):
 */15 * * * * curl -s -X POST -H "Authorization: Bearer $CRON_SECRET" https://<site>/api/cron/abandoned-carts
 ```
 
-## 7. File storage (COAs & product images)
+## 8. File storage (COAs & product images)
 
 - COA PDFs are written to `FILE_STORAGE_DIR` (default `./storage`) — **outside** the public web
   root — and streamed only to authenticated users via `/api/coa/[id]/file`. Point this at a
@@ -95,7 +113,7 @@ Schedule every 15 minutes (cron, GitHub Actions, hosting scheduler):
   an external image URL instead — on serverless/immutable-filesystem hosts, use the URL option
   with your CDN/bucket.
 
-## 8. Hosting notes (Netlify)
+## 9. Hosting notes (Netlify)
 
 - The repo includes `netlify.toml`, already configured for Netlify's official Next.js runtime
   (`@netlify/plugin-nextjs`) — connecting the GitHub repo as a new Netlify site should need no
@@ -109,7 +127,7 @@ Schedule every 15 minutes (cron, GitHub Actions, hosting scheduler):
 - HTTPS is provisioned automatically once a custom domain's DNS is verified in Netlify's
   **Domain management**.
 
-## 9. Post-deploy verification
+## 10. Post-deploy verification
 
 1. Register a customer → verify email → welcome email contains a unique `WELCOME-…` code.
 2. Set a price/inventory on one product → buy it with Stripe test card `4242 4242 4242 4242`.
