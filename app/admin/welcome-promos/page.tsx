@@ -2,6 +2,7 @@ import { requireAdmin } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { formatCents } from '@/lib/constants'
 import { getSettings, SETTING_KEYS } from '@/lib/settings'
+import { formatDate } from '@/lib/dates'
 
 export default async function AdminWelcomePromosPage() {
   await requireAdmin()
@@ -52,9 +53,9 @@ export default async function AdminWelcomePromosPage() {
                 <td className="max-w-52 truncate">{r.user.email}</td>
                 <td className="font-mono text-xs text-gold">{r.promoCode.code}</td>
                 <td>{r.discountPercent}%</td>
-                <td className="text-xs text-muted">{r.createdAt.toLocaleDateString('en-US')}</td>
-                <td className="text-xs text-muted">{r.sentAt ? r.sentAt.toLocaleDateString('en-US') : '—'}</td>
-                <td className="text-xs">{r.redeemedAt ? <span className="text-success">{r.redeemedAt.toLocaleDateString('en-US')}</span> : <span className="text-muted">not yet</span>}</td>
+                <td className="text-xs text-muted">{formatDate(r.createdAt)}</td>
+                <td className="text-xs text-muted">{r.sentAt ? formatDate(r.sentAt) : '—'}</td>
+                <td className="text-xs">{r.redeemedAt ? <span className="text-success">{formatDate(r.redeemedAt)}</span> : <span className="text-muted">not yet</span>}</td>
                 <td>{r.discountCents ? formatCents(r.discountCents) : '—'}</td>
                 <td className="text-xs">
                   {r.redeemedOrderId ? <a href={`/admin/orders/${r.redeemedOrderId}`} className="text-gold">view</a> : '—'}

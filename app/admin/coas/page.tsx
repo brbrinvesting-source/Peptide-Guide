@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { setCoaStatusAction } from '@/app/actions/admin'
 import { CoaUploadForm } from './CoaUploadForm'
 import { CoaVerifyForm } from './CoaVerifyForm'
+import { formatCalendarDate } from '@/lib/dates'
 
 export default async function AdminCoasPage({
   searchParams,
@@ -69,7 +70,7 @@ export default async function AdminCoasPage({
               {coas.map((c) => (
                 <tr key={c.id} className={!c.active ? 'opacity-50' : ''}>
                   <td className="font-semibold">{c.product.name} <span className="text-muted">— {c.product.vialSize}</span></td>
-                  <td className="text-xs text-muted">{c.testingDate ? c.testingDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) : '—'}</td>
+                  <td className="text-xs text-muted">{c.testingDate ? formatCalendarDate(c.testingDate, { year: 'numeric', month: 'short' }) : '—'}</td>
                   <td className="text-xs">{c.laboratory ?? '—'}</td>
                   <td className="font-mono text-xs">{c.coaNumber ?? '—'}</td>
                   <td className="font-mono text-xs">{c.lot?.lotNumber ?? '—'}</td>

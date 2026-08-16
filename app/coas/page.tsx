@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { requireUser } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import type { Prisma } from '@prisma/client'
+import { formatCalendarDate } from '@/lib/dates'
 
 export const metadata: Metadata = {
   title: 'COA & Test Results',
@@ -119,7 +120,7 @@ export default async function CoaCenterPage({
               <p className="mt-1.5 text-xs text-muted">
                 {product.category.name}
                 {coa?.testingDate &&
-                  ` · Latest COA: ${coa.testingDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}`}
+                  ` · Latest COA: ${formatCalendarDate(coa.testingDate, { year: 'numeric', month: 'long' })}`}
                 {coa?.laboratory && ` · Testing laboratory: ${coa.laboratory}`}
                 {coa?.lot && ` · Lot ${coa.lot.lotNumber}`}
               </p>

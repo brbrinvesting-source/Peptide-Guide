@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { formatCents, ORDER_STATUSES } from '@/lib/constants'
 import type { Prisma } from '@prisma/client'
+import { formatDate } from '@/lib/dates'
 
 export default async function AdminOrdersPage({
   searchParams,
@@ -73,7 +74,7 @@ export default async function AdminOrdersPage({
                     {o.orderNumber}
                   </Link>
                 </td>
-                <td className="whitespace-nowrap text-xs text-muted">{o.createdAt.toLocaleDateString('en-US')}</td>
+                <td className="whitespace-nowrap text-xs text-muted">{formatDate(o.createdAt)}</td>
                 <td className="max-w-52 truncate text-muted">{o.customerEmail}</td>
                 <td>{o.items.reduce((s, i) => s + i.quantity, 0)}</td>
                 <td className="font-semibold">{formatCents(o.totalCents)}</td>

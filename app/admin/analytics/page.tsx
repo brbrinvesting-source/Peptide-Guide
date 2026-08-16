@@ -1,6 +1,7 @@
 import { requireAdmin } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { formatCents } from '@/lib/constants'
+import { formatDate } from '@/lib/dates'
 
 export default async function AdminAnalyticsPage() {
   await requireAdmin()
@@ -98,7 +99,7 @@ export default async function AdminAnalyticsPage() {
             {recentCoas.map((c) => (
               <li key={c.id} className="flex justify-between gap-3 px-4 py-2.5">
                 <span className="truncate">{c.product.name} — {c.product.vialSize}</span>
-                <span className="shrink-0 text-xs text-muted">{c.createdAt.toLocaleDateString('en-US')}</span>
+                <span className="shrink-0 text-xs text-muted">{formatDate(c.createdAt)}</span>
               </li>
             ))}
             {recentCoas.length === 0 && <li className="px-4 py-8 text-center text-muted">No COAs uploaded yet.</li>}

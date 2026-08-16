@@ -38,6 +38,7 @@ See `.env.example` for the full annotated list. Production checklist:
 |---|---|---|
 | `DATABASE_URL` | ✅ | Postgres connection string |
 | `NEXT_PUBLIC_SITE_URL` | ✅ | `https://all-accesspeptides.com` — used in emails/redirects |
+| `SITE_TIMEZONE` | recommended | IANA zone for displayed dates (default `America/Los_Angeles`). Without it the host's zone (UTC on Netlify) is used, so evening orders show the next day |
 | `STRIPE_SECRET_KEY` | ✅ | Live secret key |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | ✅ | Live publishable key |
 | `STRIPE_WEBHOOK_SECRET` | ✅ | From the webhook endpoint you create (step 4) |

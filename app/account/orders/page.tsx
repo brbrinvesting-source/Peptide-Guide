@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { requireUser } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { formatCents } from '@/lib/constants'
+import { formatDate } from '@/lib/dates'
 
 export const metadata: Metadata = { title: 'Order History', robots: { index: false, follow: false } }
 
@@ -58,7 +59,7 @@ export default async function OrderHistoryPage() {
                   <span>
                     <span className="text-sm font-semibold">{o.orderNumber}</span>
                     <span className="mt-0.5 block text-xs text-muted">
-                      {o.createdAt.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}{' '}
+                      {formatDate(o.createdAt, { year: 'numeric', month: 'short', day: 'numeric' })}{' '}
                       · {units} unit{units === 1 ? '' : 's'}
                     </span>
                   </span>

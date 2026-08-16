@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db'
 import { logoutAction } from '@/app/actions/auth'
 import { formatCents } from '@/lib/constants'
 import { AccountForms } from './AccountForms'
+import { formatDate } from '@/lib/dates'
 
 export const metadata: Metadata = { title: 'Account', robots: { index: false, follow: false } }
 
@@ -85,7 +86,7 @@ export default async function AccountPage() {
                   <span>
                     <span className="block text-sm font-semibold">{o.orderNumber}</span>
                     <span className="mt-0.5 block text-xs text-muted">
-                      {o.createdAt.toLocaleDateString('en-US')} · {STATUS_LABEL[o.status] ?? o.status}
+                      {formatDate(o.createdAt)} · {STATUS_LABEL[o.status] ?? o.status}
                     </span>
                   </span>
                   <span className="text-sm font-bold">{formatCents(o.totalCents)}</span>

@@ -1,6 +1,7 @@
 import { requireAdmin } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { RoleForm } from './RoleForm'
+import { formatDate } from '@/lib/dates'
 
 export default async function AdminUsersPage() {
   await requireAdmin('SUPER_ADMIN')
@@ -33,7 +34,7 @@ export default async function AdminUsersPage() {
                       {a.role.replaceAll('_', ' ')}
                     </span>
                   </td>
-                  <td className="text-xs text-muted">{a.createdAt.toLocaleDateString('en-US')}</td>
+                  <td className="text-xs text-muted">{formatDate(a.createdAt)}</td>
                   <td className="text-xs">{a.disabled ? 'disabled' : 'active'}</td>
                 </tr>
               ))}

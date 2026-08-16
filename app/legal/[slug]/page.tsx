@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/db'
+import { formatDate } from '@/lib/dates'
 
 const KNOWN_SLUGS = ['terms', 'privacy', 'research-disclaimer', 'shipping-policy', 'refund-policy']
 
@@ -25,7 +26,7 @@ export default async function LegalPage({ params }: { params: Promise<{ slug: st
       <p className="microlabel text-gold">All-Access Peptides</p>
       <h1 className="gold-keyline mt-2 text-3xl font-bold tracking-tight">{page.title}</h1>
       <p className="mt-6 text-xs text-muted">
-        Version {page.version} · Last updated {page.updatedAt.toLocaleDateString('en-US')}
+        Version {page.version} · Last updated {formatDate(page.updatedAt)}
       </p>
       <div className="mt-8 space-y-4 text-sm leading-relaxed whitespace-pre-line text-fg/90">
         {page.body}

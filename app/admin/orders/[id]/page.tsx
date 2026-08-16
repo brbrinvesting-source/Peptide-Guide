@@ -4,6 +4,7 @@ import { requireAdmin } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { formatCents } from '@/lib/constants'
 import { OrderAdminForms } from './OrderAdminForms'
+import { formatDateTime } from '@/lib/dates'
 
 export default async function AdminOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin()
@@ -36,8 +37,8 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
         <span className="badge badge-gold">{order.status.replaceAll('_', ' ')}</span>
       </div>
       <p className="mt-2 text-xs text-muted">
-        Placed {order.createdAt.toLocaleString('en-US')}
-        {order.paidAt && ` · Paid ${order.paidAt.toLocaleString('en-US')}`}
+        Placed {formatDateTime(order.createdAt)}
+        {order.paidAt && ` · Paid ${formatDateTime(order.paidAt)}`}
       </p>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[1fr_360px]">
@@ -96,7 +97,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
             <section className="panel p-4">
               <p className="microlabel text-gold">Research-use acknowledgement</p>
               <p className="mt-2 text-xs leading-relaxed text-muted">
-                Accepted {order.disclaimerAcceptance.acceptedAt.toLocaleString('en-US')} · version{' '}
+                Accepted {formatDateTime(order.disclaimerAcceptance.acceptedAt)} · version{' '}
                 {order.disclaimerAcceptance.disclaimerVersion}
               </p>
               <p className="mt-2 text-xs leading-relaxed text-fg/80">

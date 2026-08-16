@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { requireUser } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { formatCents } from '@/lib/constants'
+import { formatDate } from '@/lib/dates'
 
 export const metadata: Metadata = { title: 'Order Details', robots: { index: false, follow: false } }
 
@@ -35,7 +36,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
         <span className="badge badge-gold">{order.status.replaceAll('_', ' ')}</span>
       </div>
       <p className="mt-2 text-xs text-muted">
-        Placed {order.createdAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+        Placed {formatDate(order.createdAt, { year: 'numeric', month: 'long', day: 'numeric' })}
       </p>
 
       {order.trackingNumber && (

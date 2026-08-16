@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { requireAdmin } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { formatCents } from '@/lib/constants'
+import { formatDate } from '@/lib/dates'
 
 function dashboardDates(): { today: Date; weekAgo: Date; monthAgo: Date } {
   const now = Date.now()
@@ -163,7 +164,7 @@ export default async function AdminDashboard() {
               <li key={c.id} className="flex items-center justify-between gap-3 px-4 py-2.5">
                 <span className="truncate">{c.email}</span>
                 <span className="shrink-0 text-xs text-muted">
-                  {c.emailVerified ? 'verified' : 'unverified'} · {c.createdAt.toLocaleDateString('en-US')}
+                  {c.emailVerified ? 'verified' : 'unverified'} · {formatDate(c.createdAt)}
                 </span>
               </li>
             ))}

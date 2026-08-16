@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { formatCents } from '@/lib/constants'
 import type { Prisma } from '@prisma/client'
+import { formatDate } from '@/lib/dates'
 
 export default async function AdminCustomersPage({
   searchParams,
@@ -66,7 +67,7 @@ export default async function AdminCustomersPage({
                   <Link href={`/admin/customers/${c.id}`} className="font-semibold hover:text-gold">{c.email}</Link>
                 </td>
                 <td className="text-muted">{[c.firstName, c.lastName].filter(Boolean).join(' ') || '—'}</td>
-                <td className="whitespace-nowrap text-xs text-muted">{c.createdAt.toLocaleDateString('en-US')}</td>
+                <td className="whitespace-nowrap text-xs text-muted">{formatDate(c.createdAt)}</td>
                 <td>{c.emailVerified ? <span className="text-success">✓</span> : <span className="text-muted">—</span>}</td>
                 <td>{c.orders.length}</td>
                 <td className="font-semibold">{formatCents(c.orders.reduce((s, o) => s + o.totalCents, 0))}</td>

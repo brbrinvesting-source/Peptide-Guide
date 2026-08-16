@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { requireUser } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { formatCalendarDate } from '@/lib/dates'
 
 export const metadata: Metadata = {
   title: 'Certificate of Analysis',
@@ -38,7 +39,7 @@ export default async function CoaViewerPage({ params }: { params: Promise<{ id: 
           <p className="mt-1.5 text-xs text-muted">
             {coa.isCurrent ? 'Current COA' : 'Historical COA'}
             {coa.testingDate &&
-              ` · Tested ${coa.testingDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}`}
+              ` · Tested ${formatCalendarDate(coa.testingDate, { year: 'numeric', month: 'long' })}`}
             {coa.laboratory && ` · ${coa.laboratory}`}
             {coa.coaNumber && ` · ${coa.coaNumber}`}
             {coa.lot && ` · Lot ${coa.lot.lotNumber}`}

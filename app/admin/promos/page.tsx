@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { formatCents } from '@/lib/constants'
 import { deletePromoAction } from '@/app/actions/admin'
 import { PromoForm } from './PromoForm'
+import { formatCalendarDate } from '@/lib/dates'
 
 export default async function AdminPromosPage() {
   await requireAdmin()
@@ -70,7 +71,7 @@ export default async function AdminPromosPage() {
                     </td>
                     <td>{p.discountType === 'PERCENT' ? `${p.discountValue}%` : formatCents(p.discountValue)}</td>
                     <td className="text-xs text-muted">
-                      {p.startsAt ? p.startsAt.toLocaleDateString('en-US') : '—'} → {p.expiresAt ? p.expiresAt.toLocaleDateString('en-US') : 'no expiry'}
+                      {p.startsAt ? formatCalendarDate(p.startsAt) : '—'} → {p.expiresAt ? formatCalendarDate(p.expiresAt) : 'no expiry'}
                     </td>
                     <td>{uses}{p.maxTotalUses ? ` / ${p.maxTotalUses}` : ''}</td>
                     <td>{formatCents(revenue)}</td>

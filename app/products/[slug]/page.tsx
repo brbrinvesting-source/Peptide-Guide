@@ -8,6 +8,7 @@ import { formatCents, stockStatus, STOCK_LABELS } from '@/lib/constants'
 import { VialImage } from '@/components/VialImage'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { ProductCard, type CatalogProduct } from '@/components/ProductCard'
+import { formatCalendarDate } from '@/lib/dates'
 
 export async function generateMetadata({
   params,
@@ -235,7 +236,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                   {currentCoa.testingDate && (
                     <div>
                       <dt className="text-xs text-muted">Testing date</dt>
-                      <dd>{currentCoa.testingDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</dd>
+                      <dd>{formatCalendarDate(currentCoa.testingDate, { year: 'numeric', month: 'long' })}</dd>
                     </div>
                   )}
                   {currentCoa.laboratory && (
@@ -278,7 +279,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                     <li key={coa.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3 text-sm">
                       <span className="text-muted">
                         {coa.testingDate
-                          ? coa.testingDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long' })
+                          ? formatCalendarDate(coa.testingDate, { year: 'numeric', month: 'long' })
                           : 'Undated'}
                         {coa.laboratory ? ` · ${coa.laboratory}` : ''}
                         {coa.lot ? ` · Lot ${coa.lot.lotNumber}` : ''}

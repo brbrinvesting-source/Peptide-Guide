@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { formatDateTime } from '@/lib/dates'
 
 export default async function AdminAuditLogsPage({
   searchParams,
@@ -35,7 +36,7 @@ export default async function AdminAuditLogsPage({
           <tbody>
             {logs.map((l) => (
               <tr key={l.id}>
-                <td className="whitespace-nowrap text-xs text-muted">{l.createdAt.toLocaleString('en-US')}</td>
+                <td className="whitespace-nowrap text-xs text-muted">{formatDateTime(l.createdAt)}</td>
                 <td className="max-w-44 truncate text-xs">{l.user?.email ?? 'system'}</td>
                 <td className="text-xs font-semibold">{l.action}</td>
                 <td className="text-xs text-muted">{l.objectType}{l.objectId ? ` · ${l.objectId.slice(0, 10)}…` : ''}</td>

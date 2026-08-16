@@ -4,6 +4,7 @@ import { requireAdmin } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { formatCents } from '@/lib/constants'
 import { setCustomerDisabledAction } from '@/app/actions/admin'
+import { formatDate } from '@/lib/dates'
 
 export default async function AdminCustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin()
@@ -38,7 +39,7 @@ export default async function AdminCustomerDetailPage({ params }: { params: Prom
       </div>
 
       <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <div className="panel p-4"><p className="microlabel">Joined</p><p className="mt-2 font-bold">{customer.createdAt.toLocaleDateString('en-US')}</p></div>
+        <div className="panel p-4"><p className="microlabel">Joined</p><p className="mt-2 font-bold">{formatDate(customer.createdAt)}</p></div>
         <div className="panel p-4"><p className="microlabel">Email verified</p><p className="mt-2 font-bold">{customer.emailVerified ? 'Yes' : 'No'}</p></div>
         <div className="panel p-4"><p className="microlabel">Paid orders</p><p className="mt-2 font-bold">{paidOrders.length}</p></div>
         <div className="panel p-4"><p className="microlabel">Total spend</p><p className="mt-2 font-bold">{formatCents(totalSpend)}</p></div>
@@ -51,7 +52,7 @@ export default async function AdminCustomerDetailPage({ params }: { params: Prom
             Code <span className="font-mono text-gold">{customer.welcomePromotion.promoCode.code}</span> ·{' '}
             {customer.welcomePromotion.discountPercent}% ·{' '}
             {customer.welcomePromotion.redeemedAt
-              ? `redeemed ${customer.welcomePromotion.redeemedAt.toLocaleDateString('en-US')} (${formatCents(customer.welcomePromotion.discountCents ?? 0)} discount)`
+              ? `redeemed ${formatDate(customer.welcomePromotion.redeemedAt)} (${formatCents(customer.welcomePromotion.discountCents ?? 0)} discount)`
               : 'not redeemed yet'}
           </p>
         </div>
@@ -67,7 +68,7 @@ export default async function AdminCustomerDetailPage({ params }: { params: Prom
             {customer.orders.map((o) => (
               <tr key={o.id}>
                 <td><Link href={`/admin/orders/${o.id}`} className="font-semibold hover:text-gold">{o.orderNumber}</Link></td>
-                <td className="text-xs text-muted">{o.createdAt.toLocaleDateString('en-US')}</td>
+                <td className="text-xs text-muted">{formatDate(o.createdAt)}</td>
                 <td className="text-xs">{o.status.replaceAll('_', ' ')}</td>
                 <td className="text-xs">{o.paymentStatus.replaceAll('_', ' ')}</td>
                 <td className="font-semibold">{formatCents(o.totalCents)}</td>

@@ -2,6 +2,7 @@ import { requireAdmin } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import Link from 'next/link'
 import type { Prisma } from '@prisma/client'
+import { formatDateTime } from '@/lib/dates'
 
 const TYPES = [
   'VERIFICATION', 'WELCOME', 'PASSWORD_RESET', 'ORDER_CONFIRMATION', 'SHIPPING_NOTIFICATION',
@@ -56,7 +57,7 @@ export default async function AdminEmailsPage({
           <tbody>
             {events.map((e) => (
               <tr key={e.id}>
-                <td className="whitespace-nowrap text-xs text-muted">{e.createdAt.toLocaleString('en-US')}</td>
+                <td className="whitespace-nowrap text-xs text-muted">{formatDateTime(e.createdAt)}</td>
                 <td className="text-xs">{e.type.replaceAll('_', ' ')}</td>
                 <td className="max-w-52 truncate text-muted">{e.toEmail}</td>
                 <td className="max-w-72 truncate">{e.subject}</td>

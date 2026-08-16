@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { formatDateTime } from '@/lib/dates'
 
 const REASON_LABEL: Record<string, string> = {
   INITIAL: 'Initial',
@@ -58,7 +59,7 @@ export default async function InventoryHistoryPage({
           <tbody>
             {transactions.map((t) => (
               <tr key={t.id}>
-                <td className="whitespace-nowrap text-xs text-muted">{t.createdAt.toLocaleString('en-US')}</td>
+                <td className="whitespace-nowrap text-xs text-muted">{formatDateTime(t.createdAt)}</td>
                 <td className="font-semibold">{t.product.name} <span className="text-muted">— {t.product.vialSize}</span></td>
                 <td className={t.delta >= 0 ? 'text-success' : 'text-danger'}>{t.delta >= 0 ? `+${t.delta}` : t.delta}</td>
                 <td className="text-muted">{t.previousQty} → {t.newQty}</td>
