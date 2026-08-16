@@ -11,6 +11,7 @@ export const SETTING_KEYS = {
   BULK_TIERS: 'discounts.bulkTiers', // JSON: [{minQty, percentOff}]
   WELCOME_DISCOUNT_PERCENT: 'discounts.welcomePercent',
   WELCOME_PROMO_ENABLED: 'discounts.welcomeEnabled',
+  WELCOME_PROMO_CODE: 'discounts.welcomeCode',
   LOW_STOCK_DEFAULT_THRESHOLD: 'inventory.lowStockDefault',
   ABANDONED_CART_DELAY_MINUTES: 'email.abandonedCartDelayMinutes',
   ABANDONED_CART_SUBJECT: 'email.abandonedCartSubject',
@@ -41,6 +42,7 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   ]),
   [SETTING_KEYS.WELCOME_DISCOUNT_PERCENT]: '20',
   [SETTING_KEYS.WELCOME_PROMO_ENABLED]: 'true',
+  [SETTING_KEYS.WELCOME_PROMO_CODE]: 'WELCOME20',
   [SETTING_KEYS.LOW_STOCK_DEFAULT_THRESHOLD]: '5',
   [SETTING_KEYS.ABANDONED_CART_DELAY_MINUTES]: '90',
   [SETTING_KEYS.ABANDONED_CART_SUBJECT]: 'You left something behind',

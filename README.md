@@ -40,7 +40,7 @@ npm run dev
 | Availability | Customers see only In Stock / Low Stock / Sold Out — never exact quantities |
 | Bulk discounts | Configurable tiers (default 5–9 → 5%, 10+ → 10%), applied automatically per line |
 | Promo codes | Max **one per order**, stacks **with** bulk discount; all rules re-validated server-side |
-| Welcome promo | Unique account-linked code per verified customer (default 20%, configurable); single redemption enforced transactionally |
+| Welcome promo | Shared, fixed code (default `WELCOME20`, configurable) emailed to every verified customer; each account may redeem it once, enforced server-side |
 | Inventory | Decremented **only after payment is verified with Stripe**, atomically (`UPDATE … WHERE qty >= n`) — no overselling, no cart reservations |
 | Payments | Client success screens are never trusted; orders finalize via webhook and/or server-side verification, idempotently |
 | Tax | Destination-based via Stripe Tax (configurable: stripe / flat / none) |

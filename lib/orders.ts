@@ -270,9 +270,12 @@ export async function finalizeOrderPayment(providerPaymentId: string): Promise<b
         },
       })
       const welcome = await tx.welcomePromotion.findUnique({
-        where: { promoCodeId: payment.order.promoCodeId },
+        where: { userId: payment.order.userId },
       })
-      if (welcome && !welcome.redeemedAt) {
+      if (welcome && welcome.promoCodeId === payment.order.promoCodeId && !welcome.redeemedAt) {
+        // Shared welcome code: only this customer's record is marked redeemed —
+        // the code itself stays active for other customers (perCustomerLimit
+        // already blocks this same account from reusing it).
         await tx.welcomePromotion.update({
           where: { id: welcome.id },
           data: {
@@ -280,11 +283,6 @@ export async function finalizeOrderPayment(providerPaymentId: string): Promise<b
             redeemedOrderId: payment.orderId,
             discountCents: payment.order.promoDiscountCents,
           },
-        })
-        // Welcome codes are strictly one-time: deactivate after redemption.
-        await tx.promoCode.update({
-          where: { id: payment.order.promoCodeId },
-          data: { active: false },
         })
       }
     }

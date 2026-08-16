@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { prisma } from '@/lib/db'
 import { requireAdmin, requestMeta } from '@/lib/auth'
 import { audit } from '@/lib/audit'
-import { setSetting, SETTING_KEYS } from '@/lib/settings'
+import { getSetting, setSetting, SETTING_KEYS } from '@/lib/settings'
 import { getPaymentProvider } from '@/lib/payments/provider'
 import { sendEmail } from '@/lib/email/provider'
 import { orderStatusEmail, shippingNotificationEmail } from '@/lib/email/templates'
@@ -588,6 +588,41 @@ export async function saveSettingsAction(
   for (const [key, value] of Object.entries(entries)) {
     await setSetting(key, value)
   }
+
+  // Keep the shared welcome PromoCode row (code/discount/active) in sync with
+  // Settings, since editing welcome codes directly via Promo Codes is blocked.
+  if (
+    SETTING_KEYS.WELCOME_PROMO_CODE in entries ||
+    SETTING_KEYS.WELCOME_DISCOUNT_PERCENT in entries ||
+    SETTING_KEYS.WELCOME_PROMO_ENABLED in entries
+  ) {
+    const codeStr = (await getSetting(SETTING_KEYS.WELCOME_PROMO_CODE)).trim().toUpperCase()
+    const percent = Math.min(90, Math.max(1, parseInt(await getSetting(SETTING_KEYS.WELCOME_DISCOUNT_PERCENT), 10) || 20))
+    const enabled = (await getSetting(SETTING_KEYS.WELCOME_PROMO_ENABLED)) === 'true'
+    if (codeStr) {
+      await prisma.promoCode.upsert({
+        where: { code: codeStr },
+        update: { discountValue: percent, active: enabled },
+        create: {
+          code: codeStr,
+          description: 'Welcome discount for new verified customers',
+          discountType: 'PERCENT',
+          discountValue: percent,
+          active: enabled,
+          isWelcomeCode: true,
+          maxTotalUses: null,
+          perCustomerLimit: 1,
+        },
+      })
+      // Only one welcome code is "current" at a time — retire any others
+      // (e.g. after a rename) without touching their redemption history.
+      await prisma.promoCode.updateMany({
+        where: { isWelcomeCode: true, code: { not: codeStr } },
+        data: { active: false },
+      })
+    }
+  }
+
   await audit({ userId: admin.id, action: 'SETTINGS_CHANGED', objectType: 'SiteSetting', after: entries })
   revalidatePath('/', 'layout')
   return { success: 'Settings saved.' }

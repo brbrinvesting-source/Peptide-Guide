@@ -101,14 +101,6 @@ export async function validatePromoCode(
   if (promo.restrictedToUserId && promo.restrictedToUserId !== userId)
     return { ok: false, error: 'This promo code is linked to a different account.' }
 
-  if (promo.isWelcomeCode) {
-    const wp = await prisma.welcomePromotion.findUnique({ where: { promoCodeId: promo.id } })
-    if (!wp || wp.userId !== userId)
-      return { ok: false, error: 'This promo code is linked to a different account.' }
-    if (wp.redeemedAt)
-      return { ok: false, error: 'Your welcome discount has already been redeemed.' }
-  }
-
   if (promo.minSubtotalCents > 0 && subtotalAfterBulkCents < promo.minSubtotalCents)
     return {
       ok: false,
@@ -121,7 +113,7 @@ export async function validatePromoCode(
       return { ok: false, error: 'This promo code has reached its usage limit.' }
   }
 
-  const perLimit = promo.isWelcomeCode ? 1 : promo.perCustomerLimit
+  const perLimit = promo.perCustomerLimit
   if (perLimit !== null) {
     const userUses = await prisma.promoRedemption.count({
       where: { promoCodeId: promo.id, userId },

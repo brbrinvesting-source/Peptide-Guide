@@ -17,6 +17,7 @@ const K = {
   BULK_TIERS: 'discounts.bulkTiers',
   WELCOME_DISCOUNT_PERCENT: 'discounts.welcomePercent',
   WELCOME_PROMO_ENABLED: 'discounts.welcomeEnabled',
+  WELCOME_PROMO_CODE: 'discounts.welcomeCode',
   LOW_STOCK_DEFAULT_THRESHOLD: 'inventory.lowStockDefault',
   ABANDONED_CART_DELAY_MINUTES: 'email.abandonedCartDelayMinutes',
   ABANDONED_CART_SUBJECT: 'email.abandonedCartSubject',
@@ -139,6 +140,12 @@ export function SettingsForms({
             </select>
           </label>
         </div>
+        <Field
+          label="Welcome promo code"
+          name={K.WELCOME_PROMO_CODE}
+          defaultValue={v(K.WELCOME_PROMO_CODE)}
+          hint="Shared code emailed to every new customer. Each account may redeem it once. Changing this only affects future welcome emails — to edit the discount % or deactivate the current code, use Promo Codes."
+        />
       </SettingsSection>
 
       <SettingsSection

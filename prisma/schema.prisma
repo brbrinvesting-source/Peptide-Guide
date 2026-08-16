@@ -257,7 +257,7 @@ model PromoCode {
   maxTotalUses     Int? // null = unlimited
   perCustomerLimit Int? // null = unlimited
   active           Boolean   @default(true)
-  // Welcome codes are single-customer, single-use, account-linked.
+  // Welcome codes: shared code, single redemption per customer (perCustomerLimit).
   isWelcomeCode    Boolean   @default(false)
   restrictedToUserId String?
   createdAt        DateTime  @default(now())
@@ -265,7 +265,7 @@ model PromoCode {
 
   redemptions      PromoRedemption[]
   carts            Cart[]
-  welcomePromotion WelcomePromotion?
+  welcomePromotions WelcomePromotion[]
   orders           Order[]
 
   @@index([active, isWelcomeCode])
@@ -290,7 +290,7 @@ model WelcomePromotion {
   id             String    @id @default(cuid())
   userId         String    @unique
   user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  promoCodeId    String    @unique
+  promoCodeId    String
   promoCode      PromoCode @relation(fields: [promoCodeId], references: [id])
   discountPercent Int
   sentAt         DateTime?
@@ -298,6 +298,8 @@ model WelcomePromotion {
   redeemedOrderId String?
   discountCents  Int?
   createdAt      DateTime  @default(now())
+
+  @@index([promoCodeId])
 }
 
 // ---------------------------------------------------------------------------
