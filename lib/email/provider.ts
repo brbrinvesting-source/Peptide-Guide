@@ -3,7 +3,7 @@ import { prisma } from '../db'
 import { getSettings, SETTING_KEYS } from '../settings'
 
 // Email provider abstraction. The active provider is chosen via EMAIL_PROVIDER
-// env var: "resend" (default when RESEND_API_KEY is set) or "console" (dev).
+// env var, or auto-detected from whichever API key is set ("console" in dev).
 // Adding a provider = implementing EmailProvider and registering it here.
 
 export interface EmailMessage {
@@ -49,9 +49,42 @@ class ResendEmailProvider implements EmailProvider {
   }
 }
 
+class PostmarkEmailProvider implements EmailProvider {
+  constructor(private apiToken: string) {}
+  async send(msg: EmailMessage & { from: string }): Promise<void> {
+    const res = await fetch('https://api.postmarkapp.com/email', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'X-Postmark-Server-Token': this.apiToken,
+      },
+      body: JSON.stringify({
+        From: msg.from,
+        To: msg.to,
+        Subject: msg.subject,
+        HtmlBody: msg.html,
+        TextBody: msg.text,
+        MessageStream: 'outbound',
+      }),
+    })
+    if (!res.ok) {
+      const body = await res.text().catch(() => '')
+      throw new Error(`Postmark API error ${res.status}: ${body.slice(0, 300)}`)
+    }
+  }
+}
+
 function getProvider(): EmailProvider {
   const explicit = process.env.EMAIL_PROVIDER
   if (explicit === 'console') return new ConsoleEmailProvider()
+  if (explicit === 'postmark' && process.env.POSTMARK_API_TOKEN) {
+    return new PostmarkEmailProvider(process.env.POSTMARK_API_TOKEN)
+  }
+  if (explicit === 'resend' && process.env.RESEND_API_KEY) {
+    return new ResendEmailProvider(process.env.RESEND_API_KEY)
+  }
+  if (process.env.POSTMARK_API_TOKEN) return new PostmarkEmailProvider(process.env.POSTMARK_API_TOKEN)
   if (process.env.RESEND_API_KEY) return new ResendEmailProvider(process.env.RESEND_API_KEY)
   return new ConsoleEmailProvider()
 }

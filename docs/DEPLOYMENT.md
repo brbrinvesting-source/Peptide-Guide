@@ -41,7 +41,7 @@ See `.env.example` for the full annotated list. Production checklist:
 | `STRIPE_SECRET_KEY` | ✅ | Live secret key |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | ✅ | Live publishable key |
 | `STRIPE_WEBHOOK_SECRET` | ✅ | From the webhook endpoint you create (step 4) |
-| `RESEND_API_KEY` | ✅ | Or set `EMAIL_PROVIDER=console` (dev only) |
+| `POSTMARK_API_TOKEN` | ✅ | Or `RESEND_API_KEY`, or `EMAIL_PROVIDER=console` (dev only) |
 | `CRON_SECRET` | ✅ | Long random string for the abandoned-cart endpoint |
 | `FILE_STORAGE_DIR` | ✅ | Persistent volume path for COA PDFs |
 | `INITIAL_ADMIN_EMAIL` / `INITIAL_ADMIN_PASSWORD` | once | Bootstraps/promotes the Super Admin automatically on every build (idempotent — safe to leave set, or remove after the first successful deploy) |
