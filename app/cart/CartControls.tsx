@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState, useTransition } from 'react'
 import {
   applyPromoAction,
   removeItemAction,
@@ -19,48 +19,88 @@ export function CartLineControls({
   quantity: number
   maxQuantity: number
 }) {
-  const [state, formAction, pending] = useActionState<CartActionState, FormData>(
-    setQuantityAction,
-    {}
-  )
+  const [draft, setDraft] = useState(String(quantity))
+  const [error, setError] = useState<string | null>(null)
+  const [isPending, startTransition] = useTransition()
+
+  // Resync the draft once the server confirms a new quantity (e.g. after a
+  // commit, or if another tab/device changed the cart) — adjusted during
+  // render rather than an effect, per React's guidance for derived state.
+  const [prevQuantity, setPrevQuantity] = useState(quantity)
+  if (quantity !== prevQuantity) {
+    setPrevQuantity(quantity)
+    setDraft(String(quantity))
+  }
+
+  function commit(nextRaw: number) {
+    if (!Number.isFinite(nextRaw)) {
+      setDraft(String(quantity))
+      return
+    }
+    const next = Math.min(Math.max(Math.round(nextRaw), 1), maxQuantity)
+    setDraft(String(next))
+    if (next === quantity) return
+    setError(null)
+    startTransition(async () => {
+      const fd = new FormData()
+      fd.set('productId', productId)
+      fd.set('quantity', String(next))
+      const result = await setQuantityAction({}, fd)
+      if (result?.error) setError(result.error)
+    })
+  }
 
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <form action={formAction} className="flex items-center rounded-md border border-line" aria-label="Change quantity">
-        <input type="hidden" name="productId" value={productId} />
+      <div className="flex items-center rounded-md border border-line" aria-label="Change quantity">
         <button
-          type="submit"
-          name="quantity"
-          value={quantity - 1}
-          disabled={pending || quantity <= 1}
+          type="button"
+          onClick={() => commit(quantity - 1)}
+          disabled={isPending || quantity <= 1}
           aria-label="Decrease quantity"
           className="h-10 w-10 text-lg text-muted hover:text-fg disabled:opacity-40"
         >
           −
         </button>
-        <span className="w-10 border-x border-line py-2 text-center text-sm" aria-live="polite">
-          {quantity}
-        </span>
+        <input
+          type="number"
+          inputMode="numeric"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onFocus={(e) => e.target.select()}
+          onBlur={() => commit(parseInt(draft, 10))}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              commit(parseInt(draft, 10))
+              e.currentTarget.blur()
+            }
+          }}
+          disabled={isPending}
+          min={1}
+          max={maxQuantity}
+          aria-label="Quantity"
+          className="w-14 border-x border-line bg-transparent py-2 text-center text-sm [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+        />
         <button
-          type="submit"
-          name="quantity"
-          value={quantity + 1}
-          disabled={pending || quantity >= maxQuantity}
+          type="button"
+          onClick={() => commit(quantity + 1)}
+          disabled={isPending || quantity >= maxQuantity}
           aria-label="Increase quantity"
           className="h-10 w-10 text-lg text-muted hover:text-fg disabled:opacity-40"
         >
           +
         </button>
-      </form>
+      </div>
       <form action={removeItemAction}>
         <input type="hidden" name="productId" value={productId} />
         <button type="submit" className="text-xs tracking-wide text-muted underline-offset-2 hover:text-danger hover:underline">
           Remove
         </button>
       </form>
-      {state.error && (
+      {error && (
         <p role="alert" className="w-full text-xs text-danger">
-          {state.error}
+          {error}
         </p>
       )}
     </div>
