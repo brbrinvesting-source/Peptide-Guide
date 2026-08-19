@@ -4,7 +4,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { loadActiveCart, priceCart, resolveShippingCents } from '@/lib/cart'
 import { prisma } from '@/lib/db'
 import { rateLimit } from '@/lib/rate-limit'
-import { US_STATES } from '@/lib/constants'
+import { SHIPPING_STATES } from '@/lib/constants'
 
 // Live-rate preview for checkout: quotes LIVE_CARRIER shipping methods for
 // the customer's cart + address before they submit payment. The final
@@ -16,7 +16,7 @@ const addressSchema = z.object({
   line1: z.string().trim().min(3).max(200),
   line2: z.string().trim().max(200).optional().or(z.literal('')),
   city: z.string().trim().min(2).max(100),
-  state: z.string().refine((s) => s in US_STATES, 'Select a valid U.S. state'),
+  state: z.string().refine((s) => s in SHIPPING_STATES, 'We currently only ship within the continental U.S.'),
   postalCode: z.string().trim().regex(/^\d{5}(-\d{4})?$/, 'Enter a valid ZIP code'),
   phone: z.string().trim().max(30).optional().or(z.literal('')),
 })

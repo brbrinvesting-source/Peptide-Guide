@@ -37,10 +37,15 @@ export const INVENTORY_REASONS = [
 ] as const
 export type InventoryReason = (typeof INVENTORY_REASONS)[number]
 
-export const US_STATES: Record<string, string> = {
-  AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California',
+// Continental (contiguous) US only — Alaska and Hawaii are deliberately
+// excluded, since that's currently all this store ships to. This is the
+// single source of truth for both the checkout state dropdown and
+// server-side address validation, so removing a state here also blocks it
+// from being submitted at checkout.
+export const SHIPPING_STATES: Record<string, string> = {
+  AL: 'Alabama', AZ: 'Arizona', AR: 'Arkansas', CA: 'California',
   CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', FL: 'Florida', GA: 'Georgia',
-  HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa',
+  ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa',
   KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland',
   MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi', MO: 'Missouri',
   MT: 'Montana', NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire', NJ: 'New Jersey',

@@ -5,14 +5,14 @@ import { loadActiveCart } from '@/lib/cart'
 import { createPendingOrder } from '@/lib/orders'
 import { prisma } from '@/lib/db'
 import { rateLimit } from '@/lib/rate-limit'
-import { US_STATES } from '@/lib/constants'
+import { SHIPPING_STATES } from '@/lib/constants'
 
 const addressSchema = z.object({
   name: z.string().trim().min(2).max(120),
   line1: z.string().trim().min(3).max(200),
   line2: z.string().trim().max(200).optional().or(z.literal('')),
   city: z.string().trim().min(2).max(100),
-  state: z.string().refine((s) => s in US_STATES, 'Select a valid U.S. state'),
+  state: z.string().refine((s) => s in SHIPPING_STATES, 'We currently only ship within the continental U.S.'),
   postalCode: z.string().trim().regex(/^\d{5}(-\d{4})?$/, 'Enter a valid ZIP code'),
   phone: z.string().trim().max(30).optional().or(z.literal('')),
 })

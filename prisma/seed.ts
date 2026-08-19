@@ -126,7 +126,7 @@ const CONTENT_PAGES = [
   {
     slug: 'shipping-policy',
     title: 'Shipping Policy',
-    body: `PLACEHOLDER — update with final carrier and handling details.\n\nAll-Access Peptides ships to all 50 U.S. states. We do not offer international shipping.\n\nOrders are typically processed within 1–2 business days. Delivery estimates shown at checkout depend on the shipping method selected and are estimates, not guarantees.\n\nOrders over the free-shipping threshold displayed in your cart qualify for free shipping.\n\nA shipping confirmation email with tracking information is sent when your order ships.`,
+    body: `PLACEHOLDER — update with final carrier and handling details.\n\nAll-Access Peptides currently ships within the continental United States only (the 48 contiguous states plus Washington, D.C.). We do not currently ship to Alaska, Hawaii, U.S. territories, or internationally.\n\nOrders are typically processed within 1–2 business days. Delivery estimates shown at checkout depend on the shipping method selected and are estimates, not guarantees.\n\nOrders over the free-shipping threshold displayed in your cart qualify for free shipping.\n\nA shipping confirmation email with tracking information is sent when your order ships.`,
   },
   {
     slug: 'refund-policy',

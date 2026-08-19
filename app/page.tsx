@@ -56,7 +56,7 @@ export default async function HomePage() {
           <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2.5">
             <span aria-hidden="true" className="text-sm leading-none">🇺🇸</span>
             <p className="text-[0.65rem] font-semibold tracking-[0.22em] text-muted uppercase">
-              U.S.-based supplier · Ships to all 50 states · COA documentation per product
+              U.S.-based supplier · Ships to the continental U.S. · COA documentation per product
             </p>
           </div>
         </div>
@@ -201,7 +201,7 @@ export default async function HomePage() {
 function trustItems(thresholdCents: number): { Icon: typeof ShieldIcon; title: string; sub: string }[] {
   return [
     { Icon: ShieldIcon, title: 'COA-Backed Transparency', sub: 'Documentation available per product' },
-    { Icon: FlaskIcon, title: 'Trusted Nationwide', sub: 'Ships to all 50 U.S. states' },
+    { Icon: FlaskIcon, title: 'Trusted Nationwide', sub: 'Ships to the continental U.S.' },
     { Icon: TruckIcon, title: `Free Shipping ${formatCents(thresholdCents)}+`, sub: 'On qualifying orders' },
   ]
 }

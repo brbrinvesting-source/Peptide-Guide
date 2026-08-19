@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
-import { US_STATES, formatCents } from '@/lib/constants'
+import { SHIPPING_STATES, formatCents } from '@/lib/constants'
 
 interface AddressValue {
   name: string
@@ -615,7 +615,7 @@ function AddressFields({
           </label>
           <select id={`${idPrefix}-state`} required value={value.state} onChange={set('state')} autoComplete="address-level1" className="field">
             <option value="">State</option>
-            {Object.entries(US_STATES).map(([code, name]) => (
+            {Object.entries(SHIPPING_STATES).map(([code, name]) => (
               <option key={code} value={code}>
                 {name}
               </option>
