@@ -127,6 +127,12 @@ export default async function CartPage() {
                   </dd>
                 </div>
               )}
+              {p.referralDiscountCents > 0 && (
+                <div className="flex justify-between">
+                  <dt className="text-muted">Referral welcome discount</dt>
+                  <dd className="text-gold">−{formatCents(p.referralDiscountCents)}</dd>
+                </div>
+              )}
               <div className="flex justify-between">
                 <dt className="text-muted">Shipping</dt>
                 <dd className="text-muted">{p.freeShippingQualified ? 'FREE' : 'Calculated at checkout'}</dd>

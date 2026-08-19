@@ -38,6 +38,10 @@ interface FinalTotals {
   subtotalCents: number
   bulkDiscountCents: number
   promoDiscountCents: number
+  referralDiscountCents: number
+  pointsRedeemed: number
+  pointsDiscountCents: number
+  pointsEarned: number
   shippingCents: number
   insuranceCents: number
   taxCents: number
@@ -50,6 +54,11 @@ export function CheckoutClient(props: {
   totals: Totals
   promoCode: string | null
   insuranceCents: number | null
+  referralDiscountCents: number
+  referralFirstOrderEligible: boolean
+  pointsBalance: number
+  pointsRedemptionPerDollar: number
+  pointsEnabled: boolean
   savedShipping: AddressValue | null
   savedBilling: AddressValue | null
   shippingMethods: {
@@ -68,6 +77,7 @@ export function CheckoutClient(props: {
   const [billing, setBilling] = useState<AddressValue>(props.savedBilling ?? emptyAddress)
   const [shippingMethodId, setShippingMethodId] = useState(props.shippingMethods[0].id)
   const [insuranceElected, setInsuranceElected] = useState(false)
+  const [pointsToRedeemInput, setPointsToRedeemInput] = useState('')
   const [accepted, setAccepted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -144,6 +154,13 @@ export function CheckoutClient(props: {
       : selectedMethod.priceCents
   const insurancePreviewCents = insuranceElected ? (props.insuranceCents ?? 0) : 0
 
+  const pointsRequested = Math.max(0, parseInt(pointsToRedeemInput, 10) || 0)
+  const maxPointsBySpend = Math.floor(
+    (props.totals.merchandiseTotalCents * props.pointsRedemptionPerDollar) / 100
+  )
+  const pointsRedeemedPreview = Math.min(pointsRequested, props.pointsBalance, maxPointsBySpend)
+  const pointsDiscountPreviewCents = Math.floor((pointsRedeemedPreview * 100) / props.pointsRedemptionPerDollar)
+
   async function continueToPayment(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
@@ -163,6 +180,7 @@ export function CheckoutClient(props: {
           billing: billingSame ? null : billing,
           shippingMethodId,
           insuranceElected,
+          pointsToRedeem: pointsRedeemedPreview,
           acceptedDisclaimer: accepted,
         }),
       })
@@ -336,6 +354,62 @@ export function CheckoutClient(props: {
                 </section>
               )}
 
+              {/* Referral discount — automatic, no code to enter */}
+              {props.referralFirstOrderEligible && props.referralDiscountCents > 0 && (
+                <div className="flex items-center justify-between gap-4 rounded-md border border-gold/40 bg-gold/5 px-4 py-3 text-sm">
+                  <span className="font-semibold text-gold">Referral welcome discount applied</span>
+                  <span className="font-semibold text-gold">−{formatCents(props.referralDiscountCents)}</span>
+                </div>
+              )}
+
+              {/* Rewards points */}
+              {props.pointsEnabled && props.pointsBalance > 0 && (
+                <section aria-labelledby="points-heading">
+                  <h2 id="points-heading" className="microlabel">
+                    6 · Rewards points (optional)
+                  </h2>
+                  <div className="mt-3 rounded-md border border-line px-4 py-3.5 text-sm">
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-muted">
+                        You have <span className="font-semibold text-fg">{props.pointsBalance.toLocaleString()}</span>{' '}
+                        points ({formatCents(Math.floor((props.pointsBalance * 100) / props.pointsRedemptionPerDollar))}{' '}
+                        value)
+                      </span>
+                    </div>
+                    <div className="mt-3 flex items-center gap-3">
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min={0}
+                        max={props.pointsBalance}
+                        placeholder="0"
+                        value={pointsToRedeemInput}
+                        onChange={(e) => setPointsToRedeemInput(e.target.value)}
+                        className="field w-32"
+                        aria-label="Points to redeem"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setPointsToRedeemInput(String(props.pointsBalance))}
+                        className="text-xs text-gold underline-offset-2 hover:text-gold-bright hover:underline"
+                      >
+                        Use max
+                      </button>
+                      {pointsRedeemedPreview > 0 && (
+                        <span className="ml-auto font-semibold text-gold">
+                          −{formatCents(pointsDiscountPreviewCents)}
+                        </span>
+                      )}
+                    </div>
+                    {pointsRequested > pointsRedeemedPreview && (
+                      <p className="mt-2 text-xs text-muted">
+                        Capped at {pointsRedeemedPreview.toLocaleString()} points — the most this order can use.
+                      </p>
+                    )}
+                  </div>
+                </section>
+              )}
+
               {/* Research acknowledgement */}
               <section aria-labelledby="ack-heading" className="panel border-gold/40 p-4">
                 <h2 id="ack-heading" className="sr-only">
@@ -429,6 +503,20 @@ export function CheckoutClient(props: {
                   value={`−${formatCents((payment?.totals ?? props.totals).promoDiscountCents)}`}
                 />
               )}
+              {((payment ? payment.totals.referralDiscountCents : props.referralDiscountCents) > 0) && (
+                <Row
+                  gold
+                  label="Referral welcome discount"
+                  value={`−${formatCents(payment ? payment.totals.referralDiscountCents : props.referralDiscountCents)}`}
+                />
+              )}
+              {((payment ? payment.totals.pointsDiscountCents : pointsDiscountPreviewCents) > 0) && (
+                <Row
+                  gold
+                  label={`Points redeemed (${(payment ? payment.totals.pointsRedeemed : pointsRedeemedPreview).toLocaleString()})`}
+                  value={`−${formatCents(payment ? payment.totals.pointsDiscountCents : pointsDiscountPreviewCents)}`}
+                />
+              )}
               <Row
                 label="Shipping"
                 value={
@@ -456,8 +544,8 @@ export function CheckoutClient(props: {
                   {payment
                     ? formatCents(payment.totals.totalCents)
                     : shippingPreviewCents === null
-                      ? `${formatCents(props.totals.merchandiseTotalCents + insurancePreviewCents)} + shipping + tax`
-                      : `${formatCents(props.totals.merchandiseTotalCents + shippingPreviewCents + insurancePreviewCents)} + tax`}
+                      ? `${formatCents(props.totals.merchandiseTotalCents - pointsDiscountPreviewCents + insurancePreviewCents)} + shipping + tax`
+                      : `${formatCents(props.totals.merchandiseTotalCents - pointsDiscountPreviewCents + shippingPreviewCents + insurancePreviewCents)} + tax`}
                 </dd>
               </div>
             </dl>

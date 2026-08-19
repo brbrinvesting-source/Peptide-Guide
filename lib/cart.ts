@@ -14,6 +14,7 @@ import {
 import type { Cart, CartItem, Product, ProductImage, PromoCode } from '@prisma/client'
 import { getLiveShippingRateCents, type ShipAddress } from './shipping-rates'
 import { getSetting, SETTING_KEYS } from './settings'
+import { getRewardsConfig, isReferralFirstOrderEligible, pointsRedemptionValueCents } from './points'
 
 export type LoadedCart = Cart & {
   items: (CartItem & {
@@ -162,7 +163,7 @@ export async function removePromoFromCart(userId: string): Promise<void> {
  */
 export async function priceCart(
   cart: LoadedCart,
-  opts: { shippingCents?: number | null; taxCents?: number | null } = {}
+  opts: { shippingCents?: number | null; taxCents?: number | null; pointsToRedeem?: number } = {}
 ): Promise<CartPricing> {
   const tiers = await getBulkTiers()
   const problems: CartProblem[] = []
@@ -221,7 +222,28 @@ export async function priceCart(
     }
   }
 
-  const merchandiseTotalCents = afterBulk - promoDiscount
+  const afterPromo = afterBulk - promoDiscount
+
+  const rewards = await getRewardsConfig()
+  const user = await prisma.user.findUnique({
+    where: { id: cart.userId },
+    select: { pointsBalance: true },
+  })
+  const pointsBalance = user?.pointsBalance ?? 0
+
+  const referralFirstOrderEligible =
+    rewards.referralEnabled && (await isReferralFirstOrderEligible(cart.userId))
+  const referralDiscountCents = referralFirstOrderEligible
+    ? Math.round((afterPromo * rewards.referralFirstOrderPercent) / 100)
+    : 0
+  const afterReferral = afterPromo - referralDiscountCents
+
+  const requestedPoints = rewards.pointsEnabled ? Math.max(0, Math.floor(opts.pointsToRedeem ?? 0)) : 0
+  const maxPointsBySpend = Math.floor((afterReferral * rewards.redemptionPerDollar) / 100)
+  const pointsRedeemed = Math.min(requestedPoints, pointsBalance, maxPointsBySpend)
+  const pointsDiscountCents = pointsRedemptionValueCents(pointsRedeemed, rewards.redemptionPerDollar)
+
+  const merchandiseTotalCents = afterReferral - pointsDiscountCents
   const shipProgress = await getFreeShippingProgress(merchandiseTotalCents)
   const shippingCents = opts.shippingCents ?? 0
   const taxCents = opts.taxCents ?? null
@@ -231,6 +253,11 @@ export async function priceCart(
     subtotalCents,
     bulkDiscountCents,
     promoDiscountCents: promoDiscount,
+    referralDiscountCents,
+    referralFirstOrderEligible,
+    pointsBalance,
+    pointsRedeemed,
+    pointsDiscountCents,
     merchandiseTotalCents,
     shippingCents,
     freeShippingThresholdCents: shipProgress.thresholdCents,

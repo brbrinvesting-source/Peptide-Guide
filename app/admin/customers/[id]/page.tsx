@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db'
 import { formatCents } from '@/lib/constants'
 import { setCustomerDisabledAction } from '@/app/actions/admin'
 import { formatDate } from '@/lib/dates'
+import { PointsAdjustForm } from './PointsAdjustForm'
 
 export default async function AdminCustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin()
@@ -14,9 +15,16 @@ export default async function AdminCustomerDetailPage({ params }: { params: Prom
     include: {
       orders: { where: { status: { not: 'PENDING' } }, orderBy: { createdAt: 'desc' }, take: 50 },
       welcomePromotion: { include: { promoCode: true } },
+      referredBy: { select: { email: true } },
+      referrals: { select: { id: true, email: true, createdAt: true } },
     },
   })
   if (!customer || customer.role !== 'CUSTOMER') notFound()
+
+  const referralBonus = await prisma.pointsTransaction.aggregate({
+    where: { userId: customer.id, type: 'REFERRAL_BONUS' },
+    _sum: { points: true },
+  })
 
   const paidOrders = customer.orders.filter((o) => o.paymentStatus === 'PAID')
   const totalSpend = paidOrders.reduce((s, o) => s + o.totalCents, 0)
@@ -57,6 +65,25 @@ export default async function AdminCustomerDetailPage({ params }: { params: Prom
           </p>
         </div>
       )}
+
+      <div className="panel mt-4 p-4 text-sm">
+        <p className="microlabel text-gold">Rewards &amp; referrals</p>
+        <p className="mt-2 text-muted">
+          Points balance <span className="font-bold text-fg">{customer.pointsBalance.toLocaleString()}</span> ·
+          Referral code <span className="font-mono text-gold">{customer.referralCode}</span>
+          {customer.referredBy && (
+            <>
+              {' '}
+              · Referred by <span className="text-fg">{customer.referredBy.email}</span>
+            </>
+          )}
+        </p>
+        <p className="mt-1.5 text-muted">
+          {customer.referrals.length} friend{customer.referrals.length === 1 ? '' : 's'} referred ·{' '}
+          {(referralBonus._sum.points ?? 0).toLocaleString()} lifetime bonus points earned
+        </p>
+        <PointsAdjustForm userId={customer.id} />
+      </div>
 
       <div className="panel mt-6 overflow-x-auto">
         <p className="microlabel border-b border-line px-4 py-3">Order history</p>

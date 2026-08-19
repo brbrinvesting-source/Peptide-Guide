@@ -5,7 +5,10 @@ import { prisma } from '@/lib/db'
 import { logoutAction } from '@/app/actions/auth'
 import { formatCents } from '@/lib/constants'
 import { AccountForms } from './AccountForms'
+import { RewardsCard } from './RewardsCard'
 import { formatDate } from '@/lib/dates'
+import { getRewardsConfig, pointsRedemptionValueCents } from '@/lib/points'
+import { absoluteUrl } from '@/lib/site'
 
 export const metadata: Metadata = { title: 'Account', robots: { index: false, follow: false } }
 
@@ -22,7 +25,7 @@ const STATUS_LABEL: Record<string, string> = {
 
 export default async function AccountPage() {
   const user = await requireUser()
-  const [recentOrders, welcome] = await Promise.all([
+  const [recentOrders, welcome, referredCount, referralBonus, rewards] = await Promise.all([
     prisma.order.findMany({
       where: { userId: user.id, status: { not: 'PENDING' } },
       orderBy: { createdAt: 'desc' },
@@ -32,7 +35,14 @@ export default async function AccountPage() {
       where: { userId: user.id },
       include: { promoCode: true },
     }),
+    prisma.user.count({ where: { referredById: user.id } }),
+    prisma.pointsTransaction.aggregate({
+      where: { userId: user.id, type: 'REFERRAL_BONUS' },
+      _sum: { points: true },
+    }),
+    getRewardsConfig(),
   ])
+  const pointsValueCents = pointsRedemptionValueCents(user.pointsBalance, rewards.redemptionPerDollar)
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
@@ -56,6 +66,16 @@ export default async function AccountPage() {
           </p>
           <p className="mt-2 font-mono text-lg tracking-[0.14em] text-gold">{welcome.promoCode.code}</p>
         </div>
+      )}
+
+      {rewards.pointsEnabled && (
+        <RewardsCard
+          pointsBalance={user.pointsBalance}
+          pointsValueCents={pointsValueCents}
+          referralUrl={absoluteUrl(`/r/${user.referralCode}`)}
+          referredCount={referredCount}
+          referralBonusPoints={referralBonus._sum.points ?? 0}
+        />
       )}
 
       <section className="mt-8" aria-labelledby="orders-heading">

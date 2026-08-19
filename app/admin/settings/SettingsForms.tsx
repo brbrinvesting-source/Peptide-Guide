@@ -31,6 +31,12 @@ const K = {
   WELCOME_DISCOUNT_PERCENT: 'discounts.welcomePercent',
   WELCOME_PROMO_ENABLED: 'discounts.welcomeEnabled',
   WELCOME_PROMO_CODE: 'discounts.welcomeCode',
+  POINTS_PROGRAM_ENABLED: 'rewards.pointsEnabled',
+  POINTS_EARN_CENTS_PER_POINT: 'rewards.earnCentsPerPoint',
+  POINTS_REDEMPTION_PER_DOLLAR: 'rewards.redemptionPerDollar',
+  REFERRAL_PROGRAM_ENABLED: 'rewards.referralEnabled',
+  REFERRAL_POINTS_MULTIPLIER: 'rewards.referralMultiplier',
+  REFERRAL_FIRST_ORDER_DISCOUNT_PERCENT: 'rewards.referralFirstOrderPercent',
   LOW_STOCK_DEFAULT_THRESHOLD: 'inventory.lowStockDefault',
   ABANDONED_CART_DELAY_MINUTES: 'email.abandonedCartDelayMinutes',
   ABANDONED_CART_SUBJECT: 'email.abandonedCartSubject',
@@ -160,6 +166,60 @@ export function SettingsForms({
           name={K.WELCOME_PROMO_CODE}
           defaultValue={v(K.WELCOME_PROMO_CODE)}
           hint="Shared code emailed to every new customer. Each account may redeem it once. Changing this only affects future welcome emails — to edit the discount % or deactivate the current code, use Promo Codes."
+        />
+      </SettingsSection>
+
+      <SettingsSection
+        title="Rewards points"
+        description="Points are earned on the final merchandise total (after all discounts, before shipping/tax) and redeemed for a dollar discount at checkout."
+      >
+        <div className="grid grid-cols-2 gap-3">
+          <label className="microlabel block">
+            Points program
+            <select name={K.POINTS_PROGRAM_ENABLED} defaultValue={v(K.POINTS_PROGRAM_ENABLED)} className="field mt-1.5">
+              <option value="true">Enabled</option>
+              <option value="false">Disabled</option>
+            </select>
+          </label>
+          <Field
+            label="Cents spent per point earned"
+            name={K.POINTS_EARN_CENTS_PER_POINT}
+            defaultValue={v(K.POINTS_EARN_CENTS_PER_POINT)}
+            hint="1000 = 1 point per $10 spent"
+          />
+        </div>
+        <Field
+          label="Points redeemed per $1 discount"
+          name={K.POINTS_REDEMPTION_PER_DOLLAR}
+          defaultValue={v(K.POINTS_REDEMPTION_PER_DOLLAR)}
+          hint="100 = 100 points redeems for $1 off"
+        />
+      </SettingsSection>
+
+      <SettingsSection
+        title="Referral program"
+        description="Every account gets a shareable link (Account page). A referred customer's first paid order earns the discount and point multiplier below; the referrer earns the multiplier on every purchase their referrals ever make."
+      >
+        <div className="grid grid-cols-2 gap-3">
+          <label className="microlabel block">
+            Referral program
+            <select name={K.REFERRAL_PROGRAM_ENABLED} defaultValue={v(K.REFERRAL_PROGRAM_ENABLED)} className="field mt-1.5">
+              <option value="true">Enabled</option>
+              <option value="false">Disabled</option>
+            </select>
+          </label>
+          <Field
+            label="Referral points multiplier"
+            name={K.REFERRAL_POINTS_MULTIPLIER}
+            defaultValue={v(K.REFERRAL_POINTS_MULTIPLIER)}
+            hint="2 = double points"
+          />
+        </div>
+        <Field
+          label="Referred friend's first-order discount %"
+          name={K.REFERRAL_FIRST_ORDER_DISCOUNT_PERCENT}
+          defaultValue={v(K.REFERRAL_FIRST_ORDER_DISCOUNT_PERCENT)}
+          hint="Applied automatically, no code needed — stacks with a manually-entered promo code."
         />
       </SettingsSection>
 

@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
+import { randomBytes } from 'crypto'
 
 // Secure initial Super Admin setup. Credentials come from environment
 // variables (never hard-coded):
@@ -9,6 +10,26 @@ import bcrypt from 'bcryptjs'
 // If the user already exists it is promoted to SUPER_ADMIN instead.
 
 const prisma = new PrismaClient()
+
+// Duplicated from lib/referrals.ts rather than imported: that module is
+// marked 'server-only', which throws when loaded outside Next's
+// server-component bundler (this script runs directly via tsx).
+function randomReferralCode(): string {
+  const alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+  const bytes = randomBytes(7)
+  let code = ''
+  for (let i = 0; i < 7; i++) code += alphabet[bytes[i] % alphabet.length]
+  return code
+}
+
+async function uniqueReferralCode(): Promise<string> {
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const code = randomReferralCode()
+    const clash = await prisma.user.findUnique({ where: { referralCode: code } })
+    if (!clash) return code
+  }
+  return `${randomReferralCode()}${randomReferralCode()}`
+}
 
 async function main() {
   const email = process.env.INITIAL_ADMIN_EMAIL?.trim().toLowerCase()
@@ -39,6 +60,7 @@ async function main() {
         role: 'SUPER_ADMIN',
         emailVerified: true,
         emailVerifiedAt: new Date(),
+        referralCode: await uniqueReferralCode(),
       },
     })
     console.log(`Super Admin ${email} created.`)

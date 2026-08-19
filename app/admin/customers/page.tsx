@@ -57,6 +57,7 @@ export default async function AdminCustomersPage({
               <th>Verified</th>
               <th>Paid orders</th>
               <th>Total spend</th>
+              <th>Points</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -71,10 +72,11 @@ export default async function AdminCustomersPage({
                 <td>{c.emailVerified ? <span className="text-success">✓</span> : <span className="text-muted">—</span>}</td>
                 <td>{c.orders.length}</td>
                 <td className="font-semibold">{formatCents(c.orders.reduce((s, o) => s + o.totalCents, 0))}</td>
+                <td>{c.pointsBalance.toLocaleString()}</td>
                 <td>{c.disabled ? <span className="badge badge-danger">Disabled</span> : <span className="badge badge-instock">Active</span>}</td>
               </tr>
             ))}
-            {customers.length === 0 && <tr><td colSpan={7} className="py-8 text-center text-muted">No customers found.</td></tr>}
+            {customers.length === 0 && <tr><td colSpan={8} className="py-8 text-center text-muted">No customers found.</td></tr>}
           </tbody>
         </table>
       </div>

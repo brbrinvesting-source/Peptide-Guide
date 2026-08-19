@@ -28,6 +28,19 @@ export const SETTING_KEYS = {
   WELCOME_DISCOUNT_PERCENT: 'discounts.welcomePercent',
   WELCOME_PROMO_ENABLED: 'discounts.welcomeEnabled',
   WELCOME_PROMO_CODE: 'discounts.welcomeCode',
+  // Rewards points: earn POINTS_EARN_CENTS_PER_POINT of merchandise spend per
+  // point, redeem POINTS_REDEMPTION_PER_DOLLAR points per $1 of discount.
+  POINTS_PROGRAM_ENABLED: 'rewards.pointsEnabled',
+  POINTS_EARN_CENTS_PER_POINT: 'rewards.earnCentsPerPoint',
+  POINTS_REDEMPTION_PER_DOLLAR: 'rewards.redemptionPerDollar',
+  // Referrals: referrer earns REFERRAL_POINTS_MULTIPLIER x the normal rate,
+  // for life, on every purchase their referred friends make. A referred
+  // friend earns the same multiplier (but only on their own first paid
+  // order) and gets REFERRAL_FIRST_ORDER_DISCOUNT_PERCENT off automatically
+  // — no code to enter, stacks with a manually-entered promo code.
+  REFERRAL_PROGRAM_ENABLED: 'rewards.referralEnabled',
+  REFERRAL_POINTS_MULTIPLIER: 'rewards.referralMultiplier',
+  REFERRAL_FIRST_ORDER_DISCOUNT_PERCENT: 'rewards.referralFirstOrderPercent',
   LOW_STOCK_DEFAULT_THRESHOLD: 'inventory.lowStockDefault',
   ABANDONED_CART_DELAY_MINUTES: 'email.abandonedCartDelayMinutes',
   ABANDONED_CART_SUBJECT: 'email.abandonedCartSubject',
@@ -86,6 +99,12 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   [SETTING_KEYS.WELCOME_DISCOUNT_PERCENT]: '20',
   [SETTING_KEYS.WELCOME_PROMO_ENABLED]: 'true',
   [SETTING_KEYS.WELCOME_PROMO_CODE]: 'WELCOME20',
+  [SETTING_KEYS.POINTS_PROGRAM_ENABLED]: 'true',
+  [SETTING_KEYS.POINTS_EARN_CENTS_PER_POINT]: '1000', // 1 point per $10
+  [SETTING_KEYS.POINTS_REDEMPTION_PER_DOLLAR]: '100', // 100 points = $1
+  [SETTING_KEYS.REFERRAL_PROGRAM_ENABLED]: 'true',
+  [SETTING_KEYS.REFERRAL_POINTS_MULTIPLIER]: '2',
+  [SETTING_KEYS.REFERRAL_FIRST_ORDER_DISCOUNT_PERCENT]: '10',
   [SETTING_KEYS.LOW_STOCK_DEFAULT_THRESHOLD]: '5',
   [SETTING_KEYS.ABANDONED_CART_DELAY_MINUTES]: '90',
   [SETTING_KEYS.ABANDONED_CART_SUBJECT]: 'You left something behind',

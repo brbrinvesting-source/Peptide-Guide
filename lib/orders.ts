@@ -4,6 +4,7 @@ import { priceCart, resolveShippingCents, type LoadedCart } from './cart'
 import { calculateTax } from './tax'
 import { getPaymentProvider } from './payments/provider'
 import { getSetting, getInsuranceCents, SETTING_KEYS } from './settings'
+import { applyPointsChange, getRewardsConfig, pointsForAmountCents } from './points'
 import { sendEmail } from './email/provider'
 import {
   adminNotificationEmail,
@@ -42,6 +43,7 @@ export async function createPendingOrder(params: {
   billing: CheckoutAddressInput | null
   shippingMethodId: string
   insuranceElected: boolean
+  pointsToRedeem: number
   acceptedDisclaimer: boolean
   cart: LoadedCart
 }): Promise<
@@ -51,7 +53,7 @@ export async function createPendingOrder(params: {
   if (!params.acceptedDisclaimer) {
     return { ok: false, error: 'You must accept the research-use acknowledgement to continue.' }
   }
-  const pricing = await priceCart(params.cart)
+  const pricing = await priceCart(params.cart, { pointsToRedeem: params.pointsToRedeem })
   if (pricing.lines.length === 0) return { ok: false, error: 'Your cart is empty.' }
   if (pricing.problems.length > 0) {
     return {
@@ -95,6 +97,23 @@ export async function createPendingOrder(params: {
   const totalCents = pricing.merchandiseTotalCents + ship.cents + insuranceCents + taxCents
   if (totalCents < 50) return { ok: false, error: 'Order total is below the payment minimum.' }
 
+  // Points earned/referral bonus are computed and locked in now, on the
+  // final post-discount merchandise total, then only actually credited to
+  // balances once payment is confirmed (finalizeOrderPayment reads these
+  // same stored values back rather than recomputing).
+  const rewards = await getRewardsConfig()
+  const earnMultiplier = pricing.referralFirstOrderEligible ? rewards.referralMultiplier : 1
+  const basePoints = rewards.pointsEnabled
+    ? pointsForAmountCents(pricing.merchandiseTotalCents, rewards.earnCentsPerPoint)
+    : 0
+  const pointsEarned = basePoints * earnMultiplier
+
+  let referralBonusPointsAwarded = 0
+  if (rewards.referralEnabled && rewards.pointsEnabled) {
+    const buyer = await prisma.user.findUnique({ where: { id: params.userId }, select: { referredById: true } })
+    if (buyer?.referredById) referralBonusPointsAwarded = basePoints * rewards.referralMultiplier
+  }
+
   const disclaimerVersion = await getSetting(SETTING_KEYS.DISCLAIMER_VERSION)
   const orderNumber = generateOrderNumber()
 
@@ -115,6 +134,11 @@ export async function createPendingOrder(params: {
         subtotalCents: pricing.subtotalCents,
         bulkDiscountCents: pricing.bulkDiscountCents,
         promoDiscountCents: pricing.promoDiscountCents,
+        referralDiscountCents: pricing.referralDiscountCents,
+        pointsRedeemed: pricing.pointsRedeemed,
+        pointsDiscountCents: pricing.pointsDiscountCents,
+        pointsEarned,
+        referralBonusPointsAwarded,
         shippingCents: ship.cents,
         insuranceCents,
         taxCents,
@@ -298,6 +322,50 @@ export async function finalizeOrderPayment(providerPaymentId: string): Promise<b
       }
     }
 
+    // Rewards points: debit redeemed points, credit earned points, and
+    // credit the referrer's bonus (if any) — all amounts were locked in at
+    // order creation; this just makes them real now that payment cleared.
+    if (payment.order.pointsRedeemed > 0) {
+      const debited = await applyPointsChange(tx, {
+        userId: payment.order.userId,
+        orderId: payment.orderId,
+        type: 'REDEEMED',
+        points: -payment.order.pointsRedeemed,
+        note: `Redeemed on order ${payment.order.orderNumber}`,
+      })
+      if (!debited.ok) {
+        // Extremely unlikely: would require the balance to have dropped
+        // between order creation and payment confirmation, which the
+        // cancel-earlier-pending-orders logic already prevents for a single
+        // user. Do not fail the payment over it — flag for manual review.
+        console.error(`points redemption failed on order ${payment.order.orderNumber}: ${debited.error}`)
+      }
+    }
+    if (payment.order.pointsEarned > 0) {
+      await applyPointsChange(tx, {
+        userId: payment.order.userId,
+        orderId: payment.orderId,
+        type: 'EARNED',
+        points: payment.order.pointsEarned,
+        note: `Earned on order ${payment.order.orderNumber}`,
+      })
+    }
+    if (payment.order.referralBonusPointsAwarded > 0) {
+      const buyer = await tx.user.findUnique({
+        where: { id: payment.order.userId },
+        select: { referredById: true },
+      })
+      if (buyer?.referredById) {
+        await applyPointsChange(tx, {
+          userId: buyer.referredById,
+          orderId: payment.orderId,
+          type: 'REFERRAL_BONUS',
+          points: payment.order.referralBonusPointsAwarded,
+          note: `Referral bonus — order ${payment.order.orderNumber} by a referred customer`,
+        })
+      }
+    }
+
     // Convert the cart so it can't trigger abandoned-cart emails.
     await tx.cart.updateMany({
       where: { userId: payment.order.userId, status: { in: ['ACTIVE', 'ABANDONED_NOTIFIED'] } },
@@ -334,6 +402,10 @@ async function sendOrderPaidNotifications(orderId: string): Promise<void> {
     subtotalCents: order.subtotalCents,
     bulkDiscountCents: order.bulkDiscountCents,
     promoDiscountCents: order.promoDiscountCents,
+    referralDiscountCents: order.referralDiscountCents,
+    pointsRedeemed: order.pointsRedeemed,
+    pointsDiscountCents: order.pointsDiscountCents,
+    pointsEarned: order.pointsEarned,
     shippingCents: order.shippingCents,
     insuranceCents: order.insuranceCents,
     taxCents: order.taxCents,

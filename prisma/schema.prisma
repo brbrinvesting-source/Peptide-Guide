@@ -34,6 +34,19 @@ model User {
   // organization. Enforced server-side — registration is rejected without it.
   researcherAttestedAt      DateTime?
   researcherAttestationVersion String?
+
+  // Rewards points — denormalized running balance (like Product.inventoryQty),
+  // authoritative history lives in PointsTransaction.
+  pointsBalance  Int       @default(0)
+
+  // Referrals. Every account gets its own shareable code at creation.
+  // referredById is set once, at registration, from the /r/[code] cookie —
+  // never changed afterward.
+  referralCode   String    @unique
+  referredById   String?
+  referredBy     User?     @relation("Referrals", fields: [referredById], references: [id])
+  referrals      User[]    @relation("Referrals")
+
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -48,8 +61,30 @@ model User {
   auditLogs            AuditLog[]
   uploadedCoas         Coa[]
   disclaimerAcceptances DisclaimerAcceptance[]
+  pointsTransactions   PointsTransaction[]
 
   @@index([role])
+  @@index([referredById])
+}
+
+model PointsTransaction {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  orderId         String?
+  order           Order?   @relation(fields: [orderId], references: [id])
+  // EARNED (own purchase) | REFERRAL_BONUS (a referred friend's purchase) |
+  // REDEEMED | REFUND_REVERSED | ADMIN_ADJUSTMENT
+  type            String
+  points          Int      // positive for earned/bonus, negative for redeemed/reversed
+  previousBalance Int
+  newBalance      Int
+  note            String?
+  adminId         String?
+  createdAt       DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([orderId])
 }
 
 model Session {
@@ -319,6 +354,20 @@ model Order {
   subtotalCents      Int
   bulkDiscountCents  Int      @default(0)
   promoDiscountCents Int      @default(0)
+  // Auto-applied, one-time discount for a referred customer's first paid
+  // order — independent of the promoCode slot, so it stacks with a
+  // manually-entered code (e.g. the shared welcome code).
+  referralDiscountCents Int  @default(0)
+  // Rewards points redeemed for a dollar discount on this order.
+  pointsRedeemed     Int      @default(0)
+  pointsDiscountCents Int     @default(0)
+  // Points earned by the purchaser from this order (2x if it was their
+  // referred-first-order). Actual balance change lives in PointsTransaction.
+  pointsEarned       Int      @default(0)
+  // Bonus points this order earned for the purchaser's referrer, if any
+  // (record-keeping on the order; the ledger entry is under the referrer's
+  // own userId, not this order's userId).
+  referralBonusPointsAwarded Int @default(0)
   shippingCents      Int      @default(0)
   insuranceCents     Int      @default(0) // customer-elected shipping insurance, untaxed
   taxCents           Int      @default(0)
@@ -354,6 +403,7 @@ model Order {
   payments             Payment[]
   promoRedemption      PromoRedemption?
   disclaimerAcceptance DisclaimerAcceptance?
+  pointsTransactions   PointsTransaction[]
 
   @@index([userId, createdAt])
   @@index([status])

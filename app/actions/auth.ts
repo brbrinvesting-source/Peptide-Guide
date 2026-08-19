@@ -1,6 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { z } from 'zod'
 import { prisma } from '@/lib/db'
 import {
@@ -21,6 +22,7 @@ import { absoluteUrl } from '@/lib/site'
 import { createAndSendWelcomePromotion } from '@/lib/welcome'
 import { audit } from '@/lib/audit'
 import { getSetting, SETTING_KEYS } from '@/lib/settings'
+import { generateUniqueReferralCode, resolveReferrerId, REFERRAL_COOKIE } from '@/lib/referrals'
 
 export interface FormState {
   error?: string
@@ -60,14 +62,21 @@ export async function registerAction(_prev: FormState, formData: FormData): Prom
   }
 
   const attestationVersion = await getSetting(SETTING_KEYS.RESEARCHER_ATTESTATION_VERSION)
+  const cookieStore = await cookies()
+  const referralCookie = cookieStore.get(REFERRAL_COOKIE)?.value
+  const referredById = referralCookie ? await resolveReferrerId(referralCookie) : null
+
   const user = await prisma.user.create({
     data: {
       email,
       passwordHash: await hashPassword(parsedPassword.data),
       researcherAttestedAt: new Date(),
       researcherAttestationVersion: attestationVersion,
+      referralCode: await generateUniqueReferralCode(),
+      referredById,
     },
   })
+  if (referredById) cookieStore.delete(REFERRAL_COOKIE)
   await audit({
     userId: user.id,
     action: 'RESEARCHER_ATTESTATION_ACCEPTED',

@@ -4,6 +4,7 @@ import { requireUser } from '@/lib/auth'
 import { loadActiveCart, priceCart } from '@/lib/cart'
 import { prisma } from '@/lib/db'
 import { getInsuranceCents } from '@/lib/settings'
+import { getRewardsConfig } from '@/lib/points'
 import { CHECKOUT_ACKNOWLEDGEMENT_TEXT } from '@/lib/constants'
 import { CheckoutClient } from './CheckoutClient'
 
@@ -33,6 +34,7 @@ export default async function CheckoutPage() {
 
   const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ''
   const insuranceCents = await getInsuranceCents(pricing.merchandiseTotalCents)
+  const rewards = await getRewardsConfig()
 
   const lastOrder = await prisma.order.findFirst({
     where: { userId: user.id, shippingAddressId: { not: null } },
@@ -77,6 +79,11 @@ export default async function CheckoutPage() {
       }}
       promoCode={pricing.promo && !pricing.promo.error ? pricing.promo.code : null}
       insuranceCents={insuranceCents}
+      referralDiscountCents={pricing.referralDiscountCents}
+      referralFirstOrderEligible={pricing.referralFirstOrderEligible}
+      pointsBalance={pricing.pointsBalance}
+      pointsRedemptionPerDollar={rewards.redemptionPerDollar}
+      pointsEnabled={rewards.pointsEnabled}
       savedShipping={savedShipping}
       savedBilling={savedBillingSame ? null : savedBillingRaw}
       shippingMethods={shippingMethods.map((m) => ({

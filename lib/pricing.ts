@@ -35,7 +35,12 @@ export interface CartPricing {
   subtotalCents: number
   bulkDiscountCents: number
   promoDiscountCents: number
-  merchandiseTotalCents: number // subtotal − bulk − promo
+  referralDiscountCents: number // auto-applied, referred customer's first paid order only
+  referralFirstOrderEligible: boolean
+  pointsBalance: number // customer's current available balance (0 if not signed in)
+  pointsRedeemed: number // actually applied — may be less than requested if capped
+  pointsDiscountCents: number
+  merchandiseTotalCents: number // subtotal − bulk − promo − referral − points
   shippingCents: number
   freeShippingThresholdCents: number
   freeShippingRemainingCents: number // 0 when qualified

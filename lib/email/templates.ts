@@ -122,6 +122,10 @@ export function orderConfirmationEmail(opts: {
   subtotalCents: number
   bulkDiscountCents: number
   promoDiscountCents: number
+  referralDiscountCents: number
+  pointsRedeemed: number
+  pointsDiscountCents: number
+  pointsEarned: number
   shippingCents: number
   insuranceCents: number
   taxCents: number
@@ -133,21 +137,27 @@ export function orderConfirmationEmail(opts: {
       <tr><td style="padding:4px 0;color:#8a8a8a">Subtotal</td><td style="text-align:right;color:#e5e5e5">${formatCents(opts.subtotalCents)}</td></tr>
       ${opts.bulkDiscountCents > 0 ? `<tr><td style="padding:4px 0;color:#8a8a8a">Bulk discount</td><td style="text-align:right;color:${GOLD}">−${formatCents(opts.bulkDiscountCents)}</td></tr>` : ''}
       ${opts.promoDiscountCents > 0 ? `<tr><td style="padding:4px 0;color:#8a8a8a">Promo discount</td><td style="text-align:right;color:${GOLD}">−${formatCents(opts.promoDiscountCents)}</td></tr>` : ''}
+      ${opts.referralDiscountCents > 0 ? `<tr><td style="padding:4px 0;color:#8a8a8a">Referral welcome discount</td><td style="text-align:right;color:${GOLD}">−${formatCents(opts.referralDiscountCents)}</td></tr>` : ''}
+      ${opts.pointsDiscountCents > 0 ? `<tr><td style="padding:4px 0;color:#8a8a8a">Points redeemed (${opts.pointsRedeemed.toLocaleString()})</td><td style="text-align:right;color:${GOLD}">−${formatCents(opts.pointsDiscountCents)}</td></tr>` : ''}
       <tr><td style="padding:4px 0;color:#8a8a8a">Shipping</td><td style="text-align:right;color:#e5e5e5">${opts.shippingCents === 0 ? 'FREE' : formatCents(opts.shippingCents)}</td></tr>
       ${opts.insuranceCents > 0 ? `<tr><td style="padding:4px 0;color:#8a8a8a">Shipping insurance</td><td style="text-align:right;color:#e5e5e5">${formatCents(opts.insuranceCents)}</td></tr>` : ''}
       <tr><td style="padding:4px 0;color:#8a8a8a">Tax</td><td style="text-align:right;color:#e5e5e5">${formatCents(opts.taxCents)}</td></tr>
       <tr><td style="padding:10px 0;color:#ffffff;font-weight:700;border-top:1px solid rgba(255,255,255,0.14)">Total</td><td style="text-align:right;color:#ffffff;font-weight:700;border-top:1px solid rgba(255,255,255,0.14);padding:10px 0">${formatCents(opts.totalCents)}</td></tr>
     </table>`
+  const pointsNote =
+    opts.pointsEarned > 0
+      ? `<p style="color:${GOLD}">You earned ${opts.pointsEarned.toLocaleString()} rewards points on this order.</p>`
+      : ''
   return {
     subject: `Order confirmed — ${opts.orderNumber}`,
     html: layout({
       title: `Order ${opts.orderNumber} confirmed`,
       bodyHtml: `<p>Your payment was received and your order is confirmed. A shipping notification will follow once your order is on its way.</p>
-        ${orderLinesTable(opts.lines)}${totals}`,
+        ${orderLinesTable(opts.lines)}${totals}${pointsNote}`,
       ctaLabel: 'View Order',
       ctaUrl: opts.orderUrl,
     }),
-    text: `Order ${opts.orderNumber} confirmed.\n\n${opts.lines.map((l) => `${l.name} — ${l.vialSize} ×${l.quantity} = ${formatCents(l.lineTotalCents)}`).join('\n')}\n\nTotal: ${formatCents(opts.totalCents)}\n\nView order: ${opts.orderUrl}\n\n${RESEARCH_DISCLAIMER_SHORT}`,
+    text: `Order ${opts.orderNumber} confirmed.\n\n${opts.lines.map((l) => `${l.name} — ${l.vialSize} ×${l.quantity} = ${formatCents(l.lineTotalCents)}`).join('\n')}\n\nTotal: ${formatCents(opts.totalCents)}${opts.pointsEarned > 0 ? `\n\nYou earned ${opts.pointsEarned.toLocaleString()} rewards points on this order.` : ''}\n\nView order: ${opts.orderUrl}\n\n${RESEARCH_DISCLAIMER_SHORT}`,
   }
 }
 

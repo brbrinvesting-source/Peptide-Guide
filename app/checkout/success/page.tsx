@@ -71,6 +71,11 @@ export default async function CheckoutSuccessPage({
               <dd>{formatCents(order.totalCents)}</dd>
             </div>
           </dl>
+          {order.pointsEarned > 0 && (
+            <p className="mx-auto mt-6 max-w-sm text-sm text-gold">
+              You earned {order.pointsEarned.toLocaleString()} rewards points on this order.
+            </p>
+          )}
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Link href={`/account/orders/${order.id}`} className="btn btn-gold">
               View Order

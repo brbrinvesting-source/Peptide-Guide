@@ -13,6 +13,7 @@ import { orderStatusEmail, shippingNotificationEmail } from '@/lib/email/templat
 import { absoluteUrl } from '@/lib/site'
 import { INVENTORY_REASONS } from '@/lib/constants'
 import { storeFile } from '@/lib/storage'
+import { applyPointsChange, clawBackPoints } from '@/lib/points'
 
 export interface AdminActionState {
   error?: string
@@ -423,6 +424,39 @@ export async function refundOrderAction(
         })
       }
     }
+
+    // Rewards points: give back what was redeemed (the customer didn't
+    // actually keep the discount), and best-effort claw back what was
+    // earned/bonused from this now-reversed sale — never below zero, and
+    // never blocks the refund if the points were already spent elsewhere.
+    if (order.pointsRedeemed > 0) {
+      await applyPointsChange(tx, {
+        userId: order.userId,
+        orderId,
+        type: 'REFUND_REVERSED',
+        points: order.pointsRedeemed,
+        note: `Points restored — order ${order.orderNumber} refunded`,
+      })
+    }
+    if (order.pointsEarned > 0) {
+      await clawBackPoints(tx, {
+        userId: order.userId,
+        orderId,
+        points: order.pointsEarned,
+        note: `Earned points reversed — order ${order.orderNumber} refunded`,
+      })
+    }
+    if (order.referralBonusPointsAwarded > 0) {
+      const buyer = await tx.user.findUnique({ where: { id: order.userId }, select: { referredById: true } })
+      if (buyer?.referredById) {
+        await clawBackPoints(tx, {
+          userId: buyer.referredById,
+          orderId,
+          points: order.referralBonusPointsAwarded,
+          note: `Referral bonus reversed — order ${order.orderNumber} refunded`,
+        })
+      }
+    }
   })
   await audit({
     userId: admin.id,
@@ -605,6 +639,10 @@ export async function saveSettingsAction(
     SETTING_KEYS.ABANDONED_CART_DELAY_MINUTES,
     SETTING_KEYS.LOW_STOCK_DEFAULT_THRESHOLD,
     SETTING_KEYS.TAX_FLAT_RATE_BPS,
+    SETTING_KEYS.POINTS_EARN_CENTS_PER_POINT,
+    SETTING_KEYS.POINTS_REDEMPTION_PER_DOLLAR,
+    SETTING_KEYS.REFERRAL_POINTS_MULTIPLIER,
+    SETTING_KEYS.REFERRAL_FIRST_ORDER_DISCOUNT_PERCENT,
   ]) {
     if (numKey in entries && entries[numKey] !== '' && !/^\d+$/.test(entries[numKey])) {
       return { error: 'Numeric settings must be whole numbers.' }
@@ -864,6 +902,39 @@ export async function setCustomerDisabledAction(formData: FormData): Promise<voi
     objectId: userId,
   })
   revalidatePath('/admin/customers')
+}
+
+export async function adjustPointsAction(
+  _prev: AdminActionState,
+  formData: FormData
+): Promise<AdminActionState> {
+  const admin = await requireAdmin()
+  const userId = str(formData, 'userId')
+  const points = intOrNull(formData, 'points')
+  const note = str(formData, 'note', 300)
+  if (!userId || points === null || points === 0) {
+    return { error: 'Enter a non-zero point amount to adjust.' }
+  }
+  const target = await prisma.user.findUnique({ where: { id: userId }, select: { role: true, pointsBalance: true } })
+  if (!target || target.role !== 'CUSTOMER') return { error: 'Customer not found.' }
+  if (points < 0 && target.pointsBalance + points < 0) {
+    return { error: `Cannot go below zero — this customer has ${target.pointsBalance} points.` }
+  }
+
+  const result = await prisma.$transaction((tx) =>
+    applyPointsChange(tx, { userId, type: 'ADMIN_ADJUSTMENT', points, note: note || undefined, adminId: admin.id })
+  )
+  if (!result.ok) return { error: result.error }
+
+  await audit({
+    userId: admin.id,
+    action: 'POINTS_ADJUSTED',
+    objectType: 'User',
+    objectId: userId,
+    after: { points, note, newBalance: result.newBalance },
+  })
+  revalidatePath(`/admin/customers/${userId}`)
+  return { success: `Balance adjusted by ${points > 0 ? '+' : ''}${points}. New balance: ${result.newBalance}.` }
 }
 
 export async function setUserRoleAction(

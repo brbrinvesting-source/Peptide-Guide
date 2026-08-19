@@ -24,6 +24,7 @@ const bodySchema = z.object({
   billing: addressSchema.nullable().optional(),
   shippingMethodId: z.string().min(1),
   insuranceElected: z.boolean().optional().default(false),
+  pointsToRedeem: z.number().int().min(0).max(10_000_000).optional().default(0),
   acceptedDisclaimer: z.literal(true),
 })
 
@@ -78,6 +79,7 @@ export async function POST(req: NextRequest) {
         : { ...body.billing, line2: body.billing.line2 || undefined, phone: body.billing.phone || undefined },
     shippingMethodId: body.shippingMethodId,
     insuranceElected: body.insuranceElected,
+    pointsToRedeem: body.pointsToRedeem,
     acceptedDisclaimer: body.acceptedDisclaimer,
     cart,
   })
@@ -90,6 +92,10 @@ export async function POST(req: NextRequest) {
       subtotalCents: true,
       bulkDiscountCents: true,
       promoDiscountCents: true,
+      referralDiscountCents: true,
+      pointsRedeemed: true,
+      pointsDiscountCents: true,
+      pointsEarned: true,
       shippingCents: true,
       insuranceCents: true,
       taxCents: true,
