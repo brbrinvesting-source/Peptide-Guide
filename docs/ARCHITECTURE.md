@@ -81,7 +81,11 @@ subtotal − bulk discount − promo discount + shipping + tax = total
 - Admins cannot set payment status; fulfillment transitions are whitelisted and unpaid orders
   cannot enter fulfillment. Refunds go through the payment provider.
 - Audit log records admin mutations with before/after values.
-- COA PDFs live outside the web root, path-traversal-safe keys, authenticated streaming only.
+- COA PDFs live outside the web root, path-traversal-safe keys, authenticated streaming only —
+  with one deliberate, narrowly-scoped public exception: `/verify/[slug]` and
+  `/api/verify/[slug]/file` (the QR-code destination on physical labels) serve only the current,
+  active COA for an active product, unauthenticated, with no listing/enumeration of other
+  documents or products.
 
 ## Extensibility (deliberate seams)
 

@@ -13,6 +13,7 @@ const LINKS: { href: string; label: string; superOnly?: boolean }[] = [
   { href: '/admin/promos', label: 'Promo Codes' },
   { href: '/admin/welcome-promos', label: 'Welcome Promos' },
   { href: '/admin/coas', label: 'COA Management' },
+  { href: '/admin/qrcodes', label: 'QR Codes' },
   { href: '/admin/emails', label: 'Email Log' },
   { href: '/admin/analytics', label: 'Analytics' },
   { href: '/admin/settings', label: 'Settings' },

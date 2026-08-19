@@ -46,7 +46,8 @@ npm run dev
 | Tax | Destination-based via Stripe Tax (configurable: stripe / flat / none) |
 | Shipping | US-only (50 states), configurable methods + free-shipping threshold (default $250). Methods can be flat-rate or live carrier rates (via Shippo) calculated per order from the ship-from address, package weight, and destination — never trusted from the client |
 | Shipping insurance | Optional customer-elected add-on, priced by admin-configurable tiers on the merchandise subtotal (before shipping/tax/discounts); recalculated server-side at order creation |
-| COAs | Product → lot/batch → COA architecture; replacing a current COA keeps history; PDFs served only to authenticated users |
+| COAs | Product → lot/batch → COA architecture; replacing a current COA keeps history; PDFs served to authenticated users through `/api/coa/[id]/file`, plus a narrow public exception (below) |
+| Label QR verification | `/verify/[slug]` is a public, read-only, unauthenticated page — the QR-code destination printed on vial labels — showing only the current lot/testing date/COA for that exact product; no pricing, catalog, or purchasing surface. Generated per product (PNG/SVG) in Admin → QR Codes |
 | Claims | Default UI shows "COA available" only. A "Verified Purity" badge (with the documented %) is an **admin-controlled, opt-in toggle per COA** — off by default, never inferred from a file upload, meant to be flipped on the moment lab testing for that lot completes |
 | Admin | Role-based (SUPER_ADMIN / ADMIN), audited actions, payment status never manually settable |
 
