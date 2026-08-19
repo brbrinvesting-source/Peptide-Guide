@@ -165,10 +165,11 @@ export function shippingNotificationEmail(opts: {
   orderNumber: string
   trackingNumber?: string | null
   trackingCarrier?: string | null
+  trackingUrl?: string | null
   orderUrl: string
 }) {
   const tracking = opts.trackingNumber
-    ? `<p>Tracking${opts.trackingCarrier ? ` (${escapeHtml(opts.trackingCarrier)})` : ''}: <strong style="color:${GOLD}">${escapeHtml(opts.trackingNumber)}</strong></p>`
+    ? `<p>Tracking${opts.trackingCarrier ? ` (${escapeHtml(opts.trackingCarrier)})` : ''}: <strong style="color:${GOLD}">${escapeHtml(opts.trackingNumber)}</strong>${opts.trackingUrl ? ` — <a href="${escapeHtml(opts.trackingUrl)}" style="color:${GOLD}">Track package</a>` : ''}</p>`
     : ''
   return {
     subject: `Your order has shipped — ${opts.orderNumber}`,
@@ -178,7 +179,7 @@ export function shippingNotificationEmail(opts: {
       ctaLabel: 'View Order',
       ctaUrl: opts.orderUrl,
     }),
-    text: `Order ${opts.orderNumber} has shipped.${opts.trackingNumber ? ` Tracking: ${opts.trackingNumber}` : ''}\n\nView order: ${opts.orderUrl}`,
+    text: `Order ${opts.orderNumber} has shipped.${opts.trackingNumber ? ` Tracking: ${opts.trackingNumber}` : ''}${opts.trackingUrl ? ` (${opts.trackingUrl})` : ''}\n\nView order: ${opts.orderUrl}`,
   }
 }
 

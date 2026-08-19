@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
-import { refundOrderAction, updateOrderAction, type AdminActionState } from '@/app/actions/admin'
+import { buyShippingLabelAction, refundOrderAction, updateOrderAction, type AdminActionState } from '@/app/actions/admin'
 import { Alert, SubmitButton } from '@/components/forms'
 
 const NEXT_STATUS: Record<string, string[]> = {
@@ -21,14 +21,64 @@ export function OrderAdminForms(props: {
   paymentStatus: string
   trackingNumber: string
   trackingCarrier: string
+  trackingUrlProvider: string | null
+  labelUrl: string | null
+  shippoTransactionId: string | null
+  canBuyLabel: boolean
   adminNotes: string
 }) {
   const [state, formAction] = useActionState<AdminActionState, FormData>(updateOrderAction, {})
   const [refundState, refundAction] = useActionState<AdminActionState, FormData>(refundOrderAction, {})
+  const [labelState, labelAction] = useActionState<AdminActionState, FormData>(buyShippingLabelAction, {})
   const nextStatuses = NEXT_STATUS[props.status] ?? []
+  const canPurchase =
+    props.canBuyLabel &&
+    !props.shippoTransactionId &&
+    props.paymentStatus === 'PAID' &&
+    ['PAID', 'PROCESSING'].includes(props.status)
 
   return (
     <>
+      {props.canBuyLabel && (
+        <section className="panel p-4">
+          <p className="microlabel text-gold">Shippo label</p>
+          {props.shippoTransactionId ? (
+            <div className="mt-3 space-y-1.5 text-sm">
+              <p>
+                Tracking: <span className="font-mono">{props.trackingNumber}</span>
+                {props.trackingCarrier && <span className="text-muted"> ({props.trackingCarrier})</span>}
+              </p>
+              <div className="flex flex-wrap gap-3 text-xs">
+                {props.labelUrl && (
+                  <a href={props.labelUrl} target="_blank" rel="noreferrer" className="text-gold hover:text-gold-bright">
+                    Print label (PDF)
+                  </a>
+                )}
+                {props.trackingUrlProvider && (
+                  <a href={props.trackingUrlProvider} target="_blank" rel="noreferrer" className="text-gold hover:text-gold-bright">
+                    Track package
+                  </a>
+                )}
+              </div>
+            </div>
+          ) : (
+            <form action={labelAction} className="mt-3 space-y-3">
+              {labelState.error && <Alert kind="error">{labelState.error}</Alert>}
+              {labelState.success && <Alert kind="success">{labelState.success}</Alert>}
+              <input type="hidden" name="orderId" value={props.orderId} />
+              <SubmitButton className="btn btn-gold btn-sm w-full" pendingLabel="Purchasing…" disabled={!canPurchase}>
+                Buy Shipping Label
+              </SubmitButton>
+              <p className="text-[0.65rem] leading-relaxed text-muted">
+                Purchases a real label from Shippo for the carrier service this order paid for,
+                fills in tracking automatically, and marks the order Shipped.
+                {!canPurchase && ' Only available once payment is confirmed and the order hasn’t shipped yet.'}
+              </p>
+            </form>
+          )}
+        </section>
+      )}
+
       <section className="panel p-4">
         <p className="microlabel">Fulfillment</p>
         <form action={formAction} className="mt-3 space-y-3">

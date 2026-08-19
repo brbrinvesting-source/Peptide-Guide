@@ -17,6 +17,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
       payments: true,
       shippingAddress: true,
       billingAddress: true,
+      shippingMethod: true,
       disclaimerAcceptance: true,
       promoRedemption: { include: { promoCode: true } },
     },
@@ -133,6 +134,10 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
             paymentStatus={order.paymentStatus}
             trackingNumber={order.trackingNumber ?? ''}
             trackingCarrier={order.trackingCarrier ?? ''}
+            trackingUrlProvider={order.trackingUrlProvider}
+            labelUrl={order.labelUrl}
+            shippoTransactionId={order.shippoTransactionId}
+            canBuyLabel={Boolean(order.shippingMethod?.carrierServiceToken)}
             adminNotes={order.adminNotes ?? ''}
           />
         </aside>

@@ -390,6 +390,9 @@ model Order {
 
   trackingNumber     String?
   trackingCarrier    String?
+  trackingUrlProvider String? // carrier's own tracking page, when purchased via Shippo
+  labelUrl           String? // Shippo-hosted label PDF, when purchased via Shippo
+  shippoTransactionId String? // Shippo Transaction object_id — set once a label is purchased; blocks re-purchase
   adminNotes         String?
 
   paidAt             DateTime?

@@ -14,6 +14,8 @@ import { absoluteUrl } from '@/lib/site'
 import { INVENTORY_REASONS } from '@/lib/constants'
 import { storeFile } from '@/lib/storage'
 import { applyPointsChange, clawBackPoints } from '@/lib/points'
+import { orderPackageWeightOz } from '@/lib/orders'
+import { purchaseShippingLabel } from '@/lib/shipping-rates'
 
 export interface AdminActionState {
   error?: string
@@ -367,6 +369,90 @@ export async function updateOrderAction(
   revalidatePath(`/admin/orders/${orderId}`)
   revalidatePath('/admin/orders')
   return { success: 'Order updated.' }
+}
+
+/**
+ * Buy a real Shippo label for an order's already-selected live-carrier
+ * shipping method — auto-filling tracking info instead of an admin typing
+ * it in after buying a label elsewhere. Marks the order Shipped and sends
+ * the shipping-confirmation email, same as the manual path.
+ */
+export async function buyShippingLabelAction(
+  _prev: AdminActionState,
+  formData: FormData
+): Promise<AdminActionState> {
+  const admin = await requireAdmin()
+  const orderId = str(formData, 'orderId')
+
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: { items: true, shippingAddress: true, shippingMethod: true },
+  })
+  if (!order) return { error: 'Order not found.' }
+  if (order.paymentStatus !== 'PAID') return { error: 'This order has no confirmed payment.' }
+  if (!['PAID', 'PROCESSING'].includes(order.status)) {
+    return { error: `Cannot buy a label for an order in ${order.status}.` }
+  }
+  if (order.shippoTransactionId) {
+    return { error: 'A label has already been purchased for this order.' }
+  }
+  if (!order.shippingAddress) return { error: 'This order has no shipping address on file.' }
+  if (!order.shippingMethod?.carrierServiceToken) {
+    return { error: "This order's shipping method isn't a live-carrier method — enter tracking manually instead." }
+  }
+
+  const weightOz = await orderPackageWeightOz(order.items)
+  const result = await purchaseShippingLabel({
+    destination: {
+      name: order.shippingAddress.name,
+      line1: order.shippingAddress.line1,
+      line2: order.shippingAddress.line2 ?? undefined,
+      city: order.shippingAddress.city,
+      state: order.shippingAddress.state,
+      postalCode: order.shippingAddress.postalCode,
+      phone: order.shippingAddress.phone ?? undefined,
+    },
+    weightOz,
+    serviceToken: order.shippingMethod.carrierServiceToken,
+  })
+  if (!result.ok || !result.trackingNumber) {
+    return { error: result.error ?? 'Could not purchase a shipping label.' }
+  }
+
+  // order.status is guaranteed PAID or PROCESSING here (checked above), so
+  // this is always a first-time ship, unlike updateOrderAction's manual path.
+  await prisma.order.update({
+    where: { id: orderId },
+    data: {
+      trackingNumber: result.trackingNumber,
+      trackingCarrier: result.trackingCarrier,
+      trackingUrlProvider: result.trackingUrlProvider,
+      labelUrl: result.labelUrl,
+      shippoTransactionId: result.transactionId,
+      status: 'SHIPPED',
+      shippedAt: new Date(),
+    },
+  })
+  await audit({
+    userId: admin.id,
+    action: 'SHIPPING_LABEL_PURCHASED',
+    objectType: 'Order',
+    objectId: orderId,
+    after: { trackingNumber: result.trackingNumber, trackingCarrier: result.trackingCarrier },
+  })
+
+  const email = shippingNotificationEmail({
+    orderNumber: order.orderNumber,
+    trackingNumber: result.trackingNumber,
+    trackingCarrier: result.trackingCarrier,
+    trackingUrl: result.trackingUrlProvider,
+    orderUrl: absoluteUrl(`/account/orders/${orderId}`),
+  })
+  await sendEmail('SHIPPING_NOTIFICATION', { to: order.customerEmail, ...email }, { orderId })
+
+  revalidatePath(`/admin/orders/${orderId}`)
+  revalidatePath('/admin/orders')
+  return { success: `Label purchased — tracking ${result.trackingNumber}.` }
 }
 
 export async function refundOrderAction(

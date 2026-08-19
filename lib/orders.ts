@@ -31,6 +31,21 @@ function generateOrderNumber(): string {
 }
 
 /**
+ * Total package weight for an already-placed order, using each item's
+ * current product weight (same formula resolveShippingCents used against
+ * the live cart at checkout) plus the configured packaging buffer.
+ */
+export async function orderPackageWeightOz(items: { productId: string; quantity: number }[]): Promise<number> {
+  const products = await prisma.product.findMany({
+    where: { id: { in: items.map((i) => i.productId) } },
+    select: { id: true, weightOz: true },
+  })
+  const weightById = new Map(products.map((p) => [p.id, p.weightOz]))
+  const bufferOz = parseFloat(await getSetting(SETTING_KEYS.SHIP_PACKAGING_BUFFER_OZ)) || 0
+  return bufferOz + items.reduce((sum, i) => sum + (weightById.get(i.productId) ?? 0) * i.quantity, 0)
+}
+
+/**
  * Create a PENDING order from the user's cart plus a payment intent.
  * Everything (prices, discounts, shipping, tax) is recomputed server-side.
  * Inventory is NOT decremented here — only on confirmed payment.
