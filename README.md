@@ -41,8 +41,8 @@ npm run dev
 | Bulk discounts | Configurable tiers (default 5–9 → 5%, 10+ → 10%), applied automatically per line |
 | Promo codes | Max **one per order**, stacks **with** bulk discount; all rules re-validated server-side |
 | Welcome promo | Shared, fixed code (default `WELCOME20`, configurable) emailed to every verified customer; each account may redeem it once, enforced server-side |
-| Rewards points | Earn 1 point per $10 of merchandise spend (after all other discounts), redeem 100 points = $1 off at checkout — both rates admin-configurable. Earned only once payment is confirmed; a full refund reverses redeemed points and claws back earned points (best-effort, never below zero) |
-| Referrals | Every account gets a shareable `/r/[code]` link, captured once at registration. A referred customer's first paid order gets 2x points plus an automatic 10% discount (no code, stacks with a manually-entered promo). The referrer earns 2x points on every purchase their referrals ever make, for life. All multipliers/rates admin-configurable |
+| Rewards points | Earn 1 point per $20 of merchandise spend (after all other discounts), redeem 1 point = $1 off at checkout — both rates admin-configurable. Earned only once payment is confirmed; a full refund reverses redeemed points and claws back earned points (best-effort, never below zero) |
+| Referrals | Every account gets a shareable `/r/[code]` link, captured once at registration. A referred customer's first paid order gets 2x points plus an automatic 10% discount (no code, stacks with a manually-entered promo, one-time use since it's gated to the friend's first paid order). The referrer earns 2x points on that same first order, then the normal 1x rate on every purchase that friend makes after that. All multipliers/rates admin-configurable |
 | Inventory | Decremented **only after payment is verified with Stripe**, atomically (`UPDATE … WHERE qty >= n`) — no overselling, no cart reservations |
 | Payments | Client success screens are never trusted; orders finalize via webhook and/or server-side verification, idempotently |
 | Tax | Destination-based via Stripe Tax (configurable: stripe / flat / none) |

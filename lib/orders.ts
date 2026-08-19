@@ -111,7 +111,14 @@ export async function createPendingOrder(params: {
   let referralBonusPointsAwarded = 0
   if (rewards.referralEnabled && rewards.pointsEnabled) {
     const buyer = await prisma.user.findUnique({ where: { id: params.userId }, select: { referredById: true } })
-    if (buyer?.referredById) referralBonusPointsAwarded = basePoints * rewards.referralMultiplier
+    if (buyer?.referredById) {
+      // 2x on the referred friend's first paid order, then the normal (1x)
+      // rate on every purchase after that — same eligibility flag the
+      // friend's own first-order multiplier and discount are keyed off of.
+      referralBonusPointsAwarded = pricing.referralFirstOrderEligible
+        ? basePoints * rewards.referralMultiplier
+        : basePoints
+    }
   }
 
   const disclaimerVersion = await getSetting(SETTING_KEYS.DISCLAIMER_VERSION)

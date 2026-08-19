@@ -33,11 +33,12 @@ export const SETTING_KEYS = {
   POINTS_PROGRAM_ENABLED: 'rewards.pointsEnabled',
   POINTS_EARN_CENTS_PER_POINT: 'rewards.earnCentsPerPoint',
   POINTS_REDEMPTION_PER_DOLLAR: 'rewards.redemptionPerDollar',
-  // Referrals: referrer earns REFERRAL_POINTS_MULTIPLIER x the normal rate,
-  // for life, on every purchase their referred friends make. A referred
-  // friend earns the same multiplier (but only on their own first paid
-  // order) and gets REFERRAL_FIRST_ORDER_DISCOUNT_PERCENT off automatically
-  // — no code to enter, stacks with a manually-entered promo code.
+  // Referrals: referrer earns REFERRAL_POINTS_MULTIPLIER x the normal rate
+  // on a referred friend's first paid order, then the normal (1x) rate on
+  // every purchase that friend makes after that. The friend earns the same
+  // multiplier (but only on their own first paid order) and gets
+  // REFERRAL_FIRST_ORDER_DISCOUNT_PERCENT off automatically — no code to
+  // enter, stacks with a manually-entered promo code.
   REFERRAL_PROGRAM_ENABLED: 'rewards.referralEnabled',
   REFERRAL_POINTS_MULTIPLIER: 'rewards.referralMultiplier',
   REFERRAL_FIRST_ORDER_DISCOUNT_PERCENT: 'rewards.referralFirstOrderPercent',
@@ -100,8 +101,8 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   [SETTING_KEYS.WELCOME_PROMO_ENABLED]: 'true',
   [SETTING_KEYS.WELCOME_PROMO_CODE]: 'WELCOME20',
   [SETTING_KEYS.POINTS_PROGRAM_ENABLED]: 'true',
-  [SETTING_KEYS.POINTS_EARN_CENTS_PER_POINT]: '1000', // 1 point per $10
-  [SETTING_KEYS.POINTS_REDEMPTION_PER_DOLLAR]: '100', // 100 points = $1
+  [SETTING_KEYS.POINTS_EARN_CENTS_PER_POINT]: '2000', // 1 point per $20
+  [SETTING_KEYS.POINTS_REDEMPTION_PER_DOLLAR]: '1', // 1 point = $1
   [SETTING_KEYS.REFERRAL_PROGRAM_ENABLED]: 'true',
   [SETTING_KEYS.REFERRAL_POINTS_MULTIPLIER]: '2',
   [SETTING_KEYS.REFERRAL_FIRST_ORDER_DISCOUNT_PERCENT]: '10',

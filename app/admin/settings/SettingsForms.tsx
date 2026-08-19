@@ -185,20 +185,20 @@ export function SettingsForms({
             label="Cents spent per point earned"
             name={K.POINTS_EARN_CENTS_PER_POINT}
             defaultValue={v(K.POINTS_EARN_CENTS_PER_POINT)}
-            hint="1000 = 1 point per $10 spent"
+            hint="2000 = 1 point per $20 spent"
           />
         </div>
         <Field
           label="Points redeemed per $1 discount"
           name={K.POINTS_REDEMPTION_PER_DOLLAR}
           defaultValue={v(K.POINTS_REDEMPTION_PER_DOLLAR)}
-          hint="100 = 100 points redeems for $1 off"
+          hint="1 = 1 point redeems for $1 off"
         />
       </SettingsSection>
 
       <SettingsSection
         title="Referral program"
-        description="Every account gets a shareable link (Account page). A referred customer's first paid order earns the discount and point multiplier below; the referrer earns the multiplier on every purchase their referrals ever make."
+        description="Every account gets a shareable link (Account page). A referred customer's first paid order earns the discount and point multiplier below; the referrer earns the same multiplier only on that friend's first purchase, then the normal rate on every purchase after that."
       >
         <div className="grid grid-cols-2 gap-3">
           <label className="microlabel block">
