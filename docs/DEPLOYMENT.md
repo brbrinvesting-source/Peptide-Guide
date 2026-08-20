@@ -98,10 +98,26 @@ Management** — nothing is hard-coded.
 
 ## 7. Scheduled jobs
 
-Schedule every 15 minutes (cron, GitHub Actions, hosting scheduler):
+A Netlify Scheduled Function (`netlify/functions/abandoned-carts-cron.mts`) already calls
+`POST /api/cron/abandoned-carts` every 15 minutes automatically — no external cron service or
+manual scheduling needed. It's picked up automatically on deploy since `netlify.toml` points
+Netlify at the `netlify/functions` directory.
+
+The only setup step is setting `CRON_SECRET` in Netlify's environment variables (same value the
+route and the scheduled function both read) — generate one with:
 
 ```
-*/15 * * * * curl -s -X POST -H "Authorization: Bearer $CRON_SECRET" https://<site>/api/cron/abandoned-carts
+node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+```
+
+If `CRON_SECRET` isn't set, the scheduled function logs a warning and skips its run rather than
+failing loudly — check the function's logs in Netlify (Functions tab) if abandoned-cart emails
+aren't going out.
+
+If you ever need to trigger it manually instead (e.g. testing without waiting 15 minutes):
+
+```
+curl -s -X POST -H "Authorization: Bearer $CRON_SECRET" https://<site>/api/cron/abandoned-carts
 ```
 
 ## 8. File storage (COAs & product images)
