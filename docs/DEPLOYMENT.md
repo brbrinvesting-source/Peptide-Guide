@@ -44,7 +44,7 @@ See `.env.example` for the full annotated list. Production checklist:
 | `STRIPE_WEBHOOK_SECRET` | ✅ | From the webhook endpoint you create (step 4) |
 | `POSTMARK_API_TOKEN` | ✅ | Or `RESEND_API_KEY`, or `EMAIL_PROVIDER=console` (dev only) |
 | `CRON_SECRET` | ✅ | Long random string for the abandoned-cart endpoint |
-| `FILE_STORAGE_DIR` | ✅ | Persistent volume path for COA PDFs |
+| `FILE_STORAGE_DIR` | not on Netlify | COA PDFs use Netlify Blobs automatically on Netlify; this only matters for local dev (see §8) |
 | `SHIPPO_API_KEY` | only if used | Required for any shipping method set to "Live carrier rate" in Admin -> Settings |
 | `INITIAL_ADMIN_EMAIL` / `INITIAL_ADMIN_PASSWORD` | once | Bootstraps/promotes the Super Admin automatically on every build (idempotent — safe to leave set, or remove after the first successful deploy) |
 
@@ -122,10 +122,15 @@ curl -s -X POST -H "Authorization: Bearer $CRON_SECRET" https://<site>/api/cron/
 
 ## 8. File storage (COAs & product images)
 
-- COA PDFs are written to `FILE_STORAGE_DIR` (default `./storage`) — **outside** the public web
-  root — and streamed only to authenticated users via `/api/coa/[id]/file`. Point this at a
-  persistent volume; the storage interface in `lib/storage.ts` is deliberately small so an
-  S3-compatible backend can replace it without touching call sites.
+- COA PDFs are stored **outside** the public web root and streamed only to authenticated users
+  via `/api/coa/[id]/file`. `lib/storage.ts` picks the backend automatically:
+  - **On Netlify** (`NETLIFY=true`, set automatically in every Netlify build/function runtime):
+    files go to **Netlify Blobs** — durable, survives deploys, no extra credentials needed.
+  - **Everywhere else** (plain `next dev` locally): falls back to the local filesystem at
+    `FILE_STORAGE_DIR` (default `./storage`), so local development needs no Netlify-specific
+    setup. This path is **not durable** on a serverless host — it exists for local dev only.
+  - The interface (`storeFile`/`readStoredFile`/`deleteStoredFile`) is deliberately small so a
+    different backend (S3, R2) could replace either branch later without touching call sites.
 - Admin-uploaded product images are written to `public/uploads/` (self-hosted) or you can paste
   an external image URL instead — on serverless/immutable-filesystem hosts, use the URL option
   with your CDN/bucket.
