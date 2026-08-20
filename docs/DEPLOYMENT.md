@@ -46,6 +46,7 @@ See `.env.example` for the full annotated list. Production checklist:
 | `CRON_SECRET` | ✅ | Long random string for the abandoned-cart endpoint |
 | `FILE_STORAGE_DIR` | not on Netlify | COA PDFs use Netlify Blobs automatically on Netlify; this only matters for local dev (see §8) |
 | `SHIPPO_API_KEY` | only if used | Required for any shipping method set to "Live carrier rate" in Admin -> Settings |
+| `SMARTY_AUTH_ID` / `SMARTY_AUTH_TOKEN` | optional | Checkout address-autocomplete typeahead (see §10). Without these, address fields fall back to plain manual entry — nothing breaks |
 | `INITIAL_ADMIN_EMAIL` / `INITIAL_ADMIN_PASSWORD` | once | Bootstraps/promotes the Super Admin automatically on every build (idempotent — safe to leave set, or remove after the first successful deploy) |
 
 ## 4. Stripe configuration
@@ -143,16 +144,29 @@ curl -s -X POST -H "Authorization: Bearer $CRON_SECRET" https://<site>/api/cron/
 - The repo includes `netlify.toml`, already configured for Netlify's official Next.js runtime
   (`@netlify/plugin-nextjs`) — connecting the GitHub repo as a new Netlify site should need no
   extra build configuration.
-- **Netlify's functions have an ephemeral filesystem.** `FILE_STORAGE_DIR` (COA PDFs) and
-  admin-uploaded product image *files* will not persist between requests/deploys on Netlify as
-  currently implemented — only the "paste an image URL" option is safe to use for product images
-  on Netlify today. Before uploading real COAs in production, this needs an external object
-  store (Cloudflare R2 or S3) wired into `lib/storage.ts`, whose interface was deliberately kept
-  small for exactly this swap. Flag this before relying on COA uploads in production.
+- **Netlify's functions have an ephemeral filesystem** — COA PDFs are safe from this because
+  `lib/storage.ts` already uses Netlify Blobs on Netlify (see §8), but admin-uploaded product
+  image *files* written to `public/uploads/` are not: they will not persist between deploys.
+  Only the "paste an image URL" option is safe for product images on Netlify today.
 - HTTPS is provisioned automatically once a custom domain's DNS is verified in Netlify's
   **Domain management**.
 
-## 10. Post-deploy verification
+## 10. Address autocomplete (checkout, optional)
+
+Checkout's street-address field offers a typeahead dropdown (Smarty's US Autocomplete Pro API)
+that prefills line 2/city/state/ZIP once a suggestion is picked — purely a convenience layer,
+manual typing always still works and the address is fully re-validated server-side regardless.
+
+1. Create a [Smarty](https://www.smarty.com) account → grab a **secret key pair** (auth-id +
+   auth-token — not the client-side "website key") from their dashboard.
+2. Set `SMARTY_AUTH_ID` / `SMARTY_AUTH_TOKEN`. Both server-side only; never exposed to the
+   browser — the checkout page calls our own `/api/checkout/address-autocomplete` proxy route.
+3. Leaving these unset is fine — the field just behaves like a plain text input.
+
+Results are restricted to the states in `SHIPPING_STATES` (`lib/constants.ts`), so it never
+suggests an address outside where you actually ship.
+
+## 11. Post-deploy verification
 
 1. Register a customer → verify email → welcome email contains a unique `WELCOME-…` code.
 2. Set a price/inventory on one product → buy it with Stripe test card `4242 4242 4242 4242`.
