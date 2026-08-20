@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
@@ -590,18 +590,11 @@ function AddressFields({
         </label>
         <input id={`${idPrefix}-name`} required value={value.name} onChange={set('name')} autoComplete="name" className="field" />
       </div>
-      <div className="relative sm:col-span-2">
+      <div className="sm:col-span-2">
         <label htmlFor={`${idPrefix}-line1`} className="mb-1.5 block text-xs text-muted">
           Street address
         </label>
-        <StreetAddressAutocomplete
-          idPrefix={idPrefix}
-          value={value.line1}
-          onTextChange={(text) => onChange({ ...value, line1: text })}
-          onSelect={(s) =>
-            onChange({ ...value, line1: s.line1, line2: s.line2 || value.line2, city: s.city, state: s.state, postalCode: s.postalCode })
-          }
-        />
+        <input id={`${idPrefix}-line1`} required value={value.line1} onChange={set('line1')} autoComplete="address-line1" className="field" />
       </div>
       <div className="sm:col-span-2">
         <label htmlFor={`${idPrefix}-line2`} className="mb-1.5 block text-xs text-muted">
@@ -658,126 +651,6 @@ function AddressFields({
         <input id={`${idPrefix}-country`} value="United States" readOnly className="field opacity-60" />
       </div>
     </div>
-  )
-}
-
-interface AddressSuggestion {
-  line1: string
-  line2: string
-  city: string
-  state: string
-  postalCode: string
-}
-
-/**
- * Street-address input with a typeahead dropdown (Smarty, via our own
- * proxy route so the API key stays server-side). Purely a convenience
- * prefill for line2/city/state/zip — manual typing always still works, and
- * the address is fully re-validated server-side at order creation either
- * way, so there's nothing to trust here.
- */
-function StreetAddressAutocomplete({
-  idPrefix,
-  value,
-  onTextChange,
-  onSelect,
-}: {
-  idPrefix: string
-  value: string
-  onTextChange: (text: string) => void
-  onSelect: (s: AddressSuggestion) => void
-}) {
-  const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([])
-  const [open, setOpen] = useState(false)
-  const [highlighted, setHighlighted] = useState(-1)
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const text = e.target.value
-    onTextChange(text)
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (text.trim().length < 3) {
-      setSuggestions([])
-      setOpen(false)
-      return
-    }
-    debounceRef.current = setTimeout(async () => {
-      try {
-        const res = await fetch(`/api/checkout/address-autocomplete?search=${encodeURIComponent(text)}`)
-        if (!res.ok) return
-        const data: { suggestions?: AddressSuggestion[] } = await res.json()
-        setSuggestions(data.suggestions ?? [])
-        setOpen((data.suggestions ?? []).length > 0)
-        setHighlighted(-1)
-      } catch {
-        // Silent — manual typing still works regardless.
-      }
-    }, 300)
-  }
-
-  function pick(s: AddressSuggestion) {
-    onSelect(s)
-    setSuggestions([])
-    setOpen(false)
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (!open || suggestions.length === 0) return
-    if (e.key === 'ArrowDown') {
-      e.preventDefault()
-      setHighlighted((i) => Math.min(i + 1, suggestions.length - 1))
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault()
-      setHighlighted((i) => Math.max(i - 1, 0))
-    } else if (e.key === 'Enter' && highlighted >= 0) {
-      e.preventDefault()
-      pick(suggestions[highlighted])
-    } else if (e.key === 'Escape') {
-      setOpen(false)
-    }
-  }
-
-  return (
-    <>
-      <input
-        id={`${idPrefix}-line1`}
-        required
-        value={value}
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-        onBlur={() => setTimeout(() => setOpen(false), 150)}
-        onFocus={() => suggestions.length > 0 && setOpen(true)}
-        autoComplete="address-line1"
-        className="field"
-        role="combobox"
-        aria-expanded={open}
-        aria-autocomplete="list"
-        aria-controls={`${idPrefix}-line1-suggestions`}
-      />
-      {open && (
-        <ul
-          id={`${idPrefix}-line1-suggestions`}
-          role="listbox"
-          className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-md border border-line bg-panel shadow-lg"
-        >
-          {suggestions.map((s, i) => (
-            <li key={`${s.line1}-${s.postalCode}-${i}`} role="option" aria-selected={i === highlighted}>
-              <button
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => pick(s)}
-                className={`block w-full px-3 py-2 text-left text-sm transition-colors ${
-                  i === highlighted ? 'bg-panel-2 text-gold' : 'hover:bg-panel-2'
-                }`}
-              >
-                {s.line1}
-                {s.line2 ? `, ${s.line2}` : ''}, {s.city}, {s.state} {s.postalCode}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </>
   )
 }
 
