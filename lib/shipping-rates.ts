@@ -124,7 +124,7 @@ function logMissingRate(serviceToken: string, shipment: { rates: ShippoRate[]; m
 
 /**
  * Fetch a live rate for a specific carrier service (e.g. Shippo's
- * "ups_2nd_day_air" token) from the configured ship-from address to a
+ * "ups_second_day_air" token) from the configured ship-from address to a
  * destination, for a given total package weight.
  */
 export async function getLiveShippingRateCents(params: {

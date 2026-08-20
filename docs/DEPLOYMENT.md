@@ -72,7 +72,10 @@ Shipping methods default to flat prices set in Admin → Settings. To offer live
 2. In **Admin → Settings → Shipping origin & packaging**, fill in the ship-from street address
    (city/state/ZIP default to Glendale, CA 91206) and typical package dimensions.
 3. In **Admin → Settings → Shipping methods**, add a method with rate type "Live carrier rate"
-   and a Shippo service token (e.g. `ups_2nd_day_air`, `ups_next_day_air`).
+   and a Shippo service token (e.g. `ups_second_day_air`, `ups_next_day_air`). Token names vary by
+   account/carrier setup — if a token 404s with "not available for that address," check the
+   server logs for `Shippo: no rate for service "..."`, which lists every token your account
+   actually returned so you can copy the exact spelling.
 4. Set an accurate **shipping weight** per product in **Admin → Products** (defaults to 4 oz) —
    live rates are calculated from real package weight, so this matters for pricing accuracy.
 

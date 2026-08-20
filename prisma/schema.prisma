@@ -493,7 +493,7 @@ model ShippingMethod {
   // FLAT: priceCents is used directly. LIVE_CARRIER: priceCents is ignored;
   // price is fetched from the carrier API (carrierServiceToken) per order.
   rateType             String  @default("FLAT")
-  carrierServiceToken  String? // e.g. Shippo servicelevel token "ups_2nd_day_air"
+  carrierServiceToken  String? // e.g. Shippo servicelevel token "ups_second_day_air"
   priceCents           Int
   deliveryEstimate     String? // e.g. "2–4 business days" — configurable copy, not a guarantee
   active               Boolean @default(true)

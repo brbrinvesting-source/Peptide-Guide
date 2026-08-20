@@ -434,7 +434,7 @@ function ShippingMethodForm({ method }: { method: ShippingMethodRow | null }) {
           <input
             name="carrierServiceToken"
             defaultValue={method?.carrierServiceToken}
-            placeholder="Shippo service token, e.g. ups_2nd_day_air"
+            placeholder="Shippo service token, e.g. ups_second_day_air"
             aria-label="Carrier service token"
             className="field"
           />
@@ -444,7 +444,7 @@ function ShippingMethodForm({ method }: { method: ShippingMethodRow | null }) {
       {rateType === 'LIVE_CARRIER' && (
         <p className="text-[0.65rem] leading-relaxed text-muted">
           Price is fetched live from Shippo for each order&apos;s address and package weight. Common
-          tokens: <code className="text-gold">ups_2nd_day_air</code>,{' '}
+          tokens: <code className="text-gold">ups_second_day_air</code>,{' '}
           <code className="text-gold">ups_next_day_air</code>. Requires{' '}
           <code className="text-gold">SHIPPO_API_KEY</code> and the shipping origin address below to
           be configured.

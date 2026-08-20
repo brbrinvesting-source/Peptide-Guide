@@ -266,7 +266,7 @@ async function main() {
     { name: 'USPS Ground Advantage', carrierServiceToken: 'usps_ground_advantage', deliveryEstimate: '2–5 business days', freeShippingEligible: true, sortOrder: 12 },
     { name: 'USPS Priority Mail', carrierServiceToken: 'usps_priority', deliveryEstimate: '1–3 business days', freeShippingEligible: false, sortOrder: 20 },
     { name: 'UPS 3 Day Select', carrierServiceToken: 'ups_3_day_select', deliveryEstimate: '3 business days', freeShippingEligible: false, sortOrder: 21 },
-    { name: 'UPS 2nd Day Air', carrierServiceToken: 'ups_2nd_day_air', deliveryEstimate: '2 business days', freeShippingEligible: false, sortOrder: 22 },
+    { name: 'UPS 2nd Day Air', carrierServiceToken: 'ups_second_day_air', deliveryEstimate: '2 business days', freeShippingEligible: false, sortOrder: 22 },
   ]
   for (const method of LIVE_CARRIER_METHODS) {
     const existing = await prisma.shippingMethod.findFirst({ where: { name: method.name } })
