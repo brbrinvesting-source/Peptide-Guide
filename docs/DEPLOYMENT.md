@@ -143,12 +143,10 @@ curl -s -X POST -H "Authorization: Bearer $CRON_SECRET" https://<site>/api/cron/
 - The repo includes `netlify.toml`, already configured for Netlify's official Next.js runtime
   (`@netlify/plugin-nextjs`) — connecting the GitHub repo as a new Netlify site should need no
   extra build configuration.
-- **Netlify's functions have an ephemeral filesystem.** `FILE_STORAGE_DIR` (COA PDFs) and
-  admin-uploaded product image *files* will not persist between requests/deploys on Netlify as
-  currently implemented — only the "paste an image URL" option is safe to use for product images
-  on Netlify today. Before uploading real COAs in production, this needs an external object
-  store (Cloudflare R2 or S3) wired into `lib/storage.ts`, whose interface was deliberately kept
-  small for exactly this swap. Flag this before relying on COA uploads in production.
+- **Netlify's functions have an ephemeral filesystem** — COA PDFs are safe from this because
+  `lib/storage.ts` already uses Netlify Blobs on Netlify (see §8), but admin-uploaded product
+  image *files* written to `public/uploads/` are not: they will not persist between deploys.
+  Only the "paste an image URL" option is safe for product images on Netlify today.
 - HTTPS is provisioned automatically once a custom domain's DNS is verified in Netlify's
   **Domain management**.
 
