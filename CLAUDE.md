@@ -19,3 +19,7 @@ running application itself.
 
 Update this section as formation details are finalized (SOS file number,
 member- vs. manager-managed, EIN, business bank account, etc.).
+
+**Business expenses:** tracked in `docs/business-expenses.md` until a
+business bank account exists. Add a row there any time a new
+formation/business expense comes up.
