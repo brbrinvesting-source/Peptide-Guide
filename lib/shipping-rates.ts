@@ -28,11 +28,17 @@ interface ShippoRate {
   servicelevel?: { token?: string; name?: string }
 }
 
+interface ShippoMessage {
+  source?: string
+  code?: string
+  text?: string
+}
+
 async function createShippoShipment(params: {
   apiKey: string
   destination: ShipAddress
   weightOz: number
-}): Promise<{ ok: true; rates: ShippoRate[] } | { ok: false; error: string }> {
+}): Promise<{ ok: true; rates: ShippoRate[]; messages: ShippoMessage[] } | { ok: false; error: string }> {
   const s = await getSettings([
     SETTING_KEYS.SHIP_FROM_NAME,
     SETTING_KEYS.SHIP_FROM_LINE1,
@@ -101,8 +107,19 @@ async function createShippoShipment(params: {
     return { ok: false, error: 'Could not calculate a live shipping rate for this address.' }
   }
 
-  const data: { rates?: ShippoRate[]; messages?: unknown[] } = await res.json()
-  return { ok: true, rates: data.rates ?? [] }
+  const data: { rates?: ShippoRate[]; messages?: ShippoMessage[] } = await res.json()
+  return { ok: true, rates: data.rates ?? [], messages: data.messages ?? [] }
+}
+
+/** Logs why a specific service token had no matching rate — the full available
+ * token list plus Shippo's own messages, so a missing rate is diagnosable
+ * from server logs instead of guessing. Never shown to the customer. */
+function logMissingRate(serviceToken: string, shipment: { rates: ShippoRate[]; messages: ShippoMessage[] }): void {
+  const available = shipment.rates.map((r) => r.servicelevel?.token).filter(Boolean).join(', ') || 'none'
+  const reason = shipment.messages.map((m) => m.text).filter(Boolean).join('; ')
+  console.error(
+    `Shippo: no rate for service "${serviceToken}". Available tokens: [${available}].${reason ? ` Messages: ${reason}` : ''}`
+  )
 }
 
 /**
@@ -123,6 +140,7 @@ export async function getLiveShippingRateCents(params: {
 
   const rate = shipment.rates.find((r) => r.servicelevel?.token === params.serviceToken)
   if (!rate) {
+    logMissingRate(params.serviceToken, shipment)
     return { ok: false, error: 'This shipping service is not available for that address.' }
   }
   const cents = Math.round(Number(rate.amount) * 100)
@@ -160,6 +178,7 @@ export async function purchaseShippingLabel(params: {
 
   const rate = shipment.rates.find((r) => r.servicelevel?.token === params.serviceToken)
   if (!rate) {
+    logMissingRate(params.serviceToken, shipment)
     return { ok: false, error: 'This shipping service is not available for that address.' }
   }
 
