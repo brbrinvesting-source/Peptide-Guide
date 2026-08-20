@@ -250,6 +250,42 @@ async function main() {
     })
   }
 
+  console.log('Seeding live-carrier shipping methods (Shippo)...')
+  // Matched by name, created once each — never overwrites an existing row,
+  // so an admin who has already edited/reordered/deactivated one of these
+  // (or added it manually before this ran) is left untouched.
+  const LIVE_CARRIER_METHODS: {
+    name: string
+    carrierServiceToken: string
+    deliveryEstimate: string
+    freeShippingEligible: boolean
+    sortOrder: number
+  }[] = [
+    { name: 'UPS Ground', carrierServiceToken: 'ups_ground', deliveryEstimate: '1–5 business days', freeShippingEligible: true, sortOrder: 10 },
+    { name: 'UPS Ground Saver', carrierServiceToken: 'ups_ground_saver', deliveryEstimate: '3–7 business days', freeShippingEligible: true, sortOrder: 11 },
+    { name: 'USPS Ground Advantage', carrierServiceToken: 'usps_ground_advantage', deliveryEstimate: '2–5 business days', freeShippingEligible: true, sortOrder: 12 },
+    { name: 'USPS Priority Mail', carrierServiceToken: 'usps_priority', deliveryEstimate: '1–3 business days', freeShippingEligible: false, sortOrder: 20 },
+    { name: 'UPS 3 Day Select', carrierServiceToken: 'ups_3_day_select', deliveryEstimate: '3 business days', freeShippingEligible: false, sortOrder: 21 },
+    { name: 'UPS 2nd Day Air', carrierServiceToken: 'ups_2nd_day_air', deliveryEstimate: '2 business days', freeShippingEligible: false, sortOrder: 22 },
+  ]
+  for (const method of LIVE_CARRIER_METHODS) {
+    const existing = await prisma.shippingMethod.findFirst({ where: { name: method.name } })
+    if (existing) continue
+    await prisma.shippingMethod.create({
+      data: {
+        name: method.name,
+        rateType: 'LIVE_CARRIER',
+        carrierServiceToken: method.carrierServiceToken,
+        priceCents: 0, // ignored for LIVE_CARRIER — rate is fetched from Shippo per order
+        deliveryEstimate: method.deliveryEstimate,
+        active: true,
+        freeShippingEligible: method.freeShippingEligible,
+        sortOrder: method.sortOrder,
+      },
+    })
+    console.log(`  Added shipping method "${method.name}"`)
+  }
+
   console.log('Seeding legal/content pages...')
   for (const page of CONTENT_PAGES) {
     await prisma.contentPage.upsert({
