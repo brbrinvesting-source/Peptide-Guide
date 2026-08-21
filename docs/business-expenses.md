@@ -13,7 +13,7 @@ they were logged in conversation, not necessarily the exact charge date.
 |--------------|-----------|----------------------------|----------|----------------------|-------|
 | 2026-08-20   | LegalZoom | LLC formation               | $70.00   | One-time             | |
 | 2026-08-20   | LegalZoom | Registered agent service    | $225.00  | Recurring — annual   | Renews yearly; first renewal ~1 year from LLC approval date |
-| 2026-08-20   | —         | Inkjet printer               | $259.48  | One-time             | Vendor not specified — tell Claude if you want it recorded |
+| 2026-08-20   | Best Buy  | Inkjet printer               | $259.48  | One-time             | |
 
 ## Running totals
 
