@@ -21,3 +21,9 @@ be entered there too so the two stay in sync.
 | Order | Batch number | Date logged | Notes |
 |---|---|---|---|
 | 1 | 7-845-K | 2026-08-20 | First batch |
+
+## Wolverine (BPC157/TB500)
+
+| Order | Batch number | Date logged | Notes |
+|---|---|---|---|
+| 1 | 7-392-W | 2026-08-20 | First batch |
