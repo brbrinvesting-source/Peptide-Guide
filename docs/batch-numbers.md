@@ -33,3 +33,9 @@ be entered there too so the two stay in sync.
 | Order | Batch number | Date logged | Notes |
 |---|---|---|---|
 | 1 | 7-363-C | 2026-08-20 | First batch |
+
+## Tesamorelin (20 mg)
+
+| Order | Batch number | Date logged | Notes |
+|---|---|---|---|
+| 1 | 7-293-T | 2026-08-20 | First batch |
