@@ -51,3 +51,9 @@ be entered there too so the two stay in sync.
 | Order | Batch number | Date logged | Notes |
 |---|---|---|---|
 | 1 | 7-882-N | 2026-08-20 | First batch |
+
+## 5-Amino 1MQ (50 mg)
+
+| Order | Batch number | Date logged | Notes |
+|---|---|---|---|
+| 1 | 7-924-A | 2026-08-20 | First batch |
