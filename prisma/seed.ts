@@ -45,7 +45,7 @@ const PRODUCTS: SeedProduct[] = [
   { name: 'AOD 9604', vialSize: '10 mg', category: 'gh-secretagogue-research', sku: 'AOD-10' },
   { name: 'CJC-1295 (DAC)', vialSize: '5 mg', category: 'gh-secretagogue-research', sku: 'CJC-DAC-5' },
   { name: 'CJC-1295 (No DAC)', vialSize: '10 mg', category: 'gh-secretagogue-research', sku: 'CJC-NODAC-10' },
-  { name: 'CJC-1285 (No DAC)/Ipamorelin', vialSize: '10 mg', category: 'gh-secretagogue-research', sku: 'CJC-IPA-10' },
+  { name: 'CJC-1295 (No DAC)/Ipamorelin', vialSize: '10 mg', category: 'gh-secretagogue-research', sku: 'CJC-IPA-10' },
   { name: 'Ipamorelin', vialSize: '10 mg', category: 'gh-secretagogue-research', sku: 'IPA-10' },
   { name: 'Sermorelin', vialSize: '10 mg', category: 'gh-secretagogue-research', sku: 'SERM-10' },
   { name: 'Tesamorelin', vialSize: '10 mg', category: 'gh-secretagogue-research', sku: 'TESA-10' },
@@ -99,6 +99,14 @@ const RENAMES: { fromSku: string; toSku: string; toName: string }[] = [
   { fromSku: 'TIRZ-40', toSku: 'AAT2-40', toName: 'AA-T2' },
   { fromSku: 'TIRZ-60', toSku: 'AAT2-60', toName: 'AA-T2' },
 ]
+
+// Products whose printed QR-code labels already point at the current slug
+// (see /verify/[slug]) — fixing a display-name typo here must never change
+// the slug those physical labels resolve to, or a scanned QR code 404s.
+// Keyed by SKU; value is the slug to keep pinned regardless of name.
+const SLUG_OVERRIDES: Record<string, string> = {
+  'CJC-IPA-10': 'cjc-1285-no-dac-ipamorelin-10-mg', // name fixed 1285->1295; slug intentionally left as-is
+}
 
 function slugify(name: string, vialSize: string): string {
   return `${name} ${vialSize}`
@@ -162,7 +170,7 @@ async function main() {
   console.log('Seeding products (no prices, no inventory — set via admin)...')
   for (let i = 0; i < PRODUCTS.length; i++) {
     const p = PRODUCTS[i]
-    const slug = slugify(p.name, p.vialSize)
+    const slug = SLUG_OVERRIDES[p.sku] ?? slugify(p.name, p.vialSize)
     await prisma.product.upsert({
       where: { sku: p.sku },
       create: {
