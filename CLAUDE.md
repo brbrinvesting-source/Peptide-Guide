@@ -23,3 +23,6 @@ member- vs. manager-managed, EIN, business bank account, etc.).
 **Business expenses:** tracked in `docs/business-expenses.md` until a
 business bank account exists. Add a row there any time a new
 formation/business expense comes up.
+
+**Batch numbers:** tracked per compound in `docs/batch-numbers.md`. Append a
+row there any time a new batch/lot number is issued.
