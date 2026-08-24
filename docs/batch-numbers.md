@@ -15,3 +15,9 @@ be entered there too so the two stay in sync.
 | Order | Batch number | Date logged | Notes |
 |---|---|---|---|
 | 1 | 3-738-R | 2026-08-20 | First batch |
+
+## Klow
+
+| Order | Batch number | Date logged | Notes |
+|---|---|---|---|
+| 1 | 7-845-K | 2026-08-20 | First batch |
