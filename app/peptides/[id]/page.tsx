@@ -87,6 +87,10 @@ function BulletList({ items }: { items: string[] }) {
 
 // ─── page ─────────────────────────────────────────────────────────────────────
 
+export function generateStaticParams() {
+  return peptides.map((p) => ({ id: p.id }));
+}
+
 export default async function PeptideDetailPage({
   params,
 }: {
