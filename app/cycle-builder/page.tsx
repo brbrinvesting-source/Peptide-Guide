@@ -566,6 +566,11 @@ function CycleBuilderInner() {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const importFileRef = useRef<HTMLInputElement>(null);
 
+  // ── Import from share link ──
+  const [showImportLink, setShowImportLink] = useState(false);
+  const [importLinkUrl, setImportLinkUrl] = useState('');
+  const [importLinkStatus, setImportLinkStatus] = useState<'idle' | 'success' | 'duplicate' | 'error'>('idle');
+
   // ── Build Cycle form ──
   const [cycleName, setCycleName] = useState('');
   const [cycleGoal, setCycleGoal] = useState('');
@@ -940,6 +945,36 @@ function CycleBuilderInner() {
     setBulkShiftCycleId(null);
     setBulkShiftSelected(new Set());
     setBulkShiftDate('');
+  }
+
+  function handleImportFromLink() {
+    setImportLinkStatus('idle');
+    try {
+      const raw = importLinkUrl.trim();
+      // Accept both a full URL and a bare encoded string
+      let encoded: string | null = null;
+      try {
+        encoded = new URL(raw).searchParams.get('c');
+      } catch {
+        encoded = raw;
+      }
+      if (!encoded) { setImportLinkStatus('error'); return; }
+      const json = LZString.decompressFromEncodedURIComponent(encoded);
+      if (!json) { setImportLinkStatus('error'); return; }
+      const parsed = JSON.parse(json);
+      if (!parsed || !parsed.entries) { setImportLinkStatus('error'); return; }
+      const incoming: Cycle = { ...parsed, id: generateId(), logs: [] };
+      if (cycles.some((c) => c.name === incoming.name && c.createdAt === incoming.createdAt)) {
+        setImportLinkStatus('duplicate');
+        return;
+      }
+      saveCycles([...cycles, incoming]);
+      setImportLinkStatus('success');
+      setImportLinkUrl('');
+      setTimeout(() => setImportLinkStatus('idle'), 4000);
+    } catch {
+      setImportLinkStatus('error');
+    }
   }
 
   function handleShareCycle(cycle: Cycle) {
@@ -1980,13 +2015,60 @@ function CycleBuilderInner() {
               <p className="text-sm text-gray-500">
                 {cycles.length} saved cycle{cycles.length !== 1 ? 's' : ''}
               </p>
-              <button
-                onClick={() => importFileRef.current?.click()}
-                className="px-4 py-2 rounded-lg border border-gray-700 text-gray-300 hover:text-white hover:border-gray-500 text-xs font-medium transition-colors"
-              >
-                ↑ Import from JSON
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setShowImportLink((v) => !v); setImportLinkStatus('idle'); setImportLinkUrl(''); }}
+                  className="px-4 py-2 rounded-lg border border-gray-700 text-gray-300 hover:text-white hover:border-gray-500 text-xs font-medium transition-colors"
+                >
+                  Import from Link
+                </button>
+                <button
+                  onClick={() => importFileRef.current?.click()}
+                  className="px-4 py-2 rounded-lg border border-gray-700 text-gray-300 hover:text-white hover:border-gray-500 text-xs font-medium transition-colors"
+                >
+                  ↑ Import from JSON
+                </button>
+              </div>
             </div>
+
+            {/* Import from share link panel */}
+            {showImportLink && (
+              <div className="rounded-xl border border-gray-700 bg-gray-900 p-4 space-y-3">
+                <p className="text-xs font-semibold text-gray-400">Import from Share Link</p>
+                <p className="text-xs text-gray-500">Paste a Peptide Guide share link to add that cycle to your library.</p>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={importLinkUrl}
+                    onChange={(e) => { setImportLinkUrl(e.target.value); setImportLinkStatus('idle'); }}
+                    placeholder="https://peptide-cycle-maker.netlify.app/shared?c=..."
+                    className="flex-1 min-w-0 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-green-600"
+                  />
+                  <button
+                    onClick={handleImportFromLink}
+                    disabled={!importLinkUrl.trim()}
+                    className="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 disabled:opacity-40 text-white text-xs font-semibold transition-colors whitespace-nowrap"
+                  >
+                    Import
+                  </button>
+                  <button
+                    onClick={() => { setShowImportLink(false); setImportLinkUrl(''); setImportLinkStatus('idle'); }}
+                    className="px-3 py-2 rounded-lg border border-gray-700 text-gray-400 hover:text-gray-200 text-xs transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                {importLinkStatus === 'success' && (
+                  <p className="text-xs text-green-400">Cycle imported successfully!</p>
+                )}
+                {importLinkStatus === 'duplicate' && (
+                  <p className="text-xs text-amber-400">This cycle is already in your library.</p>
+                )}
+                {importLinkStatus === 'error' && (
+                  <p className="text-xs text-red-400">Invalid link. Make sure you copied the full share URL.</p>
+                )}
+              </div>
+            )}
 
             {cycles.length === 0 ? (
               <div className="flex flex-col items-center justify-center rounded-xl border border-gray-800 bg-gray-900 py-24 text-center">

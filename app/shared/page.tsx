@@ -94,10 +94,18 @@ function SharedCycleInner() {
   const searchParams = useSearchParams();
   const encoded = searchParams.get('c') ?? '';
   const [status, setStatus] = useState<'idle' | 'imported' | 'duplicate'>('idle');
+  const [isStandalone, setIsStandalone] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const cycle = decodeCycle(encoded);
 
   useEffect(() => {
+    // Detect PWA standalone mode (home screen app)
+    const standalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+    setIsStandalone(standalone);
+
     if (!cycle) return;
     try {
       const raw = localStorage.getItem(LS_KEY);
@@ -210,6 +218,27 @@ function SharedCycleInner() {
             </>
           )}
         </div>
+
+        {/* PWA hint — only shown when viewing in a browser, not the installed app */}
+        {!isStandalone && status !== 'duplicate' && (
+          <div className="rounded-xl border border-gray-700 bg-gray-900 p-4">
+            <p className="text-xs font-semibold text-gray-400 mb-1">Using the Peptide Guide app?</p>
+            <p className="text-xs text-gray-500 leading-relaxed mb-3">
+              You're viewing this in a browser. To save directly into the home screen app, copy this link and paste it into <span className="text-gray-300 font-medium">My Cycles → Import from Link</span> inside the app.
+            </p>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                  setCopiedLink(true);
+                  setTimeout(() => setCopiedLink(false), 2000);
+                }).catch(() => {});
+              }}
+              className="px-4 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-600 text-xs font-medium text-gray-200 transition-colors"
+            >
+              {copiedLink ? 'Copied!' : 'Copy Link'}
+            </button>
+          </div>
+        )}
 
         {/* Peptide entries */}
         <div className="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
