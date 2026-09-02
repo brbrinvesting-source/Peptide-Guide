@@ -9,7 +9,7 @@ export interface NavLink {
   label: string
 }
 
-export function MobileNav({ links }: { links: NavLink[] }) {
+export function MobileNav({ links, onLogout }: { links: NavLink[]; onLogout?: () => Promise<void> }) {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
 
@@ -49,6 +49,18 @@ export function MobileNav({ links }: { links: NavLink[] }) {
                 </Link>
               </li>
             ))}
+            {onLogout && (
+              <li>
+                <form action={onLogout}>
+                  <button
+                    type="submit"
+                    className="block w-full py-3.5 text-left text-sm tracking-[0.14em] text-fg uppercase"
+                  >
+                    Log Out
+                  </button>
+                </form>
+              </li>
+            )}
           </ul>
         </nav>
       )}

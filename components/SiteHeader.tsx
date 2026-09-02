@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { getCurrentUser, isAdminRole } from '@/lib/auth'
+import { logoutAction } from '@/app/actions/auth'
 import { prisma } from '@/lib/db'
 import { Logo } from './Logo'
 import { MobileNav, type NavLink } from './MobileNav'
@@ -45,6 +46,16 @@ export async function SiteHeader() {
               {l.label}
             </Link>
           ))}
+          {authed && (
+            <form action={logoutAction}>
+              <button
+                type="submit"
+                className="text-xs font-medium tracking-[0.18em] text-muted uppercase transition-colors hover:text-fg"
+              >
+                Log Out
+              </button>
+            </form>
+          )}
         </nav>
         <div className="flex items-center gap-2">
           {authed && (
@@ -87,7 +98,10 @@ export async function SiteHeader() {
               Log In
             </Link>
           )}
-          <MobileNav links={authed ? [...links, { href: '/cart', label: 'Cart' }] : links} />
+          <MobileNav
+            links={authed ? [...links, { href: '/cart', label: 'Cart' }] : links}
+            onLogout={authed ? logoutAction : undefined}
+          />
         </div>
       </div>
     </header>
