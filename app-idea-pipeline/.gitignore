@@ -1,0 +1,5 @@
+db/ideas.db
+db/*.db
+.env
+__pycache__/
+*.pyc

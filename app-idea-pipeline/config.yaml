@@ -1,0 +1,82 @@
+# app-idea-pipeline configuration
+# Secrets (API keys, tokens) are read from environment variables — never put them here.
+
+database:
+  path: db/ideas.db
+
+reddit:
+  # Requires REDDIT_CLIENT_ID / REDDIT_CLIENT_SECRET / REDDIT_USER_AGENT env vars.
+  subreddits:
+    - SomebodyMakeThis
+    - AppIdeas
+    - Entrepreneur
+    - SideProject
+    - startups
+  post_limit_per_subreddit: 100
+  listing: hot          # hot | new | top
+  pain_point_keywords:
+    - "wish there was an app"
+    - "does anyone know an app"
+    - "is there an app that"
+    - "i hate that no app"
+    - "why isn't there an app"
+    - "someone should build"
+    - "annoying that there's no"
+
+app_store:
+  # Public iTunes RSS feeds, no API key required.
+  countries: [us]
+  genres:
+    6005: Social Networking
+    6002: Utilities
+    6013: Health & Fitness
+    6023: Food & Drink
+  chart: topfreeapplications
+  limit: 100
+
+review_miner:
+  # Competitor apps to mine low-star reviews from, by iTunes app id.
+  countries: [us]
+  min_rating: 1
+  max_rating: 3
+  apps:
+    - id: "389801252"     # example: Instagram
+      name: "Instagram"
+    - id: "284882215"     # example: Facebook
+      name: "Facebook"
+
+trends:
+  keywords:
+    - "app idea"
+    - "productivity app"
+    - "health tracker app"
+  timeframe: "today 3-m"
+  geo: "US"
+
+scoring:
+  model: claude-sonnet-5
+  score_threshold: 7.0   # overall_score (0-10) required to appear in the digest
+  categories:
+    - Health & Fitness
+    - Productivity
+    - Social
+    - Finance
+    - Utilities
+    - Entertainment
+    - Education
+
+notify:
+  top_n: 5
+  slack_webhook_env: SLACK_WEBHOOK_URL
+  email:
+    enabled: false
+    smtp_host_env: SMTP_HOST
+    smtp_port_env: SMTP_PORT
+    smtp_user_env: SMTP_USER
+    smtp_pass_env: SMTP_PASS
+    to_env: DIGEST_EMAIL_TO
+
+schedule:
+  collectors_cron: "0 6 * * *"      # daily 06:00
+  scorer_cron: "0 7 * * *"          # daily 07:00
+  digest_cron: "0 8 * * 1"          # weekly Monday 08:00
