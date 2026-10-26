@@ -111,18 +111,6 @@ export default async function PeptideDetailPage({
       .join(' ');
   }
 
-  const dosingRows: { label: string; value: string | undefined }[] = [
-    { label: 'Typical Dose', value: peptide.dosing.typical },
-    { label: 'Range', value: peptide.dosing.range },
-    { label: 'Frequency', value: peptide.dosing.frequency },
-    { label: 'Route(s)', value: peptide.dosing.route.map((r) => ROUTE_LABELS[r]).join(', ') },
-    { label: 'Cycle Length', value: peptide.dosing.cycleLength },
-    { label: 'Break Period', value: peptide.dosing.breakLength },
-    { label: 'Timing', value: peptide.dosing.timing },
-    { label: 'Loading Dose', value: peptide.dosing.loading },
-    { label: 'Notes', value: peptide.dosing.notes },
-  ];
-
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
       <BackButton />
@@ -210,28 +198,6 @@ export default async function PeptideDetailPage({
             {/* Primary Benefits */}
             <Card title="Primary Benefits">
               <BulletList items={peptide.primaryBenefits} />
-            </Card>
-
-            {/* Dosing & Protocol */}
-            <Card title="Dosing & Protocol">
-              <p className="mb-3 text-xs text-gray-600">
-                Source: community reports + PubMed data. Always consult a qualified
-                healthcare provider before use.
-              </p>
-              <table className="w-full text-sm">
-                <tbody className="divide-y divide-gray-800">
-                  {dosingRows.map(({ label, value }) =>
-                    value ? (
-                      <tr key={label}>
-                        <td className="py-2 pr-4 font-medium text-gray-400 whitespace-nowrap">
-                          {label}
-                        </td>
-                        <td className="py-2 text-gray-200">{value}</td>
-                      </tr>
-                    ) : null
-                  )}
-                </tbody>
-              </table>
             </Card>
 
             {/* Side Effects */}
@@ -429,20 +395,6 @@ export default async function PeptideDetailPage({
                     </span>
                   </dd>
                 </div>
-                <div className="flex justify-between gap-2">
-                  <dt className="text-gray-500">Cycle Length</dt>
-                  <dd className="text-right font-medium text-gray-200">
-                    {peptide.dosing.cycleLength}
-                  </dd>
-                </div>
-                {peptide.dosing.breakLength && (
-                  <div className="flex justify-between gap-2">
-                    <dt className="text-gray-500">Break Period</dt>
-                    <dd className="text-right font-medium text-gray-200">
-                      {peptide.dosing.breakLength}
-                    </dd>
-                  </div>
-                )}
               </dl>
             </Card>
 

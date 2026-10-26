@@ -108,8 +108,8 @@ export default function PeptidesPage() {
         <div className="mx-auto max-w-7xl">
           <h1 className="text-3xl font-bold text-white">Peptide Library</h1>
           <p className="mt-2 text-gray-400">
-            Browse and filter our comprehensive database of research peptides with dosing
-            protocols, stacking guides, and goal-based recommendations.
+            Browse and filter our comprehensive database of research peptides with
+            stacking guides, goal-based recommendations, and research notes.
           </p>
         </div>
       </div>
