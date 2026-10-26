@@ -66,7 +66,7 @@ npm run dev
 ## Scheduled jobs
 
 Abandoned-cart emails are sent by `POST /api/cron/abandoned-carts` (Bearer `CRON_SECRET`), called
-automatically every 15 minutes by a Netlify Scheduled Function
+automatically every 30 minutes by a Netlify Scheduled Function
 (`netlify/functions/abandoned-carts-cron.mts`) — just set `CRON_SECRET` in Netlify and it runs
 itself, no external scheduler needed. To trigger it manually (e.g. for testing):
 

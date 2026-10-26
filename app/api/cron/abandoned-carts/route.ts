@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { processAbandonedCarts } from '@/lib/abandoned-carts'
 
-// Scheduled job endpoint — invoke every ~15 minutes from your scheduler
+// Scheduled job endpoint — invoke every ~30 minutes from your scheduler
 // (Netlify Scheduled Functions, cron + curl, GitHub Actions, etc.):
 //
 //   curl -H "Authorization: Bearer $CRON_SECRET" https://<site>/api/cron/abandoned-carts
