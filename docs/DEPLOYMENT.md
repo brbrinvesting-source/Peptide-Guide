@@ -13,11 +13,25 @@
 ## 2. Database
 
 The schema targets Postgres directly (`prisma/schema.prisma`, `datasource db { provider =
-"postgresql" }`). To bootstrap a brand new database (only needed once, or after a schema change
+"postgresql" }`). It uses **two** connection strings to the same database:
+
+- `DATABASE_URL` — pooled (routes through PgBouncer). Used for every runtime app query.
+- `DATABASE_URL_UNPOOLED` — direct. Used only by `prisma migrate deploy` at build time.
+
+On Netlify DB (Neon), these map to `NETLIFY_DATABASE_URL` (pooled) and
+`NETLIFY_DATABASE_URL_UNPOOLED` (direct) — copy those values in, one into each. **Do not point
+both at the direct connection.** A Prisma client holding a direct connection open on a warm
+serverless container prevents Neon's auto-suspend from ever triggering, regardless of how
+aggressive the sleep-on-inactivity setting is — the database stays "active" (and billing compute)
+even with zero real traffic. If you ever see database compute dominating your Netlify credit
+usage despite low traffic, check this first. (Neon's connection strings make the two easy to
+tell apart: the pooled one has `-pooler` in the hostname, the direct one doesn't.)
+
+To bootstrap a brand new database (only needed once, or after a schema change
 with no migrations committed yet):
 
 ```bash
-DATABASE_URL="<your Postgres connection string>" npx prisma migrate dev --name init
+DATABASE_URL="<pooled connection string>" DATABASE_URL_UNPOOLED="<direct connection string>" npx prisma migrate dev --name init
 ```
 
 This creates `prisma/migrations/` and applies it directly. Commit and push that folder — every
@@ -36,7 +50,8 @@ See `.env.example` for the full annotated list. Production checklist:
 
 | Variable | Required | Notes |
 |---|---|---|
-| `DATABASE_URL` | ✅ | Postgres connection string |
+| `DATABASE_URL` | ✅ | Pooled Postgres connection string (see §2 — not the direct one) |
+| `DATABASE_URL_UNPOOLED` | ✅ | Direct Postgres connection string, for migrations only (see §2) |
 | `NEXT_PUBLIC_SITE_URL` | ✅ | `https://all-accesspeptides.com` — used in emails/redirects |
 | `SITE_TIMEZONE` | recommended | IANA zone for displayed dates (default `America/Los_Angeles`). Without it the host's zone (UTC on Netlify) is used, so evening orders show the next day |
 | `STRIPE_SECRET_KEY` | ✅ | Live secret key |
