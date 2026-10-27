@@ -13,25 +13,26 @@
 ## 2. Database
 
 The schema targets Postgres directly (`prisma/schema.prisma`, `datasource db { provider =
-"postgresql" }`). It uses **two** connection strings to the same database:
+"postgresql" }`), with a single `DATABASE_URL`. On Netlify DB (Neon-based, built-in — not the
+older Neon marketplace extension), there is only ever one connection string provided; there's no
+separate pooled/direct pair to choose between the way raw Neon exposes.
 
-- `DATABASE_URL` — pooled (routes through PgBouncer). Used for every runtime app query.
-- `DATABASE_URL_UNPOOLED` — direct. Used only by `prisma migrate deploy` at build time.
-
-On Netlify DB (Neon), these map to `NETLIFY_DATABASE_URL` (pooled) and
-`NETLIFY_DATABASE_URL_UNPOOLED` (direct) — copy those values in, one into each. **Do not point
-both at the direct connection.** A Prisma client holding a direct connection open on a warm
-serverless container prevents Neon's auto-suspend from ever triggering, regardless of how
-aggressive the sleep-on-inactivity setting is — the database stays "active" (and billing compute)
-even with zero real traffic. If you ever see database compute dominating your Netlify credit
-usage despite low traffic, check this first. (Neon's connection strings make the two easy to
-tell apart: the pooled one has `-pooler` in the hostname, the direct one doesn't.)
+**The app connects via Prisma's Neon serverless driver adapter** (`lib/db.ts`, `@prisma/adapter-neon`
++ `@neondatabase/serverless`), not a raw Postgres connection. This matters for cost: a standard
+Prisma client holds a persistent connection pool open for the life of the process, which on a
+warm serverless function container can keep Neon's database "active" — and billing compute —
+indefinitely, even with zero real traffic, because it never idles long enough to auto-suspend
+regardless of how aggressive the sleep-on-inactivity setting is. If you ever see database compute
+dominating your Netlify credit usage despite low traffic, this connection-management mismatch is
+the first thing to check. The Neon driver adapter is built specifically for serverless lifecycles
+to avoid it. (It needs the WebSocket path, not plain HTTP, because this app uses
+`prisma.$transaction(...)` — Neon's stateless HTTP mode doesn't support interactive transactions.)
 
 To bootstrap a brand new database (only needed once, or after a schema change
 with no migrations committed yet):
 
 ```bash
-DATABASE_URL="<pooled connection string>" DATABASE_URL_UNPOOLED="<direct connection string>" npx prisma migrate dev --name init
+DATABASE_URL="<your Postgres connection string>" npx prisma migrate dev --name init
 ```
 
 This creates `prisma/migrations/` and applies it directly. Commit and push that folder — every
@@ -50,8 +51,7 @@ See `.env.example` for the full annotated list. Production checklist:
 
 | Variable | Required | Notes |
 |---|---|---|
-| `DATABASE_URL` | ✅ | Pooled Postgres connection string (see §2 — not the direct one) |
-| `DATABASE_URL_UNPOOLED` | ✅ | Direct Postgres connection string, for migrations only (see §2) |
+| `DATABASE_URL` | ✅ | Postgres connection string (see §2 — app connects via the Neon serverless driver adapter) |
 | `NEXT_PUBLIC_SITE_URL` | ✅ | `https://all-accesspeptides.com` — used in emails/redirects |
 | `SITE_TIMEZONE` | recommended | IANA zone for displayed dates (default `America/Los_Angeles`). Without it the host's zone (UTC on Netlify) is used, so evening orders show the next day |
 | `STRIPE_SECRET_KEY` | ✅ | Live secret key |
