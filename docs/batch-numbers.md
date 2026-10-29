@@ -10,7 +10,7 @@ which are what actually drive the public QR-code verification pages and COA
 downloads — when a batch here is ready to sell, the same lot number should
 be entered there too so the two stay in sync.
 
-## AA-R3
+## AA-R3 (30 mg)
 
 | Order | Batch number | Date logged | Notes |
 |---|---|---|---|
