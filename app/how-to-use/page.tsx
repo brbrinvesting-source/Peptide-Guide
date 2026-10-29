@@ -6,12 +6,12 @@ const sections = [
     num: '01',
     icon: BookOpen,
     title: 'Browsing the Compound Library',
-    description: 'The library covers 85+ compounds with mechanism, benefits, dosing protocols, side effects, half-life, and storage.',
+    description: 'The library covers 85+ compounds with mechanism, benefits, research notes, side effects, half-life, and storage.',
     steps: [
       { label: 'Open the app', detail: 'and tap Peptide Guide in the nav to reach the main library.' },
       { label: 'Search', detail: 'for a compound by name or alias using the search bar.' },
       { label: 'Filter by Goal', detail: 'to narrow to compounds matching an objective — Fat Loss, Healing, Cognitive, and more.' },
-      { label: 'Tap any compound', detail: 'to open its full detail page: mechanism, primary benefits, side effects, dosing ranges, stacking suggestions, and storage.' },
+      { label: 'Tap any compound', detail: 'to open its full detail page: mechanism, primary benefits, side effects, research notes, stacking suggestions, and storage.' },
     ],
     tip: 'Storage temperatures are shown in both °C and °F — no conversion needed.',
   },
@@ -19,7 +19,7 @@ const sections = [
     num: '02',
     icon: Hammer,
     title: 'Building a Cycle',
-    description: 'Create a fully customized protocol with doses, schedules, and optional titration for each compound.',
+    description: 'Create a fully customized research cycle with schedules, and optional titration tracking for each compound.',
     steps: [
       { label: 'Tap Cycle Builder', detail: 'in the nav.' },
       { label: 'Name your cycle', detail: 'select a goal, and optionally set a break period.' },

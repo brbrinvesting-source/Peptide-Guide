@@ -23,7 +23,7 @@ const features = [
     icon: BookOpen,
     title: 'Peptide Library',
     description:
-      'Browse our comprehensive database of 85+ peptides with detailed profiles, mechanisms of action, dosing protocols, and side effect breakdowns — filterable by category, goal, and experience level.',
+      'Browse our comprehensive database of 85+ peptides with detailed profiles, mechanisms of action, research notes, and side effect breakdowns — filterable by category, goal, and experience level.',
     href: '/peptides',
     cta: 'Browse Library',
   },
@@ -47,7 +47,7 @@ const features = [
     icon: CalendarDays,
     title: 'Cycle Builder',
     description:
-      'Build complete peptide protocols with dosing schedules, cycle lengths, and break periods. Log doses, track progress, and maintain a full history of your research cycles.',
+      'Build and track personal research cycles with schedules, cycle lengths, and break periods. Log activity, track progress, and maintain a full history of your research cycles.',
     href: '/cycle-builder',
     cta: 'Build a Cycle',
   },
@@ -90,8 +90,8 @@ export default function HomePage() {
 
           <p className="max-w-2xl mx-auto text-lg text-gray-400 leading-relaxed mb-10">
             A research-backed reference covering 85+ peptides — with detailed
-            mechanisms, dosing protocols, goal-based recommendations, stacking
-            guides, and a full cycle builder.
+            mechanisms, research profiles, goal-based recommendations, stacking
+            guides, and a full cycle tracker.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

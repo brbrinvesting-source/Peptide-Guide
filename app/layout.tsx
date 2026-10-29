@@ -12,12 +12,12 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: 'Peptide Guide | Research-Backed Peptide Information',
   description:
-    'A comprehensive, research-backed reference for peptides — covering mechanisms, dosing protocols, goal-based recommendations, stacking guides, and cycle building tools.',
-  keywords: ['peptides', 'peptide guide', 'BPC-157', 'GHK-Cu', 'research peptides', 'peptide dosing', 'peptide stacking'],
+    'A comprehensive, research-backed reference for peptides — covering mechanisms, research profiles, goal-based recommendations, stacking guides, and cycle tracking tools.',
+  keywords: ['peptides', 'peptide guide', 'BPC-157', 'GHK-Cu', 'research peptides', 'peptide research', 'peptide stacking'],
   openGraph: {
     title: 'Peptide Guide | Research-Backed Peptide Information',
     description:
-      'Comprehensive peptide reference covering mechanisms, dosing, goal-based recommendations, stacking, and cycle building.',
+      'Comprehensive peptide reference covering mechanisms, research profiles, goal-based recommendations, stacking, and cycle tracking.',
     type: 'website',
   },
 };
