@@ -57,3 +57,39 @@ be entered there too so the two stay in sync.
 | Order | Batch number | Date logged | Notes |
 |---|---|---|---|
 | 1 | 7-924-A | 2026-08-20 | First batch |
+
+## Tesamorelin (10 mg)
+
+| Order | Batch number | Date logged | Notes |
+|---|---|---|---|
+| 1 | 4-451-T | 2026-10-30 | First batch — assigned for lab submission |
+
+## Glow (70 mg)
+
+| Order | Batch number | Date logged | Notes |
+|---|---|---|---|
+| 1 | 5-516-G | 2026-10-30 | First batch — assigned for lab submission |
+
+## TB-500 (10 mg)
+
+| Order | Batch number | Date logged | Notes |
+|---|---|---|---|
+| 1 | 6-627-T | 2026-10-30 | First batch — assigned for lab submission |
+
+## AA-T2 (20 mg)
+
+| Order | Batch number | Date logged | Notes |
+|---|---|---|---|
+| 1 | 1-182-T | 2026-10-30 | First batch — assigned for lab submission |
+
+## AA-T2 (10 mg)
+
+| Order | Batch number | Date logged | Notes |
+|---|---|---|---|
+| 1 | 2-209-T | 2026-10-30 | First batch — assigned for lab submission |
+
+## BPC-157 (10 mg)
+
+| Order | Batch number | Date logged | Notes |
+|---|---|---|---|
+| 1 | 7-764-B | 2026-10-30 | First batch — assigned for lab submission |
