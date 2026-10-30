@@ -93,3 +93,15 @@ be entered there too so the two stay in sync.
 | Order | Batch number | Date logged | Notes |
 |---|---|---|---|
 | 1 | 7-764-B | 2026-10-30 | First batch — assigned for lab submission |
+
+## Selank (10 mg)
+
+| Order | Batch number | Date logged | Notes |
+|---|---|---|---|
+| 1 | 8-358-S | 2026-10-30 | First batch — assigned for lab submission |
+
+## Semax (10 mg)
+
+| Order | Batch number | Date logged | Notes |
+|---|---|---|---|
+| 1 | 9-670-S | 2026-10-30 | First batch — assigned for lab submission |
