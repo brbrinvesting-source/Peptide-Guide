@@ -57,6 +57,7 @@ const PRODUCTS: SeedProduct[] = [
   // Cellular / Metabolic Research
   { name: 'MOTS-C', vialSize: '10 mg', category: 'cellular-metabolic-research', sku: 'MOTSC-10' },
   { name: 'MOTS-C', vialSize: '40 mg', category: 'cellular-metabolic-research', sku: 'MOTSC-40' },
+  { name: 'MT-1', vialSize: '10 mg', category: 'cellular-metabolic-research', sku: 'MT1-10' },
   { name: 'MT-2', vialSize: '10 mg', category: 'cellular-metabolic-research', sku: 'MT2-10' },
   { name: 'NAD+', vialSize: '500 mg', category: 'cellular-metabolic-research', sku: 'NAD-500' },
   { name: 'NAD+', vialSize: '1000 mg', category: 'cellular-metabolic-research', sku: 'NAD-1000' },
@@ -69,6 +70,7 @@ const PRODUCTS: SeedProduct[] = [
   { name: '5-Amino 1MQ', vialSize: '10 mg', category: 'cellular-metabolic-research', sku: '5AMQ-10' },
   { name: '5-Amino 1MQ', vialSize: '50 mg', category: 'cellular-metabolic-research', sku: '5AMQ-50' },
   { name: 'Epithalon', vialSize: '50 mg', category: 'cellular-metabolic-research', sku: 'EPI-50' },
+  { name: 'Pinealon', vialSize: '20 mg', category: 'cellular-metabolic-research', sku: 'PIN-50' },
   { name: 'Glutathione', vialSize: '1500 mg', category: 'cellular-metabolic-research', sku: 'GLUT-1500' },
   { name: 'HCG', vialSize: '10,000 IU', category: 'cellular-metabolic-research', sku: 'HCG-10K' },
 ]
