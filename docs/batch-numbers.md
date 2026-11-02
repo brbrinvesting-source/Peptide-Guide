@@ -105,3 +105,9 @@ be entered there too so the two stay in sync.
 | Order | Batch number | Date logged | Notes |
 |---|---|---|---|
 | 1 | 9-670-S | 2026-10-30 | First batch — assigned for lab submission |
+
+## PT-141 (10 mg)
+
+| Order | Batch number | Date logged | Notes |
+|---|---|---|---|
+| 1 | 3-519-P | 2026-11-02 | Reserved batch number — not yet live in catalog; pending order/lab testing |
