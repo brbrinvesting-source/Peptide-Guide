@@ -111,3 +111,33 @@ be entered there too so the two stay in sync.
 | Order | Batch number | Date logged | Notes |
 |---|---|---|---|
 | 1 | 3-519-P | 2026-11-02 | Reserved batch number — not yet live in catalog; pending order/lab testing |
+
+## AOD 9604 (10 mg)
+
+| Order | Batch number | Date logged | Notes |
+|---|---|---|---|
+| 1 | 2-307-A | 2026-11-02 | First batch — assigned for lab submission |
+
+## 5-Amino 1MQ (10 mg)
+
+| Order | Batch number | Date logged | Notes |
+|---|---|---|---|
+| 1 | 4-861-A | 2026-11-02 | First batch — assigned for lab submission |
+
+## Epithalon (50 mg)
+
+| Order | Batch number | Date logged | Notes |
+|---|---|---|---|
+| 1 | 6-173-E | 2026-11-02 | First batch — assigned for lab submission |
+
+## Pinealon (20 mg)
+
+| Order | Batch number | Date logged | Notes |
+|---|---|---|---|
+| 1 | 8-942-P | 2026-11-02 | First batch — assigned for lab submission |
+
+## MT-1 (10 mg)
+
+| Order | Batch number | Date logged | Notes |
+|---|---|---|---|
+| 1 | 5-256-M | 2026-11-02 | First batch — assigned for lab submission |
