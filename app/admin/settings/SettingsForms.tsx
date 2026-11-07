@@ -99,7 +99,15 @@ function SettingsSection({
 }
 
 function HeroMediaSection({ url, type }: { url: string; type: string }) {
-  const [state, formAction] = useActionState<AdminActionState, FormData>(setHeroMediaAction, {})
+  // Three independent forms, deliberately — a shared <form> would bundle the
+  // file input's bytes into every submit regardless of which button was
+  // clicked (the browser serializes every field in the form into the
+  // request), so pasting a URL after selecting an oversized file still sent
+  // the file and hit Netlify's platform request-size cap.
+  const [uploadState, uploadAction] = useActionState<AdminActionState, FormData>(setHeroMediaAction, {})
+  const [urlState, urlAction] = useActionState<AdminActionState, FormData>(setHeroMediaAction, {})
+  const [removeState, removeAction] = useActionState<AdminActionState, FormData>(setHeroMediaAction, {})
+
   return (
     <section className="panel p-5">
       <p className="microlabel text-gold">Homepage hero media</p>
@@ -108,21 +116,22 @@ function HeroMediaSection({ url, type }: { url: string; type: string }) {
         photo or short looping video. Not tied to any product. Leave empty to show the default
         placeholder.
       </p>
-      <form action={formAction} className="mt-4 space-y-3">
-        {state.error && <Alert kind="error">{state.error}</Alert>}
-        {state.success && <Alert kind="success">{state.success}</Alert>}
-        {url ? (
-          <div className="aspect-square w-full max-w-[220px] overflow-hidden rounded-md border border-line">
-            {type === 'video' ? (
-              <video src={url} autoPlay muted loop playsInline className="h-full w-full object-cover" />
-            ) : (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={url} alt="Current hero media" className="h-full w-full object-cover" />
-            )}
-          </div>
-        ) : (
-          <p className="text-xs text-muted">No custom hero media set — showing the default vial placeholder.</p>
-        )}
+      {url ? (
+        <div className="mt-4 aspect-square w-full max-w-[220px] overflow-hidden rounded-md border border-line">
+          {type === 'video' ? (
+            <video src={url} autoPlay muted loop playsInline className="h-full w-full object-cover" />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={url} alt="Current hero media" className="h-full w-full object-cover" />
+          )}
+        </div>
+      ) : (
+        <p className="mt-4 text-xs text-muted">No custom hero media set — showing the default vial placeholder.</p>
+      )}
+
+      <form action={uploadAction} className="mt-4 space-y-3">
+        {uploadState.error && <Alert kind="error">{uploadState.error}</Alert>}
+        {uploadState.success && <Alert kind="success">{uploadState.success}</Alert>}
         <label className="microlabel block">
           Upload image or video
           <input
@@ -137,6 +146,14 @@ function HeroMediaSection({ url, type }: { url: string; type: string }) {
             autoplays muted and loops.
           </span>
         </label>
+        <SubmitButton className="btn btn-outline btn-sm" pendingLabel="Uploading…">
+          Upload
+        </SubmitButton>
+      </form>
+
+      <form action={urlAction} className="mt-4 space-y-3 border-t border-line pt-4">
+        {urlState.error && <Alert kind="error">{urlState.error}</Alert>}
+        {urlState.success && <Alert kind="success">{urlState.success}</Alert>}
         <div className="grid grid-cols-[1fr_auto] gap-2">
           <label className="microlabel block">
             …or media URL (for a video over 6 MB — host it elsewhere and link it here)
@@ -150,17 +167,21 @@ function HeroMediaSection({ url, type }: { url: string; type: string }) {
             </select>
           </label>
         </div>
-        <div className="flex gap-2">
-          <SubmitButton className="btn btn-outline btn-sm" pendingLabel="Uploading…">
-            Upload
-          </SubmitButton>
-          {url && (
-            <button type="submit" name="remove" value="1" className="btn btn-outline btn-sm">
-              Remove
-            </button>
-          )}
-        </div>
+        <SubmitButton className="btn btn-outline btn-sm" pendingLabel="Saving…">
+          Use URL
+        </SubmitButton>
       </form>
+
+      {url && (
+        <form action={removeAction} className="mt-4 border-t border-line pt-4">
+          {removeState.error && <Alert kind="error">{removeState.error}</Alert>}
+          {removeState.success && <Alert kind="success">{removeState.success}</Alert>}
+          <input type="hidden" name="remove" value="1" />
+          <SubmitButton className="btn btn-outline btn-sm" pendingLabel="Removing…">
+            Remove current hero media
+          </SubmitButton>
+        </form>
+      )}
     </section>
   )
 }
