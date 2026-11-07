@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   saveContentPageAction,
   saveSettingsAction,
@@ -98,15 +99,84 @@ function SettingsSection({
   )
 }
 
+const HERO_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'video/mp4', 'video/webm']
+const HERO_CHUNK_BYTES = 4 * 1024 * 1024 // stays well under Netlify's ~6MB per-request platform cap
+
 function HeroMediaSection({ url, type }: { url: string; type: string }) {
-  // Three independent forms, deliberately — a shared <form> would bundle the
-  // file input's bytes into every submit regardless of which button was
-  // clicked (the browser serializes every field in the form into the
-  // request), so pasting a URL after selecting an oversized file still sent
-  // the file and hit Netlify's platform request-size cap.
-  const [uploadState, uploadAction] = useActionState<AdminActionState, FormData>(setHeroMediaAction, {})
+  // The upload form is deliberately NOT a Server Action — a video of any
+  // real size needs to be split into pieces and posted one at a time to
+  // /api/admin/hero-chunk (see that route for why), which a <form action>
+  // can't express. The URL and Remove forms stay as Server Actions since
+  // their bodies are tiny.
+  //
+  // All three are independent forms — a shared <form> would bundle the file
+  // input's bytes into every submit regardless of which button was clicked
+  // (the browser serializes every field into the request), so pasting a URL
+  // after selecting an oversized file still sent the file along and hit
+  // Netlify's platform request-size cap.
   const [urlState, urlAction] = useActionState<AdminActionState, FormData>(setHeroMediaAction, {})
   const [removeState, removeAction] = useActionState<AdminActionState, FormData>(setHeroMediaAction, {})
+  const router = useRouter()
+  const [uploading, setUploading] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [uploadError, setUploadError] = useState('')
+  const [uploadSuccess, setUploadSuccess] = useState('')
+
+  async function handleUpload(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const form = e.currentTarget
+    const input = form.elements.namedItem('heroFile') as HTMLInputElement
+    const file = input.files?.[0]
+    setUploadError('')
+    setUploadSuccess('')
+    if (!file) {
+      setUploadError('Choose a file to upload.')
+      return
+    }
+    if (!HERO_MIME_TYPES.includes(file.type)) {
+      setUploadError('File must be JPEG, PNG, WebP, AVIF, MP4, or WebM.')
+      return
+    }
+
+    setUploading(true)
+    setProgress(0)
+    try {
+      const uploadId = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`
+      const total = Math.max(1, Math.ceil(file.size / HERO_CHUNK_BYTES))
+
+      for (let i = 0; i < total; i++) {
+        const chunk = file.slice(i * HERO_CHUNK_BYTES, (i + 1) * HERO_CHUNK_BYTES)
+        const body = new FormData()
+        body.set('phase', 'chunk')
+        body.set('uploadId', uploadId)
+        body.set('index', String(i))
+        body.set('chunk', chunk)
+        const res = await fetch('/api/admin/hero-chunk', { method: 'POST', body })
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}) as { error?: string })
+          throw new Error(data.error || `Upload failed on part ${i + 1} of ${total}.`)
+        }
+        setProgress(Math.round(((i + 1) / total) * 100))
+      }
+
+      const finalizeBody = new FormData()
+      finalizeBody.set('phase', 'finalize')
+      finalizeBody.set('uploadId', uploadId)
+      finalizeBody.set('total', String(total))
+      finalizeBody.set('mimeType', file.type)
+      const finalizeRes = await fetch('/api/admin/hero-chunk', { method: 'POST', body: finalizeBody })
+      const finalizeData = await finalizeRes.json().catch(() => ({}) as { error?: string })
+      if (!finalizeRes.ok) throw new Error(finalizeData.error || 'Could not finalize the upload.')
+
+      setUploadSuccess('Homepage hero media updated.')
+      form.reset()
+      router.refresh()
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'Upload failed.')
+    } finally {
+      setUploading(false)
+    }
+  }
 
   return (
     <section className="panel p-5">
@@ -129,26 +199,27 @@ function HeroMediaSection({ url, type }: { url: string; type: string }) {
         <p className="mt-4 text-xs text-muted">No custom hero media set — showing the default vial placeholder.</p>
       )}
 
-      <form action={uploadAction} className="mt-4 space-y-3">
-        {uploadState.error && <Alert kind="error">{uploadState.error}</Alert>}
-        {uploadState.success && <Alert kind="success">{uploadState.success}</Alert>}
+      <form onSubmit={handleUpload} className="mt-4 space-y-3">
+        {uploadError && <Alert kind="error">{uploadError}</Alert>}
+        {uploadSuccess && <Alert kind="success">{uploadSuccess}</Alert>}
         <label className="microlabel block">
           Upload image or video
           <input
             type="file"
             name="heroFile"
             accept="image/jpeg,image/png,image/webp,image/avif,video/mp4,video/webm"
+            disabled={uploading}
             className="field mt-1.5"
           />
           <span className="mt-1 block text-[0.65rem] normal-case text-muted">
-            JPEG, PNG, WebP, AVIF, MP4, or WebM, under 6 MB — Netlify&apos;s function platform
-            rejects larger uploads before this form&apos;s own 20 MB check even runs. Video
-            autoplays muted and loops.
+            JPEG, PNG, WebP, AVIF, MP4, or WebM, up to 150 MB — uploaded in small pieces
+            automatically so a single large video isn&apos;t capped by Netlify&apos;s per-request
+            size limit. Video autoplays muted and loops.
           </span>
         </label>
-        <SubmitButton className="btn btn-outline btn-sm" pendingLabel="Uploading…">
-          Upload
-        </SubmitButton>
+        <button type="submit" className="btn btn-outline btn-sm" disabled={uploading}>
+          {uploading ? `Uploading… ${progress}%` : 'Upload'}
+        </button>
       </form>
 
       <form action={urlAction} className="mt-4 space-y-3 border-t border-line pt-4">

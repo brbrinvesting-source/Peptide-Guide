@@ -43,16 +43,21 @@ function safeKey(store: string, key: string): string {
   return resolved
 }
 
-export async function storeFile(store: string, prefix: string, ext: string, data: Buffer): Promise<string> {
-  const key = `${prefix}/${Date.now()}-${randomBytes(8).toString('hex')}${ext}`
+/** Write to an exact key (no generated suffix) — used for chunked-upload parts. */
+export async function storeFileAtKey(store: string, key: string, data: Buffer): Promise<void> {
   if (useBlobs) {
     const arrayBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer
     await getStore(store).set(key, arrayBuffer)
-    return key
+    return
   }
   const filePath = safeKey(store, key)
   await mkdir(path.dirname(filePath), { recursive: true })
   await writeFile(filePath, data)
+}
+
+export async function storeFile(store: string, prefix: string, ext: string, data: Buffer): Promise<string> {
+  const key = `${prefix}/${Date.now()}-${randomBytes(8).toString('hex')}${ext}`
+  await storeFileAtKey(store, key, data)
   return key
 }
 
