@@ -41,7 +41,7 @@ export function ProductCard({ product, bulkTiers }: { product: CatalogProduct; b
     <article className="panel group flex flex-col overflow-hidden transition-colors hover:border-line-strong">
       <Link
         href={`/products/${product.slug}`}
-        className="relative block aspect-square overflow-hidden border-b border-line"
+        className="relative block aspect-square overflow-hidden border-b border-line bg-panel-2 p-6"
         aria-label={`View ${product.name} ${product.vialSize}`}
       >
         <VialImage
@@ -49,6 +49,7 @@ export function ProductCard({ product, bulkTiers }: { product: CatalogProduct; b
           vialSize={product.vialSize}
           imageUrl={product.imageUrl}
           alt={product.imageAlt}
+          className="rounded-sm"
         />
         <span className={`absolute top-3 left-3 ${BADGE_CLASS[status]} bg-ink/80`}>
           {STOCK_LABELS[status]}

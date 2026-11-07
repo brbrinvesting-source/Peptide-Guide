@@ -109,12 +109,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
       <div className="mt-6 grid gap-10 lg:grid-cols-2">
         {/* Image */}
-        <div className="panel aspect-square overflow-hidden">
+        <div className="panel aspect-square overflow-hidden bg-panel-2 p-8">
           <VialImage
             name={product.name}
             vialSize={product.vialSize}
             imageUrl={product.images[0]?.url}
             alt={product.images[0]?.alt}
+            className="rounded-sm"
           />
         </div>
 
