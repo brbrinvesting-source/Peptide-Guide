@@ -170,9 +170,24 @@ async function main() {
   }
 
   console.log('Seeding products (no prices, no inventory — set via admin)...')
+  // Admin edits never touch an existing product's slug (only name/vialSize/etc
+  // change), so a vial-size edit made in Admin can leave a product's slug
+  // stale relative to what slugify(name, vialSize) would now produce. If that
+  // freshly-computed slug happens to collide with a DIFFERENT product's slug,
+  // disambiguate it the same way admin product creation already does
+  // (app/actions/admin.ts) rather than letting the upsert crash the build.
+  const existingSlugOwner = new Map(
+    (await prisma.product.findMany({ select: { sku: true, slug: true } })).map((p) => [p.slug, p.sku])
+  )
   for (let i = 0; i < PRODUCTS.length; i++) {
     const p = PRODUCTS[i]
-    const slug = SLUG_OVERRIDES[p.sku] ?? slugify(p.name, p.vialSize)
+    let slug = SLUG_OVERRIDES[p.sku] ?? slugify(p.name, p.vialSize)
+    const owner = existingSlugOwner.get(slug)
+    if (owner && owner !== p.sku) {
+      console.warn(`  Slug "${slug}" already belongs to sku="${owner}" — disambiguating for sku="${p.sku}"`)
+      slug = `${slug}-${p.sku.toLowerCase()}`
+    }
+    existingSlugOwner.set(slug, p.sku)
     await prisma.product.upsert({
       where: { sku: p.sku },
       create: {
