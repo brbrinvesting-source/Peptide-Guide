@@ -9,18 +9,28 @@ import { randomBytes } from 'crypto'
 // (public — served through an unauthenticated route). Callers pass a `store`
 // name so the two never collide; see STORES below for the ones in use.
 //
-// On Netlify, NETLIFY=true is set automatically in every build and function
-// runtime — files go to Netlify Blobs there, which is durable and survives
-// deploys with zero extra credentials needed. Outside that context (plain
-// `next dev` locally), falls back to the local filesystem so development
-// doesn't require `netlify dev` or Blobs credentials.
+// On Netlify, the deploy/function runtime auto-configures Netlify Blobs by
+// injecting NETLIFY_BLOBS_CONTEXT (what @netlify/blobs itself checks for —
+// see getEnvironmentContext in its source) — files go to Blobs there, which
+// is durable and survives deploys with zero extra credentials needed.
+// Outside that context (plain `next dev` locally), falls back to the local
+// filesystem so development doesn't require `netlify dev` or Blobs
+// credentials. Deliberately NOT gated on process.env.NETLIFY — that's set
+// during the build, but was observed NOT to be set at runtime for this
+// app's Next.js Server Actions on Netlify (they fell through to the local
+// filesystem fallback and crashed with ENOENT, since a deployed function's
+// filesystem is read-only outside /tmp). NETLIFY_BLOBS_CONTEXT is the
+// actual signal Blobs needs to work, so checking it directly can't drift
+// out of sync with what getStore() itself does.
 
 export const STORES = {
   coaDocuments: 'coa-documents',
   productImages: 'product-images',
 } as const
 
-const useBlobs = process.env.NETLIFY === 'true'
+const useBlobs = Boolean(
+  process.env.NETLIFY_BLOBS_CONTEXT || (globalThis as { netlifyBlobsContext?: unknown }).netlifyBlobsContext
+)
 const STORAGE_ROOT = process.env.FILE_STORAGE_DIR || path.join(process.cwd(), 'storage')
 
 function safeKey(store: string, key: string): string {
