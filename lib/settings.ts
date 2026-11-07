@@ -33,6 +33,12 @@ export const SETTING_KEYS = {
   POINTS_PROGRAM_ENABLED: 'rewards.pointsEnabled',
   POINTS_EARN_CENTS_PER_POINT: 'rewards.earnCentsPerPoint',
   POINTS_REDEMPTION_PER_DOLLAR: 'rewards.redemptionPerDollar',
+  // Periodic "you have points waiting" email — see lib/points-reminders.ts.
+  // Sent to a customer at most once every POINTS_REMINDER_INTERVAL_DAYS,
+  // only once their balance is worth at least POINTS_REMINDER_MIN_POINTS.
+  POINTS_REMINDER_ENABLED: 'rewards.reminderEnabled',
+  POINTS_REMINDER_INTERVAL_DAYS: 'rewards.reminderIntervalDays',
+  POINTS_REMINDER_MIN_POINTS: 'rewards.reminderMinPoints',
   // Referrals: referrer earns REFERRAL_POINTS_MULTIPLIER x the normal rate
   // on a referred friend's first paid order, then the normal (1x) rate on
   // every purchase that friend makes after that. The friend earns the same
@@ -107,6 +113,9 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   [SETTING_KEYS.POINTS_PROGRAM_ENABLED]: 'true',
   [SETTING_KEYS.POINTS_EARN_CENTS_PER_POINT]: '2000', // 1 point per $20
   [SETTING_KEYS.POINTS_REDEMPTION_PER_DOLLAR]: '1', // 1 point = $1
+  [SETTING_KEYS.POINTS_REMINDER_ENABLED]: 'true',
+  [SETTING_KEYS.POINTS_REMINDER_INTERVAL_DAYS]: '30', // monthly
+  [SETTING_KEYS.POINTS_REMINDER_MIN_POINTS]: '10', // ~$10 at the default redemption rate
   [SETTING_KEYS.REFERRAL_PROGRAM_ENABLED]: 'true',
   [SETTING_KEYS.REFERRAL_POINTS_MULTIPLIER]: '2',
   [SETTING_KEYS.REFERRAL_FIRST_ORDER_DISCOUNT_PERCENT]: '10',

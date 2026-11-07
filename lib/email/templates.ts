@@ -216,6 +216,27 @@ export function abandonedCartEmail(opts: {
   }
 }
 
+export function pointsReminderEmail(opts: {
+  firstName: string | null
+  points: number
+  valueCents: number
+  accountUrl: string
+}) {
+  const greeting = opts.firstName ? `Hey ${escapeHtml(opts.firstName)}` : 'Hey there'
+  const value = formatCents(opts.valueCents)
+  return {
+    subject: `You have ${opts.points} rewards points waiting (${value} off)`,
+    html: layout({
+      title: 'Your rewards points are ready to use',
+      bodyHtml: `<p>${greeting}, don't forget you have <strong style="color:${GOLD}">${opts.points} points</strong> available in your rewards center — that's <strong style="color:${GOLD}">${value} off</strong> your next order.</p>
+        <p style="font-size:12px;color:#8a8a8a">Points are redeemed at checkout. No code needed — just sign in and apply them on your next order.</p>`,
+      ctaLabel: 'View Rewards',
+      ctaUrl: opts.accountUrl,
+    }),
+    text: `${greeting}, don't forget you have ${opts.points} points available in your rewards center — that's ${value} off your next order.\n\nView your rewards: ${opts.accountUrl}\n\n${RESEARCH_DISCLAIMER_SHORT}`,
+  }
+}
+
 export function adminNotificationEmail(opts: { title: string; bodyText: string; url?: string }) {
   return {
     subject: `[Admin] ${opts.title}`,

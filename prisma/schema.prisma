@@ -38,6 +38,9 @@ model User {
   // Rewards points — denormalized running balance (like Product.inventoryQty),
   // authoritative history lives in PointsTransaction.
   pointsBalance  Int       @default(0)
+  // Dedupes the periodic "you have points waiting" email — see
+  // lib/points-reminders.ts. Null means never sent.
+  lastPointsReminderSentAt DateTime?
 
   // Referrals. Every account gets its own shareable code at creation.
   // referredById is set once, at registration, from the /r/[code] cookie —

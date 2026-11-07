@@ -36,6 +36,9 @@ const K = {
   POINTS_PROGRAM_ENABLED: 'rewards.pointsEnabled',
   POINTS_EARN_CENTS_PER_POINT: 'rewards.earnCentsPerPoint',
   POINTS_REDEMPTION_PER_DOLLAR: 'rewards.redemptionPerDollar',
+  POINTS_REMINDER_ENABLED: 'rewards.reminderEnabled',
+  POINTS_REMINDER_INTERVAL_DAYS: 'rewards.reminderIntervalDays',
+  POINTS_REMINDER_MIN_POINTS: 'rewards.reminderMinPoints',
   REFERRAL_PROGRAM_ENABLED: 'rewards.referralEnabled',
   REFERRAL_POINTS_MULTIPLIER: 'rewards.referralMultiplier',
   REFERRAL_FIRST_ORDER_DISCOUNT_PERCENT: 'rewards.referralFirstOrderPercent',
@@ -358,6 +361,33 @@ export function SettingsForms({
           defaultValue={v(K.POINTS_REDEMPTION_PER_DOLLAR)}
           hint="1 = 1 point redeems for $1 off"
         />
+      </SettingsSection>
+
+      <SettingsSection
+        title="Rewards reminder email"
+        description={'Periodic "you have points waiting" email, e.g. "don\'t forget you have 37 points — that\'s $37 off your next order." Only sent to customers above the minimum balance, at most once per interval, and skips anyone opted out of marketing emails.'}
+      >
+        <label className="microlabel block">
+          Reminder email
+          <select name={K.POINTS_REMINDER_ENABLED} defaultValue={v(K.POINTS_REMINDER_ENABLED)} className="field mt-1.5">
+            <option value="true">Enabled</option>
+            <option value="false">Disabled</option>
+          </select>
+        </label>
+        <div className="grid grid-cols-2 gap-3">
+          <Field
+            label="Days between reminders"
+            name={K.POINTS_REMINDER_INTERVAL_DAYS}
+            defaultValue={v(K.POINTS_REMINDER_INTERVAL_DAYS)}
+            hint="30 = monthly"
+          />
+          <Field
+            label="Minimum points balance"
+            name={K.POINTS_REMINDER_MIN_POINTS}
+            defaultValue={v(K.POINTS_REMINDER_MIN_POINTS)}
+            hint="Skip customers below this balance"
+          />
+        </div>
       </SettingsSection>
 
       <SettingsSection

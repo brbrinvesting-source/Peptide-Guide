@@ -116,26 +116,31 @@ Management** — nothing is hard-coded.
 
 ## 7. Scheduled jobs
 
-A Netlify Scheduled Function (`netlify/functions/abandoned-carts-cron.mts`) already calls
-`POST /api/cron/abandoned-carts` every 30 minutes automatically — no external cron service or
-manual scheduling needed. It's picked up automatically on deploy since `netlify.toml` points
-Netlify at the `netlify/functions` directory.
+Two Netlify Scheduled Functions already run automatically — no external cron service or manual
+scheduling needed. Both are picked up automatically on deploy since `netlify.toml` points Netlify
+at the `netlify/functions` directory.
 
-The only setup step is setting `CRON_SECRET` in Netlify's environment variables (same value the
-route and the scheduled function both read) — generate one with:
+| Function | Calls | Schedule | Purpose |
+|---|---|---|---|
+| `abandoned-carts-cron.mts` | `POST /api/cron/abandoned-carts` | Every 30 minutes | Abandoned-cart reminder emails |
+| `points-reminder-cron.mts` | `POST /api/cron/points-reminder` | Daily, 16:00 UTC | "You have points waiting" reminder (Admin -> Settings -> Rewards reminder email controls whether it's on, how often a given customer is actually emailed, and the minimum balance) |
+
+The only setup step is setting `CRON_SECRET` in Netlify's environment variables (same value every
+route and scheduled function reads) — generate one with:
 
 ```
 node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
 ```
 
-If `CRON_SECRET` isn't set, the scheduled function logs a warning and skips its run rather than
-failing loudly — check the function's logs in Netlify (Functions tab) if abandoned-cart emails
-aren't going out.
+If `CRON_SECRET` isn't set, a scheduled function logs a warning and skips its run rather than
+failing loudly — check the function's logs in Netlify (Functions tab) if an expected email isn't
+going out.
 
-If you ever need to trigger it manually instead (e.g. testing without waiting 30 minutes):
+If you ever need to trigger either manually instead of waiting for its schedule:
 
 ```
 curl -s -X POST -H "Authorization: Bearer $CRON_SECRET" https://<site>/api/cron/abandoned-carts
+curl -s -X POST -H "Authorization: Bearer $CRON_SECRET" https://<site>/api/cron/points-reminder
 ```
 
 ## 8. File storage (COAs & product images)
