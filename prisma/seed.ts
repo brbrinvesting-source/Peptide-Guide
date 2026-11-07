@@ -71,7 +71,7 @@ const PRODUCTS: SeedProduct[] = [
   { name: '5-Amino 1MQ', vialSize: '50 mg', category: 'cellular-metabolic-research', sku: '5AMQ-50' },
   { name: 'Epithalon', vialSize: '50 mg', category: 'cellular-metabolic-research', sku: 'EPI-50' },
   { name: 'Pinealon', vialSize: '20 mg', category: 'cellular-metabolic-research', sku: 'PIN-50' },
-  { name: 'Glutathione', vialSize: '1500 mg', category: 'cellular-metabolic-research', sku: 'GLUT-1500' },
+  { name: 'Glutathione', vialSize: '600 mg', category: 'cellular-metabolic-research', sku: 'GLUT-1500' },
   { name: 'HCG', vialSize: '10,000 IU', category: 'cellular-metabolic-research', sku: 'HCG-10K' },
 ]
 
