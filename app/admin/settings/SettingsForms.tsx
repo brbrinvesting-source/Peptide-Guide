@@ -5,6 +5,7 @@ import {
   saveContentPageAction,
   saveSettingsAction,
   saveShippingMethodAction,
+  setHeroMediaAction,
   type AdminActionState,
 } from '@/app/actions/admin'
 import { Alert, SubmitButton } from '@/components/forms'
@@ -48,6 +49,8 @@ const K = {
   TAX_PROVIDER: 'tax.provider',
   TAX_FLAT_RATE_BPS: 'tax.flatRateBps',
   RESEARCHER_ATTESTATION_VERSION: 'legal.researcherAttestationVersion',
+  HERO_MEDIA_URL: 'homepage.heroMediaUrl',
+  HERO_MEDIA_TYPE: 'homepage.heroMediaType',
 }
 
 interface ShippingMethodRow {
@@ -90,6 +93,58 @@ function SettingsSection({
         <SubmitButton className="btn btn-outline btn-sm" pendingLabel="Saving…">
           Save
         </SubmitButton>
+      </form>
+    </section>
+  )
+}
+
+function HeroMediaSection({ url, type }: { url: string; type: string }) {
+  const [state, formAction] = useActionState<AdminActionState, FormData>(setHeroMediaAction, {})
+  return (
+    <section className="panel p-5">
+      <p className="microlabel text-gold">Homepage hero media</p>
+      <p className="mt-1.5 text-xs text-muted">
+        Replaces the branded vial graphic on the right side of the homepage hero with a custom
+        photo or short looping video. Not tied to any product. Leave empty to show the default
+        placeholder.
+      </p>
+      <form action={formAction} className="mt-4 space-y-3">
+        {state.error && <Alert kind="error">{state.error}</Alert>}
+        {state.success && <Alert kind="success">{state.success}</Alert>}
+        {url ? (
+          <div className="aspect-square w-full max-w-[220px] overflow-hidden rounded-md border border-line">
+            {type === 'video' ? (
+              <video src={url} autoPlay muted loop playsInline className="h-full w-full object-cover" />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={url} alt="Current hero media" className="h-full w-full object-cover" />
+            )}
+          </div>
+        ) : (
+          <p className="text-xs text-muted">No custom hero media set — showing the default vial placeholder.</p>
+        )}
+        <label className="microlabel block">
+          Upload image or video
+          <input
+            type="file"
+            name="heroFile"
+            accept="image/jpeg,image/png,image/webp,image/avif,video/mp4,video/webm"
+            className="field mt-1.5"
+          />
+          <span className="mt-1 block text-[0.65rem] normal-case text-muted">
+            JPEG, PNG, WebP, AVIF, MP4, or WebM. Under 20 MB. Video autoplays muted and loops.
+          </span>
+        </label>
+        <div className="flex gap-2">
+          <SubmitButton className="btn btn-outline btn-sm" pendingLabel="Uploading…">
+            Upload
+          </SubmitButton>
+          {url && (
+            <button type="submit" name="remove" value="1" className="btn btn-outline btn-sm">
+              Remove
+            </button>
+          )}
+        </div>
       </form>
     </section>
   )
@@ -140,6 +195,8 @@ export function SettingsForms({
           <textarea name={K.STORE_CONTACT_INFO} rows={3} defaultValue={v(K.STORE_CONTACT_INFO)} className="field mt-1.5" />
         </label>
       </SettingsSection>
+
+      <HeroMediaSection url={v(K.HERO_MEDIA_URL)} type={v(K.HERO_MEDIA_TYPE)} />
 
       <SettingsSection
         title="Discounts"

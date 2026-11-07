@@ -26,6 +26,7 @@ import { randomBytes } from 'crypto'
 export const STORES = {
   coaDocuments: 'coa-documents',
   productImages: 'product-images',
+  siteMedia: 'site-media',
 } as const
 
 const useBlobs = Boolean(

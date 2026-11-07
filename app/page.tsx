@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
-import { getBulkTiers, getFreeShippingThresholdCents } from '@/lib/settings'
+import { getBulkTiers, getFreeShippingThresholdCents, getSetting, SETTING_KEYS } from '@/lib/settings'
 import { formatCents } from '@/lib/constants'
 import { ProductCard, type CatalogProduct } from '@/components/ProductCard'
 import { LogoImage } from '@/components/Logo'
@@ -11,7 +11,7 @@ export default async function HomePage() {
   const user = await getCurrentUser()
   const authed = Boolean(user?.emailVerified)
 
-  const [featured, threshold, bulkTiers] = await Promise.all([
+  const [featured, threshold, bulkTiers, heroMediaUrl, heroMediaType] = await Promise.all([
     prisma.product.findMany({
       where: { active: true, featured: true },
       include: {
@@ -27,6 +27,8 @@ export default async function HomePage() {
     }),
     getFreeShippingThresholdCents(),
     getBulkTiers(),
+    getSetting(SETTING_KEYS.HERO_MEDIA_URL),
+    getSetting(SETTING_KEYS.HERO_MEDIA_TYPE),
   ])
 
   const featuredCards: CatalogProduct[] = featured.map((p) => ({
@@ -105,7 +107,21 @@ export default async function HomePage() {
           </div>
           <div className="relative mx-auto hidden aspect-square w-full max-w-md lg:block">
             <div className="panel h-full w-full overflow-hidden">
-              <VialImage name="All-Access" vialSize="Research Series" />
+              {heroMediaUrl && heroMediaType === 'video' ? (
+                <video
+                  src={heroMediaUrl}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="h-full w-full object-cover"
+                />
+              ) : heroMediaUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={heroMediaUrl} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <VialImage name="All-Access" vialSize="Research Series" />
+              )}
             </div>
             <div className="absolute -right-3 -bottom-3 flex items-center gap-2.5 rounded-md border border-gold/50 bg-ink px-4 py-2.5">
               <LogoImage height={32} />

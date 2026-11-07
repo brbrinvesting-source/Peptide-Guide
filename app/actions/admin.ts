@@ -207,6 +207,52 @@ export async function setProductImageAction(
   return { success: 'Primary image updated.' }
 }
 
+export async function setHeroMediaAction(
+  _prev: AdminActionState,
+  formData: FormData
+): Promise<AdminActionState> {
+  const admin = await requireAdmin()
+  const file = formData.get('heroFile') as File | null
+
+  if (formData.get('remove') === '1') {
+    await setSetting(SETTING_KEYS.HERO_MEDIA_URL, '')
+    await setSetting(SETTING_KEYS.HERO_MEDIA_TYPE, '')
+    await audit({ userId: admin.id, action: 'HERO_MEDIA_REMOVED', objectType: 'Settings', objectId: 'homepage' })
+    revalidatePath('/')
+    return { success: 'Hero media removed — showing the default placeholder again.' }
+  }
+
+  if (!file || file.size === 0) return { error: 'Choose an image or video file to upload.' }
+  if (file.size > 20 * 1024 * 1024) return { error: 'File must be under 20 MB.' }
+
+  const allowed: Record<string, { ext: string; type: 'image' | 'video' }> = {
+    'image/jpeg': { ext: '.jpg', type: 'image' },
+    'image/png': { ext: '.png', type: 'image' },
+    'image/webp': { ext: '.webp', type: 'image' },
+    'image/avif': { ext: '.avif', type: 'image' },
+    'video/mp4': { ext: '.mp4', type: 'video' },
+    'video/webm': { ext: '.webm', type: 'video' },
+  }
+  const match = allowed[file.type]
+  if (!match) return { error: 'File must be JPEG, PNG, WebP, AVIF, MP4, or WebM.' }
+
+  const buffer = Buffer.from(await file.arrayBuffer())
+  const key = await storeFile(STORES.siteMedia, 'hero', match.ext, buffer)
+  const url = `/api/uploads/site/${key}`
+
+  await setSetting(SETTING_KEYS.HERO_MEDIA_URL, url)
+  await setSetting(SETTING_KEYS.HERO_MEDIA_TYPE, match.type)
+  await audit({
+    userId: admin.id,
+    action: 'HERO_MEDIA_UPDATED',
+    objectType: 'Settings',
+    objectId: 'homepage',
+    after: { url, type: match.type },
+  })
+  revalidatePath('/')
+  return { success: 'Homepage hero media updated.' }
+}
+
 // ---------------------------------------------------------------------------
 // Categories
 // ---------------------------------------------------------------------------

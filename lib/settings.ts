@@ -54,6 +54,10 @@ export const SETTING_KEYS = {
   TAX_FLAT_RATE_BPS: 'tax.flatRateBps', // basis points fallback when provider = 'flat'
   DISCLAIMER_VERSION: 'legal.disclaimerVersion',
   RESEARCHER_ATTESTATION_VERSION: 'legal.researcherAttestationVersion',
+  // Homepage hero media (right-hand visual in the hero section). When empty,
+  // the storefront shows the branded vial placeholder (components/VialImage).
+  HERO_MEDIA_URL: 'homepage.heroMediaUrl',
+  HERO_MEDIA_TYPE: 'homepage.heroMediaType', // 'image' | 'video'
 } as const
 
 export interface BulkTier {
@@ -118,6 +122,8 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   [SETTING_KEYS.TAX_FLAT_RATE_BPS]: '0',
   [SETTING_KEYS.DISCLAIMER_VERSION]: '1.0',
   [SETTING_KEYS.RESEARCHER_ATTESTATION_VERSION]: '1.0',
+  [SETTING_KEYS.HERO_MEDIA_URL]: '',
+  [SETTING_KEYS.HERO_MEDIA_TYPE]: '',
 }
 
 export async function getSetting(key: string): Promise<string> {
