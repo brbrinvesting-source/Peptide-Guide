@@ -132,9 +132,24 @@ function HeroMediaSection({ url, type }: { url: string; type: string }) {
             className="field mt-1.5"
           />
           <span className="mt-1 block text-[0.65rem] normal-case text-muted">
-            JPEG, PNG, WebP, AVIF, MP4, or WebM. Under 20 MB. Video autoplays muted and loops.
+            JPEG, PNG, WebP, AVIF, MP4, or WebM, under 6 MB — Netlify&apos;s function platform
+            rejects larger uploads before this form&apos;s own 20 MB check even runs. Video
+            autoplays muted and loops.
           </span>
         </label>
+        <div className="grid grid-cols-[1fr_auto] gap-2">
+          <label className="microlabel block">
+            …or media URL (for a video over 6 MB — host it elsewhere and link it here)
+            <input type="url" name="heroUrl" placeholder="https://…" className="field mt-1.5" />
+          </label>
+          <label className="microlabel block">
+            Type
+            <select name="heroUrlType" defaultValue="video" className="field mt-1.5">
+              <option value="image">Image</option>
+              <option value="video">Video</option>
+            </select>
+          </label>
+        </div>
         <div className="flex gap-2">
           <SubmitButton className="btn btn-outline btn-sm" pendingLabel="Uploading…">
             Upload

@@ -169,7 +169,13 @@ export async function setProductImageAction(
 
   let finalUrl = url
   if (file && file.size > 0) {
-    if (file.size > 8 * 1024 * 1024) return { error: 'Image must be under 8 MB.' }
+    // Netlify's own function platform rejects large request bodies at the
+    // edge, well under what next.config.ts's serverActions.bodySizeLimit
+    // allows (observed ~400 around 8.6MB) — a bigger photo needs the URL
+    // field below (host it externally) instead.
+    if (file.size > 6 * 1024 * 1024) {
+      return { error: 'Image must be under 6 MB for direct upload — for a larger file, host it elsewhere and paste the URL instead.' }
+    }
     const allowed: Record<string, string> = {
       'image/jpeg': '.jpg',
       'image/png': '.png',
@@ -213,6 +219,8 @@ export async function setHeroMediaAction(
 ): Promise<AdminActionState> {
   const admin = await requireAdmin()
   const file = formData.get('heroFile') as File | null
+  const externalUrl = str(formData, 'heroUrl', 1000)
+  const externalType = str(formData, 'heroUrlType', 10)
 
   if (formData.get('remove') === '1') {
     await setSetting(SETTING_KEYS.HERO_MEDIA_URL, '')
@@ -222,8 +230,31 @@ export async function setHeroMediaAction(
     return { success: 'Hero media removed — showing the default placeholder again.' }
   }
 
-  if (!file || file.size === 0) return { error: 'Choose an image or video file to upload.' }
-  if (file.size > 20 * 1024 * 1024) return { error: 'File must be under 20 MB.' }
+  if (externalUrl) {
+    if (externalType !== 'image' && externalType !== 'video') {
+      return { error: 'Choose whether the URL is an image or a video.' }
+    }
+    await setSetting(SETTING_KEYS.HERO_MEDIA_URL, externalUrl)
+    await setSetting(SETTING_KEYS.HERO_MEDIA_TYPE, externalType)
+    await audit({
+      userId: admin.id,
+      action: 'HERO_MEDIA_UPDATED',
+      objectType: 'Settings',
+      objectId: 'homepage',
+      after: { url: externalUrl, type: externalType },
+    })
+    revalidatePath('/')
+    return { success: 'Homepage hero media updated.' }
+  }
+
+  if (!file || file.size === 0) return { error: 'Choose a file to upload, or provide a URL instead.' }
+  // Netlify's own function platform rejects large request bodies (observed
+  // ~400 at the edge, before this action ever runs) well under what
+  // next.config.ts's serverActions.bodySizeLimit allows — a video over a
+  // few MB needs the URL field above (host it externally) instead.
+  if (file.size > 6 * 1024 * 1024) {
+    return { error: 'File must be under 6 MB for direct upload — for a larger video, host it elsewhere and paste the URL instead.' }
+  }
 
   const allowed: Record<string, { ext: string; type: 'image' | 'video' }> = {
     'image/jpeg': { ext: '.jpg', type: 'image' },
@@ -855,7 +886,11 @@ export async function uploadCoaAction(
 
   const file = formData.get('file') as File | null
   if (!file || file.size === 0) return { error: 'Attach a COA document (PDF).' }
-  if (file.size > 20 * 1024 * 1024) return { error: 'File must be under 20 MB.' }
+  // Netlify's own function platform rejects large request bodies at the
+  // edge, well under next.config.ts's serverActions.bodySizeLimit — a COA
+  // PDF (usually a 1-2 page lab report) should comfortably fit; if a scan
+  // is over this, re-save/compress it at a lower resolution.
+  if (file.size > 6 * 1024 * 1024) return { error: 'File must be under 6 MB — re-save or compress the PDF (e.g. at a lower scan resolution) and try again.' }
   if (file.type !== 'application/pdf') return { error: 'COA documents must be PDF files.' }
 
   const testingDateRaw = str(formData, 'testingDate')

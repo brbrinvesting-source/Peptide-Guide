@@ -132,6 +132,10 @@ export function ProductForm({
           <div>
             <label htmlFor="imageFile" className="microlabel mb-1.5 block">Upload image</label>
             <input id="imageFile" name="imageFile" type="file" accept="image/jpeg,image/png,image/webp,image/avif" className="field" />
+            <p className="mt-1 text-[0.65rem] normal-case text-muted">
+              Under 6 MB — Netlify rejects larger uploads before this form&apos;s own check runs.
+              For a bigger file, host it elsewhere and use the URL field below instead.
+            </p>
           </div>
           <div>
             <label htmlFor="imageUrl" className="microlabel mb-1.5 block">…or image URL</label>

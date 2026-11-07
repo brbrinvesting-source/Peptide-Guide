@@ -28,6 +28,10 @@ export function CoaUploadForm({
       <label className="microlabel block">
         COA document (PDF) *
         <input type="file" name="file" required accept="application/pdf" className="field mt-1.5" />
+        <span className="mt-1 block text-[0.65rem] normal-case text-muted">
+          Under 6 MB — Netlify rejects larger uploads before this form&apos;s own check runs. A
+          high-resolution scan may need to be re-saved at a lower resolution.
+        </span>
       </label>
       <div className="grid grid-cols-2 gap-3">
         <label className="microlabel block">
