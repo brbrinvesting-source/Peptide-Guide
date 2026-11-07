@@ -12,7 +12,7 @@ import { sendEmail } from '@/lib/email/provider'
 import { orderStatusEmail, shippingNotificationEmail } from '@/lib/email/templates'
 import { absoluteUrl } from '@/lib/site'
 import { INVENTORY_REASONS } from '@/lib/constants'
-import { storeFile } from '@/lib/storage'
+import { storeFile, STORES } from '@/lib/storage'
 import { applyPointsChange, clawBackPoints } from '@/lib/points'
 import { orderPackageWeightOz } from '@/lib/orders'
 import { purchaseShippingLabel } from '@/lib/shipping-rates'
@@ -179,13 +179,8 @@ export async function setProductImageAction(
     const ext = allowed[file.type]
     if (!ext) return { error: 'Image must be JPEG, PNG, WebP, or AVIF.' }
     const buffer = Buffer.from(await file.arrayBuffer())
-    const { writeFile, mkdir } = await import('fs/promises')
-    const path = await import('path')
-    const dir = path.join(process.cwd(), 'public', 'uploads', 'products')
-    await mkdir(dir, { recursive: true })
-    const filename = `${product.sku.toLowerCase()}-${Date.now()}${ext}`
-    await writeFile(path.join(dir, filename), buffer)
-    finalUrl = `/uploads/products/${filename}`
+    const key = await storeFile(STORES.productImages, `products/${product.sku.toLowerCase()}`, ext, buffer)
+    finalUrl = `/api/uploads/products/${key}`
   }
   if (!finalUrl) return { error: 'Provide an image file or URL.' }
 
@@ -844,7 +839,7 @@ export async function uploadCoaAction(
   if (buffer.subarray(0, 5).toString() !== '%PDF-') {
     return { error: 'The uploaded file is not a valid PDF.' }
   }
-  const storageKey = await storeFile(`coas/${product.sku.toLowerCase()}`, '.pdf', buffer)
+  const storageKey = await storeFile(STORES.coaDocuments, `coas/${product.sku.toLowerCase()}`, '.pdf', buffer)
 
   await prisma.$transaction(async (tx) => {
     let lotId: string | null = null

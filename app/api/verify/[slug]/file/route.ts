@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { readStoredFile } from '@/lib/storage'
+import { readStoredFile, STORES } from '@/lib/storage'
 
 // Public COA document delivery for the /verify/[slug] lookup page (the QR
 // code destination on physical labels). Intentionally unauthenticated, but
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ slug: strin
 
   let data: Buffer
   try {
-    data = await readStoredFile(coa.storageKey)
+    data = await readStoredFile(STORES.coaDocuments, coa.storageKey)
   } catch {
     return NextResponse.json({ error: 'Document unavailable' }, { status: 404 })
   }

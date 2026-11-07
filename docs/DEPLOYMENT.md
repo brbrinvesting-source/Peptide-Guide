@@ -149,19 +149,21 @@ curl -s -X POST -H "Authorization: Bearer $CRON_SECRET" https://<site>/api/cron/
     setup. This path is **not durable** on a serverless host — it exists for local dev only.
   - The interface (`storeFile`/`readStoredFile`/`deleteStoredFile`) is deliberately small so a
     different backend (S3, R2) could replace either branch later without touching call sites.
-- Admin-uploaded product images are written to `public/uploads/` (self-hosted) or you can paste
-  an external image URL instead — on serverless/immutable-filesystem hosts, use the URL option
-  with your CDN/bucket.
+    Each caller passes a `store` name (see `STORES` in `lib/storage.ts`) so COA documents and
+    product images never collide.
+- Admin-uploaded product images use the same storage backend as COAs (Netlify Blobs on Netlify,
+  local filesystem otherwise) and are served publicly, unauthenticated, through
+  `/api/uploads/products/[...key]`. You can still paste an external image URL instead if you'd
+  rather host images on your own CDN/bucket.
 
 ## 9. Hosting notes (Netlify)
 
 - The repo includes `netlify.toml`, already configured for Netlify's official Next.js runtime
   (`@netlify/plugin-nextjs`) — connecting the GitHub repo as a new Netlify site should need no
   extra build configuration.
-- **Netlify's functions have an ephemeral filesystem** — COA PDFs are safe from this because
-  `lib/storage.ts` already uses Netlify Blobs on Netlify (see §8), but admin-uploaded product
-  image *files* written to `public/uploads/` are not: they will not persist between deploys.
-  Only the "paste an image URL" option is safe for product images on Netlify today.
+- **Netlify's functions have an ephemeral filesystem** — both COA PDFs and admin-uploaded
+  product image files are safe from this, since `lib/storage.ts` uses Netlify Blobs for both
+  on Netlify (see §8).
 - HTTPS is provisioned automatically once a custom domain's DNS is verified in Netlify's
   **Domain management**.
 

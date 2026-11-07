@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser, isAdminRole } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import { readStoredFile } from '@/lib/storage'
+import { readStoredFile, STORES } from '@/lib/storage'
 
 // Authenticated COA document delivery. Files are stored outside public/
 // and only streamed to verified customers and admins.
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
 
   let data: Buffer
   try {
-    data = await readStoredFile(coa.storageKey)
+    data = await readStoredFile(STORES.coaDocuments, coa.storageKey)
   } catch {
     return NextResponse.json({ error: 'Document unavailable' }, { status: 404 })
   }
