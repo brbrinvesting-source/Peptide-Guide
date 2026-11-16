@@ -11,6 +11,11 @@ Useful context for any future filings, EIN application, bank account
 setup, tax filings, or other business-admin tasks — not used by the
 running application itself.
 
+- **Legal name (per IRS EIN confirmation):** All-Access Peptides *(no "LLC" suffix shown on the
+  EIN confirmation itself — confirm whether the Articles of Organization show it with or without
+  the suffix, since the two should match exactly on bank/legal paperwork)*
+- **EIN:** 43-3001924
+- **IRS name control:** ALL-
 - **Business address:** 8605 Santa Monica Blvd #515803, West Hollywood, CA 90069
 - **Registered agent (CA Agent for Service of Process):** LegalZoom
 - **Fiscal year end:** December 31
@@ -18,7 +23,7 @@ running application itself.
 - **Suggested industry / business purpose framing:** "Sells research peptides for laboratory use only; not for human or veterinary consumption." Use this framing (laboratory/research chemical supplier, not "supplements"/"nutraceuticals") consistently across filings, EIN application, bank account, and payment-processor underwriting — it's the difference between being read as a legitimate research supplier vs. getting flagged like the earlier Shippo account hold.
 
 Update this section as formation details are finalized (SOS file number,
-member- vs. manager-managed, EIN, business bank account, etc.).
+member- vs. manager-managed, business bank account, etc.).
 
 **Business expenses:** tracked in `docs/business-expenses.md` until a
 business bank account exists. Add a row there any time a new
