@@ -26,3 +26,8 @@ formation/business expense comes up.
 
 **Batch numbers:** tracked per compound in `docs/batch-numbers.md`. Append a
 row there any time a new batch/lot number is issued.
+
+**Member loan:** the personal-funds business expenses above are formalized as
+a loan from the member to the LLC (not a non-repayable capital contribution),
+tracked in `docs/member-loan.md`. Update it any time a repayment is made from
+the business bank account back to the member.
