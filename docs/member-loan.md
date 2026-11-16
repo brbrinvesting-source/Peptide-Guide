@@ -19,7 +19,13 @@ balance and its repayment, not the individual purchases.
 
 | Date | Amount | From / to | Running balance owed to member | Notes |
 |---|---|---|---|---|
-| — | — | — | $774.93 | No repayments yet — requires the business bank account to be open and holding funds from actual sales. |
+| 2026-11-16 | $774.93 | Revenue recognition, not a bank transfer — see note | $0.00 | Satisfied via pre-launch P2P sales (Venmo) made directly to the member's personal account/Venmo before the business bank account existed and before the site was taking orders. No business-to-personal transfer actually occurred — the funds never left personal hands, so this is a bookkeeping designation (this revenue counts as repaying the loan rather than as a distribution/profit), not bank-trail evidence of a true repayment. Flag this treatment to your accountant. |
+
+**Going forward:** once the business bank account is open, route all revenue (site sales via
+Stripe payout, and any further P2P/Venmo sales) into it directly rather than personal Venmo/
+accounts, and use the clean transfer-with-memo method described below for anything that still
+needs to move to personal — this pre-launch period is a one-time, practically unavoidable
+exception, not a pattern to continue.
 
 ## How to actually show a repayment happened
 
