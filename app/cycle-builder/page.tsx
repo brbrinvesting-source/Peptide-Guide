@@ -487,6 +487,7 @@ function CycleBuilderInner() {
   // ── Share / export / import state ──
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [shareLoading, setShareLoading] = useState(false);
   const importFileRef = useRef<HTMLInputElement>(null);
 
   // ── Import from share link ──
@@ -856,13 +857,28 @@ function CycleBuilderInner() {
     }
   }
 
-  function handleShareCycle(cycle: Cycle) {
+  async function handleShareCycle(cycle: Cycle) {
     const encoded = encodeCycle(cycle);
-    const url = `${window.location.origin}/shared?c=${encoded}`;
+    const longUrl = `${window.location.origin}/shared?c=${encoded}`;
+
+    setShareLoading(true);
+    setShareUrl(longUrl);
+
+    let url = longUrl;
+    try {
+      const res = await fetch(
+        `https://is.gd/create.php?format=simple&url=${encodeURIComponent(longUrl)}`
+      );
+      if (res.ok) {
+        const short = (await res.text()).trim();
+        if (short.startsWith('https://is.gd/')) url = short;
+      }
+    } catch {}
+
+    setShareLoading(false);
+    setShareUrl(url);
     if (navigator.share) {
-      navigator.share({ title: cycle.name, url }).catch(() => setShareUrl(url));
-    } else {
-      setShareUrl(url);
+      navigator.share({ title: cycle.name, url }).catch(() => {});
     }
   }
 
@@ -1033,7 +1049,7 @@ function CycleBuilderInner() {
       {shareUrl && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4"
-          onClick={() => setShareUrl(null)}
+          onClick={() => { setShareUrl(null); setShareLoading(false); }}
         >
           <div
             className="w-full max-w-md rounded-2xl border border-gray-700 bg-gray-900 p-6 shadow-2xl"
@@ -1042,40 +1058,52 @@ function CycleBuilderInner() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-base font-semibold text-white">Share Cycle Link</h2>
               <button
-                onClick={() => setShareUrl(null)}
+                onClick={() => { setShareUrl(null); setShareLoading(false); }}
                 className="text-gray-500 hover:text-gray-300 text-xl leading-none transition-colors"
               >
                 ✕
               </button>
             </div>
-            <p className="text-xs text-gray-400 mb-3">
-              Anyone who opens this link can preview and import your cycle.
-            </p>
-            <div className="flex gap-2">
-              <input
-                readOnly
-                value={shareUrl}
-                className="flex-1 min-w-0 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-xs text-gray-300 focus:outline-none"
-                onFocus={(e) => e.target.select()}
-              />
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(shareUrl).then(() => {
-                    setCopiedId('modal');
-                    setTimeout(() => setCopiedId(null), 2000);
-                  }).catch(() => {
-                    const input = document.querySelector('[data-share-input]') as HTMLInputElement;
-                    input?.select();
-                  });
-                }}
-                className="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white text-xs font-semibold transition-colors whitespace-nowrap"
-              >
-                {copiedId === 'modal' ? '✓ Copied!' : 'Copy Link'}
-              </button>
-            </div>
-            <p className="mt-3 text-xs text-gray-600">
-              Tap the link above to select it, then copy manually if the button doesn't work.
-            </p>
+            {shareLoading ? (
+              <div className="flex items-center gap-3 py-4">
+                <svg className="animate-spin h-4 w-4 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+                <p className="text-xs text-gray-400">Generating short link…</p>
+              </div>
+            ) : (
+              <>
+                <p className="text-xs text-gray-400 mb-3">
+                  Anyone who opens this link can preview and import your cycle.
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    readOnly
+                    value={shareUrl}
+                    className="flex-1 min-w-0 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-xs text-gray-300 focus:outline-none"
+                    onFocus={(e) => e.target.select()}
+                  />
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(shareUrl).then(() => {
+                        setCopiedId('modal');
+                        setTimeout(() => setCopiedId(null), 2000);
+                      }).catch(() => {
+                        const input = document.querySelector('[data-share-input]') as HTMLInputElement;
+                        input?.select();
+                      });
+                    }}
+                    className="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white text-xs font-semibold transition-colors whitespace-nowrap"
+                  >
+                    {copiedId === 'modal' ? '✓ Copied!' : 'Copy Link'}
+                  </button>
+                </div>
+                <p className="mt-3 text-xs text-gray-600">
+                  Tap the link above to select it, then copy manually if the button doesn't work.
+                </p>
+              </>
+            )}
           </div>
         </div>
       )}
