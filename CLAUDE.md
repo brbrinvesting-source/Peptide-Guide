@@ -11,9 +11,14 @@ Useful context for any future filings, EIN application, bank account
 setup, tax filings, or other business-admin tasks — not used by the
 running application itself.
 
-- **Legal name (per IRS EIN confirmation):** All-Access Peptides *(no "LLC" suffix shown on the
-  EIN confirmation itself — confirm whether the Articles of Organization show it with or without
-  the suffix, since the two should match exactly on bank/legal paperwork)*
+- **Legal name per Articles of Organization (correct):** All-Access Peptides LLC
+- **⚠️ Legal name on file with the IRS for this EIN (WRONG — pending correction):** "All-Access
+  Peptides" — missing the "LLC" suffix due to a data-entry error on the EIN application, not an
+  actual name change. **Must be corrected before opening the business bank account** (banks check
+  the EIN name against the Articles of Organization). Fix: call the IRS Business & Specialty Tax
+  Line, 800-829-4933, reference EIN 43-3001924, explain it's a clerical SS-4 error, ask for a
+  corrected Form 147C showing "All-Access Peptides LLC." Remove this warning once resolved and a
+  corrected 147C is in hand.
 - **EIN:** 43-3001924
 - **IRS name control:** ALL-
 - **Business address:** 8605 Santa Monica Blvd #515803, West Hollywood, CA 90069
