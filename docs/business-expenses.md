@@ -18,12 +18,13 @@ they were logged in conversation, not necessarily the exact charge date.
 | 2026-08-20   | Amazon    | Hologram sticker paper       | $10.00   | One-time             | |
 | 2026-08-20   | Amazon    | Cricut Explore 5              | $300.00  | One-time             | |
 | 2026-11-16   | CA Secretary of State | Statement of Information (LLC-12) filing fee | $20.00 | One-time | Initial report |
+| 2026-11-17   | Freedom Diagnostics | COA testing | $4,455.00 | One-time | |
 
 ## Running totals
 
-- **One-time spend to date:** $774.93
+- **One-time spend to date:** $5,229.93
 - **Recurring annual commitments:** $225.00/yr
-- **Total paid out so far:** $999.93
+- **Total paid out so far:** $5,454.93
 
 ## Notes for whoever reconciles this later
 
