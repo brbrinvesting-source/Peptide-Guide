@@ -98,9 +98,17 @@ export type EmailType =
   | 'ORDER_STATUS'
   | 'ABANDONED_CART'
   | 'POINTS_REMINDER'
+  | 'BROADCAST'
   | 'ADMIN_NEW_ORDER'
   | 'ADMIN_LOW_STOCK'
   | 'ADMIN_PAYMENT_ISSUE'
+
+// Per-type sender overrides, each falling back to the main EMAIL_SENDER_*
+// settings when its own address isn't set.
+const SENDER_OVERRIDES: Partial<Record<EmailType, { name: string; address: string }>> = {
+  WELCOME: { name: SETTING_KEYS.WELCOME_SENDER_NAME, address: SETTING_KEYS.WELCOME_SENDER_ADDRESS },
+  BROADCAST: { name: SETTING_KEYS.BROADCAST_SENDER_NAME, address: SETTING_KEYS.BROADCAST_SENDER_ADDRESS },
+}
 
 /** Send an email and record the attempt in EmailEvent. Never throws. */
 export async function sendEmail(type: EmailType, msg: EmailMessage, meta?: unknown): Promise<boolean> {
@@ -109,14 +117,13 @@ export async function sendEmail(type: EmailType, msg: EmailMessage, meta?: unkno
     SETTING_KEYS.EMAIL_SENDER_ADDRESS,
     SETTING_KEYS.WELCOME_SENDER_NAME,
     SETTING_KEYS.WELCOME_SENDER_ADDRESS,
+    SETTING_KEYS.BROADCAST_SENDER_NAME,
+    SETTING_KEYS.BROADCAST_SENDER_ADDRESS,
   ])
-  const useWelcomeSender = type === 'WELCOME' && settings[SETTING_KEYS.WELCOME_SENDER_ADDRESS]
-  const senderName = useWelcomeSender
-    ? settings[SETTING_KEYS.WELCOME_SENDER_NAME] || settings[SETTING_KEYS.EMAIL_SENDER_NAME]
-    : settings[SETTING_KEYS.EMAIL_SENDER_NAME]
-  const senderAddress = useWelcomeSender
-    ? settings[SETTING_KEYS.WELCOME_SENDER_ADDRESS]
-    : settings[SETTING_KEYS.EMAIL_SENDER_ADDRESS]
+  const override = SENDER_OVERRIDES[type]
+  const overrideAddress = override && settings[override.address]
+  const senderName = overrideAddress ? settings[override.name] || settings[SETTING_KEYS.EMAIL_SENDER_NAME] : settings[SETTING_KEYS.EMAIL_SENDER_NAME]
+  const senderAddress = overrideAddress || settings[SETTING_KEYS.EMAIL_SENDER_ADDRESS]
   const from = `${senderName} <${senderAddress}>`
   try {
     await getProvider().send({ ...msg, from })

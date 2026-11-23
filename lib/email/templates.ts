@@ -1,5 +1,5 @@
 import 'server-only'
-import { formatCents, RESEARCH_DISCLAIMER_SHORT } from '../constants'
+import { BUSINESS_MAILING_ADDRESS, formatCents, RESEARCH_DISCLAIMER_SHORT } from '../constants'
 import { absoluteUrl } from '../site'
 
 // Brand-consistent transactional email layout: black/white, subtle gold
@@ -20,6 +20,7 @@ export function layout(opts: {
   bodyHtml: string
   ctaLabel?: string
   ctaUrl?: string
+  footerExtraHtml?: string
 }): string {
   const cta =
     opts.ctaLabel && opts.ctaUrl
@@ -42,6 +43,7 @@ export function layout(opts: {
         <tr><td style="padding:20px 32px 28px;border-top:1px solid rgba(255,255,255,0.1);font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#8a8a8a;line-height:1.6;text-align:center">
           ${escapeHtml(RESEARCH_DISCLAIMER_SHORT)}<br/>
           &copy; ${new Date().getFullYear()} All-Access Peptides
+          ${opts.footerExtraHtml ?? ''}
         </td></tr>
       </table>
     </td></tr>
@@ -234,6 +236,31 @@ export function pointsReminderEmail(opts: {
       ctaUrl: opts.accountUrl,
     }),
     text: `${greeting}, don't forget you have ${opts.points} points available in your rewards center — that's ${value} off your next order.\n\nView your rewards: ${opts.accountUrl}\n\n${RESEARCH_DISCLAIMER_SHORT}`,
+  }
+}
+
+// Plain-text broadcast body -> simple HTML paragraphs. Blank lines separate
+// paragraphs; single line breaks within a paragraph become <br/>. Escaped
+// first so admin-authored content can never break out of the markup.
+function textToParagraphsHtml(text: string): string {
+  return text
+    .split(/\n{2,}/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((p) => `<p style="margin:0 0 16px">${escapeHtml(p).replaceAll('\n', '<br/>')}</p>`)
+    .join('')
+}
+
+export function broadcastEmail(opts: { subject: string; bodyText: string; unsubscribeUrl: string }) {
+  const addressLines = escapeHtml(BUSINESS_MAILING_ADDRESS).replaceAll('\n', '<br/>')
+  return {
+    subject: opts.subject,
+    html: layout({
+      title: opts.subject,
+      bodyHtml: textToParagraphsHtml(opts.bodyText),
+      footerExtraHtml: `<br/><br/>${addressLines}<br/><a href="${opts.unsubscribeUrl}" style="color:#8a8a8a">Unsubscribe from marketing emails</a>`,
+    }),
+    text: `${opts.bodyText}\n\n${RESEARCH_DISCLAIMER_SHORT}\n\n${BUSINESS_MAILING_ADDRESS}\n\nUnsubscribe: ${opts.unsubscribeUrl}`,
   }
 }
 

@@ -56,6 +56,10 @@ export const SETTING_KEYS = {
   WELCOME_SENDER_NAME: 'email.welcomeSenderName',
   WELCOME_SENDER_ADDRESS: 'email.welcomeSenderAddress',
   ADMIN_NOTIFICATION_EMAIL: 'email.adminNotificationAddress',
+  // Sender identity for Admin -> Broadcast Email (mass emails to registered
+  // customers) -- kept separate from the main transactional sender.
+  BROADCAST_SENDER_NAME: 'email.broadcastSenderName',
+  BROADCAST_SENDER_ADDRESS: 'email.broadcastSenderAddress',
   TAX_PROVIDER: 'tax.provider', // 'stripe' | 'flat' | 'none'
   TAX_FLAT_RATE_BPS: 'tax.flatRateBps', // basis points fallback when provider = 'flat'
   DISCLAIMER_VERSION: 'legal.disclaimerVersion',
@@ -126,6 +130,8 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   [SETTING_KEYS.EMAIL_SENDER_ADDRESS]: 'no-reply@all-accesspeptides.com',
   [SETTING_KEYS.WELCOME_SENDER_NAME]: '',
   [SETTING_KEYS.WELCOME_SENDER_ADDRESS]: '',
+  [SETTING_KEYS.BROADCAST_SENDER_NAME]: 'Brantley',
+  [SETTING_KEYS.BROADCAST_SENDER_ADDRESS]: 'brantley@all-accesspeptides.com',
   [SETTING_KEYS.ADMIN_NOTIFICATION_EMAIL]: '',
   [SETTING_KEYS.TAX_PROVIDER]: 'stripe',
   [SETTING_KEYS.TAX_FLAT_RATE_BPS]: '0',

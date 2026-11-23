@@ -15,6 +15,7 @@ const LINKS: { href: string; label: string; superOnly?: boolean }[] = [
   { href: '/admin/coas', label: 'COA Management' },
   { href: '/admin/qrcodes', label: 'QR Codes' },
   { href: '/admin/emails', label: 'Email Log' },
+  { href: '/admin/broadcast', label: 'Broadcast Email' },
   { href: '/admin/analytics', label: 'Analytics' },
   { href: '/admin/settings', label: 'Settings' },
   { href: '/admin/users', label: 'Admin Users', superOnly: true },

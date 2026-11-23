@@ -49,6 +49,8 @@ const K = {
   EMAIL_SENDER_ADDRESS: 'email.senderAddress',
   WELCOME_SENDER_NAME: 'email.welcomeSenderName',
   WELCOME_SENDER_ADDRESS: 'email.welcomeSenderAddress',
+  BROADCAST_SENDER_NAME: 'email.broadcastSenderName',
+  BROADCAST_SENDER_ADDRESS: 'email.broadcastSenderAddress',
   ADMIN_NOTIFICATION_EMAIL: 'email.adminNotificationAddress',
   TAX_PROVIDER: 'tax.provider',
   TAX_FLAT_RATE_BPS: 'tax.flatRateBps',
@@ -535,6 +537,20 @@ export function SettingsForms({
             name={K.WELCOME_SENDER_ADDRESS}
             defaultValue={v(K.WELCOME_SENDER_ADDRESS)}
             hint="Optional override. Empty = use sender address above."
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Field
+            label="Broadcast sender name"
+            name={K.BROADCAST_SENDER_NAME}
+            defaultValue={v(K.BROADCAST_SENDER_NAME)}
+            hint="Used for Admin -> Broadcast Email. Empty = use sender name above."
+          />
+          <Field
+            label="Broadcast sender address"
+            name={K.BROADCAST_SENDER_ADDRESS}
+            defaultValue={v(K.BROADCAST_SENDER_ADDRESS)}
+            hint="Empty = use sender address above."
           />
         </div>
         <Field

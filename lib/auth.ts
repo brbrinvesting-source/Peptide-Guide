@@ -120,7 +120,7 @@ export async function getAdminOrNull(minRole: Role = 'ADMIN'): Promise<User | nu
 
 export async function createAuthToken(
   userId: string,
-  type: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET',
+  type: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET' | 'UNSUBSCRIBE',
   ttlMinutes: number
 ): Promise<string> {
   const token = generateToken()
@@ -139,7 +139,7 @@ export async function createAuthToken(
 
 export async function consumeAuthToken(
   token: string,
-  type: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET'
+  type: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET' | 'UNSUBSCRIBE'
 ): Promise<string | null> {
   const row = await prisma.authToken.findUnique({ where: { tokenHash: hashToken(token) } })
   if (!row || row.type !== type || row.usedAt || row.expiresAt < new Date()) return null

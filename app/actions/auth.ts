@@ -216,6 +216,14 @@ export async function changePasswordAction(_prev: FormState, formData: FormData)
   return { success: 'Password updated.' }
 }
 
+/** One-click, no-login-required unsubscribe link from a broadcast email. */
+export async function unsubscribeFromMarketing(token: string): Promise<boolean> {
+  const userId = await consumeAuthToken(token, 'UNSUBSCRIBE')
+  if (!userId) return false
+  await prisma.user.update({ where: { id: userId }, data: { marketingOptOut: true } })
+  return true
+}
+
 export async function updateAccountAction(_prev: FormState, formData: FormData): Promise<FormState> {
   const user = await getCurrentUser()
   if (!user) redirect('/login')

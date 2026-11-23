@@ -13,6 +13,7 @@ import { orderStatusEmail, shippingNotificationEmail } from '@/lib/email/templat
 import { absoluteUrl } from '@/lib/site'
 import { INVENTORY_REASONS } from '@/lib/constants'
 import { storeFile, STORES } from '@/lib/storage'
+import { getBroadcastRecipientCount, sendBroadcast, sendBroadcastTest } from '@/lib/broadcast'
 import { applyPointsChange, clawBackPoints } from '@/lib/points'
 import { orderPackageWeightOz } from '@/lib/orders'
 import { purchaseShippingLabel } from '@/lib/shipping-rates'
@@ -1123,4 +1124,47 @@ export async function setUserRoleAction(
   })
   revalidatePath('/admin/users')
   return { success: `${email} is now ${role}.` }
+}
+
+// ---------------------------------------------------------------------------
+// Broadcast email
+// ---------------------------------------------------------------------------
+
+export async function sendTestBroadcastAction(
+  _prev: AdminActionState,
+  formData: FormData
+): Promise<AdminActionState> {
+  const admin = await requireAdmin()
+  const subject = str(formData, 'subject', 200)
+  const bodyText = String(formData.get('bodyText') ?? '').slice(0, 20_000)
+  if (!subject || !bodyText.trim()) return { error: 'Subject and body are required.' }
+
+  const ok = await sendBroadcastTest({ subject, bodyText, toUserId: admin.id, toEmail: admin.email })
+  if (!ok) return { error: 'Test send failed — check the Email Log for details.' }
+  return { success: `Test email sent to ${admin.email}.` }
+}
+
+export async function sendBroadcastAction(
+  _prev: AdminActionState,
+  formData: FormData
+): Promise<AdminActionState> {
+  const admin = await requireAdmin()
+  const subject = str(formData, 'subject', 200)
+  const bodyText = String(formData.get('bodyText') ?? '').slice(0, 20_000)
+  if (!subject || !bodyText.trim()) return { error: 'Subject and body are required.' }
+  if (formData.get('confirm') !== 'on') {
+    return { error: 'Check the confirmation box to send to all subscribed customers.' }
+  }
+
+  const result = await sendBroadcast({ subject, bodyText })
+  await audit({
+    userId: admin.id,
+    action: 'BROADCAST_EMAIL_SENT',
+    objectType: 'Broadcast',
+    after: { subject, recipients: result.recipients, sent: result.sent, failed: result.failed },
+  })
+  if (result.recipients === 0) return { error: 'No eligible recipients (all opted out, unverified, or disabled).' }
+  return {
+    success: `Sent to ${result.sent} of ${result.recipients} eligible customers${result.failed > 0 ? ` (${result.failed} failed — check Email Log)` : ''}.`,
+  }
 }

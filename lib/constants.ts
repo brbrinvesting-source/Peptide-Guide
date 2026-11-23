@@ -59,6 +59,12 @@ export const SHIPPING_STATES: Record<string, string> = {
 export const RESEARCH_DISCLAIMER_SHORT =
   'For research use only. Not for human or veterinary consumption.'
 
+// CAN-SPAM requires a valid physical postal address in every commercial
+// (marketing) email — used only in the broadcast email footer, not in
+// transactional emails (order confirmations, password resets, etc.), which
+// aren't "commercial" mailings under the Act.
+export const BUSINESS_MAILING_ADDRESS = 'All-Access Peptides\n8605 Santa Monica Blvd PMB 515803\nWest Hollywood, California 90069-4109'
+
 export const CHECKOUT_ACKNOWLEDGEMENT_TEXT =
   'I understand and agree that the products purchased through All-Access Peptides are intended for research purposes only and are not intended for human or veterinary consumption.'
 
