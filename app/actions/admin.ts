@@ -1169,16 +1169,25 @@ export async function sendBroadcastAction(
     return { error: 'Check the confirmation box to send to all subscribed customers.' }
   }
   const buttons = parseBroadcastButtons(formData)
+  const bonusPointsRaw = intOrNull(formData, 'bonusPoints')
+  const bonusPoints = bonusPointsRaw && bonusPointsRaw > 0 ? bonusPointsRaw : undefined
 
-  const result = await sendBroadcast({ subject, bodyText, buttons })
+  const result = await sendBroadcast({ subject, bodyText, buttons, bonusPoints })
   await audit({
     userId: admin.id,
     action: 'BROADCAST_EMAIL_SENT',
     objectType: 'Broadcast',
-    after: { subject, recipients: result.recipients, sent: result.sent, failed: result.failed },
+    after: {
+      subject,
+      recipients: result.recipients,
+      sent: result.sent,
+      failed: result.failed,
+      bonusPoints: bonusPoints ?? 0,
+      pointsGranted: result.pointsGranted,
+    },
   })
   if (result.recipients === 0) return { error: 'No eligible recipients (all opted out, unverified, or disabled).' }
   return {
-    success: `Sent to ${result.sent} of ${result.recipients} eligible customers${result.failed > 0 ? ` (${result.failed} failed — check Email Log)` : ''}.`,
+    success: `Sent to ${result.sent} of ${result.recipients} eligible customers${result.failed > 0 ? ` (${result.failed} failed — check Email Log)` : ''}.${bonusPoints ? ` Credited ${bonusPoints} points to ${result.pointsGranted} accounts.` : ''}`,
   }
 }

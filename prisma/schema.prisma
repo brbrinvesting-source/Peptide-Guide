@@ -77,7 +77,7 @@ model PointsTransaction {
   orderId         String?
   order           Order?   @relation(fields: [orderId], references: [id])
   // EARNED (own purchase) | REFERRAL_BONUS (a referred friend's purchase) |
-  // REDEEMED | REFUND_REVERSED | ADMIN_ADJUSTMENT
+  // REDEEMED | REFUND_REVERSED | ADMIN_ADJUSTMENT | BROADCAST_BONUS
   type            String
   points          Int      // positive for earned/bonus, negative for redeemed/reversed
   previousBalance Int

@@ -4,6 +4,7 @@ import { createAuthToken } from './auth'
 import { sendEmail } from './email/provider'
 import { broadcastEmail } from './email/templates'
 import { absoluteUrl } from './site'
+import { applyPointsChange } from './points'
 
 // Mass email to registered customers (Admin -> Broadcast Email). Separate
 // from the transactional email path on purpose — see lib/email/provider.ts
@@ -38,28 +39,55 @@ export interface BroadcastButton {
   url: string
 }
 
-/** Send the broadcast to every eligible registered customer. */
+/**
+ * Send the broadcast to every eligible registered customer. When
+ * bonusPoints is set, each recipient's account is credited that many
+ * points at the moment their email actually sends (not just "intended" —
+ * only on confirmed send, and only CUSTOMER accounts), so any claim in the
+ * email body like "we've sent you N points" is true for everyone who
+ * receives it.
+ */
 export async function sendBroadcast(opts: {
   subject: string
   bodyText: string
   buttons?: BroadcastButton[]
-}): Promise<{ recipients: number; sent: number; failed: number }> {
+  bonusPoints?: number
+}): Promise<{ recipients: number; sent: number; failed: number; pointsGranted: number }> {
   const recipients = await prisma.user.findMany({
     where: recipientWhere(),
-    select: { id: true, email: true },
+    select: { id: true, email: true, role: true },
     take: MAX_RECIPIENTS,
   })
 
   let sent = 0
   let failed = 0
+  let pointsGranted = 0
   for (const user of recipients) {
     const unsubscribeUrl = await unsubscribeUrlFor(user.id)
     const email = broadcastEmail({ subject: opts.subject, bodyText: opts.bodyText, unsubscribeUrl, buttons: opts.buttons })
     const ok = await sendEmail('BROADCAST', { to: user.email, ...email }, { userId: user.id })
-    if (ok) sent++
-    else failed++
+    if (!ok) {
+      failed++
+      continue
+    }
+    sent++
+    if (opts.bonusPoints && opts.bonusPoints > 0 && user.role === 'CUSTOMER') {
+      try {
+        await prisma.$transaction((tx) =>
+          applyPointsChange(tx, {
+            userId: user.id,
+            type: 'BROADCAST_BONUS',
+            points: opts.bonusPoints!,
+            note: `Broadcast: ${opts.subject}`,
+          })
+        )
+        pointsGranted++
+      } catch (err) {
+        console.error('broadcast bonus points grant failed', user.id, err)
+      }
+    }
   }
-  return { recipients: recipients.length, sent, failed }
+  return { recipients: recipients.length, sent, failed, pointsGranted }
 }
 
 /** Send a single preview copy to one address (e.g. the admin composing it). */

@@ -13,6 +13,7 @@ export function BroadcastForm({ recipientCount }: { recipientCount: number }) {
   const [button1Url, setButton1Url] = useState('')
   const [button2Label, setButton2Label] = useState('')
   const [button2Url, setButton2Url] = useState('')
+  const [bonusPoints, setBonusPoints] = useState('')
 
   return (
     <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
@@ -132,12 +133,31 @@ export function BroadcastForm({ recipientCount }: { recipientCount: number }) {
           id="broadcast-send-form"
           action={sendAction}
           onSubmit={(e) => {
-            if (!confirm(`Send this email to all ${recipientCount} eligible customers? This can't be undone.`)) {
+            const pointsNote = bonusPoints && Number(bonusPoints) > 0 ? ` This will also credit ${bonusPoints} points to every recipient's account.` : ''
+            if (!confirm(`Send this email to all ${recipientCount} eligible customers? This can't be undone.${pointsNote}`)) {
               e.preventDefault()
             }
           }}
           className="space-y-3"
         >
+          <label className="microlabel block">
+            Bonus points per recipient (optional)
+            <input
+              type="number"
+              name="bonusPoints"
+              value={bonusPoints}
+              onChange={(e) => setBonusPoints(e.target.value)}
+              min={0}
+              max={10000}
+              className="field mt-1.5"
+              placeholder="0"
+            />
+            <span className="mt-1 block text-[0.65rem] normal-case text-muted">
+              Actually credits each recipient&apos;s rewards balance when this sends — only on the
+              real send, never on a test. Mention it in the body text yourself if you want it
+              called out.
+            </span>
+          </label>
           <label className="flex items-start gap-2 text-xs leading-relaxed">
             <input type="checkbox" name="confirm" className="mt-0.5 h-4 w-4 accent-[#c9a961]" required />
             I&apos;ve sent myself a test and reviewed it.
