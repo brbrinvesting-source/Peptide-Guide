@@ -9,6 +9,10 @@ export function BroadcastForm({ recipientCount }: { recipientCount: number }) {
   const [sendState, sendAction] = useActionState<AdminActionState, FormData>(sendBroadcastAction, {})
   const [subject, setSubject] = useState('')
   const [bodyText, setBodyText] = useState('')
+  const [button1Label, setButton1Label] = useState('')
+  const [button1Url, setButton1Url] = useState('')
+  const [button2Label, setButton2Label] = useState('')
+  const [button2Url, setButton2Url] = useState('')
 
   return (
     <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
@@ -44,10 +48,63 @@ export function BroadcastForm({ recipientCount }: { recipientCount: number }) {
           </span>
         </label>
 
+        <div className="space-y-3 border-t border-line pt-4">
+          <p className="microlabel">Buttons (optional, up to 2)</p>
+          <div className="grid grid-cols-[1fr_1.4fr] gap-2">
+            <input
+              name="button1Label"
+              value={button1Label}
+              onChange={(e) => setButton1Label(e.target.value)}
+              maxLength={40}
+              placeholder="Button text, e.g. Shop Now"
+              className="field"
+              form="broadcast-send-form"
+            />
+            <input
+              name="button1Url"
+              value={button1Url}
+              onChange={(e) => setButton1Url(e.target.value)}
+              maxLength={500}
+              placeholder="/catalog or https://…"
+              className="field"
+              form="broadcast-send-form"
+            />
+          </div>
+          <div className="grid grid-cols-[1fr_1.4fr] gap-2">
+            <input
+              name="button2Label"
+              value={button2Label}
+              onChange={(e) => setButton2Label(e.target.value)}
+              maxLength={40}
+              placeholder="Button text, e.g. View COAs"
+              className="field"
+              form="broadcast-send-form"
+            />
+            <input
+              name="button2Url"
+              value={button2Url}
+              onChange={(e) => setButton2Url(e.target.value)}
+              maxLength={500}
+              placeholder="/coas or https://…"
+              className="field"
+              form="broadcast-send-form"
+            />
+          </div>
+          <p className="text-[0.65rem] leading-relaxed text-muted">
+            A site path like <span className="font-mono">/catalog</span> works fine — it&apos;s
+            turned into a full link automatically. Leave both fields in a row empty to skip that
+            button.
+          </p>
+        </div>
+
         <div className="flex flex-wrap gap-2 border-t border-line pt-4">
           <form action={testAction} className="contents">
             <input type="hidden" name="subject" value={subject} />
             <input type="hidden" name="bodyText" value={bodyText} />
+            <input type="hidden" name="button1Label" value={button1Label} />
+            <input type="hidden" name="button1Url" value={button1Url} />
+            <input type="hidden" name="button2Label" value={button2Label} />
+            <input type="hidden" name="button2Url" value={button2Url} />
             <SubmitButton
               className="btn btn-outline btn-sm"
               pendingLabel="Sending test…"

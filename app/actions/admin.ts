@@ -1130,6 +1130,18 @@ export async function setUserRoleAction(
 // Broadcast email
 // ---------------------------------------------------------------------------
 
+function parseBroadcastButtons(formData: FormData): { label: string; url: string }[] {
+  const buttons: { label: string; url: string }[] = []
+  for (const n of [1, 2]) {
+    const label = str(formData, `button${n}Label`, 40)
+    const rawUrl = str(formData, `button${n}Url`, 500)
+    if (!label || !rawUrl) continue
+    const url = /^https?:\/\//i.test(rawUrl) ? rawUrl : absoluteUrl(rawUrl.startsWith('/') ? rawUrl : `/${rawUrl}`)
+    buttons.push({ label, url })
+  }
+  return buttons
+}
+
 export async function sendTestBroadcastAction(
   _prev: AdminActionState,
   formData: FormData
@@ -1138,8 +1150,9 @@ export async function sendTestBroadcastAction(
   const subject = str(formData, 'subject', 200)
   const bodyText = String(formData.get('bodyText') ?? '').slice(0, 20_000)
   if (!subject || !bodyText.trim()) return { error: 'Subject and body are required.' }
+  const buttons = parseBroadcastButtons(formData)
 
-  const ok = await sendBroadcastTest({ subject, bodyText, toUserId: admin.id, toEmail: admin.email })
+  const ok = await sendBroadcastTest({ subject, bodyText, toUserId: admin.id, toEmail: admin.email, buttons })
   if (!ok) return { error: 'Test send failed — check the Email Log for details.' }
   return { success: `Test email sent to ${admin.email}.` }
 }
@@ -1155,8 +1168,9 @@ export async function sendBroadcastAction(
   if (formData.get('confirm') !== 'on') {
     return { error: 'Check the confirmation box to send to all subscribed customers.' }
   }
+  const buttons = parseBroadcastButtons(formData)
 
-  const result = await sendBroadcast({ subject, bodyText })
+  const result = await sendBroadcast({ subject, bodyText, buttons })
   await audit({
     userId: admin.id,
     action: 'BROADCAST_EMAIL_SENT',

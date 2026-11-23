@@ -33,10 +33,16 @@ async function unsubscribeUrlFor(userId: string): Promise<string> {
   return absoluteUrl(`/unsubscribe?token=${token}`)
 }
 
+export interface BroadcastButton {
+  label: string
+  url: string
+}
+
 /** Send the broadcast to every eligible registered customer. */
 export async function sendBroadcast(opts: {
   subject: string
   bodyText: string
+  buttons?: BroadcastButton[]
 }): Promise<{ recipients: number; sent: number; failed: number }> {
   const recipients = await prisma.user.findMany({
     where: recipientWhere(),
@@ -48,7 +54,7 @@ export async function sendBroadcast(opts: {
   let failed = 0
   for (const user of recipients) {
     const unsubscribeUrl = await unsubscribeUrlFor(user.id)
-    const email = broadcastEmail({ subject: opts.subject, bodyText: opts.bodyText, unsubscribeUrl })
+    const email = broadcastEmail({ subject: opts.subject, bodyText: opts.bodyText, unsubscribeUrl, buttons: opts.buttons })
     const ok = await sendEmail('BROADCAST', { to: user.email, ...email }, { userId: user.id })
     if (ok) sent++
     else failed++
@@ -62,12 +68,14 @@ export async function sendBroadcastTest(opts: {
   bodyText: string
   toUserId: string
   toEmail: string
+  buttons?: BroadcastButton[]
 }): Promise<boolean> {
   const unsubscribeUrl = await unsubscribeUrlFor(opts.toUserId)
   const email = broadcastEmail({
     subject: `[TEST] ${opts.subject}`,
     bodyText: opts.bodyText,
     unsubscribeUrl,
+    buttons: opts.buttons,
   })
   return sendEmail('BROADCAST', { to: opts.toEmail, ...email }, { userId: opts.toUserId, test: true })
 }

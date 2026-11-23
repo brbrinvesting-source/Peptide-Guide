@@ -251,16 +251,33 @@ function textToParagraphsHtml(text: string): string {
     .join('')
 }
 
-export function broadcastEmail(opts: { subject: string; bodyText: string; unsubscribeUrl: string }) {
+function broadcastButtonsHtml(buttons: { label: string; url: string }[]): string {
+  return buttons
+    .map(
+      (b) => `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 12px"><tr><td style="background:${GOLD};border-radius:4px">
+        <a href="${escapeHtml(b.url)}" style="display:inline-block;padding:13px 36px;color:#0a0a0a;font-weight:700;letter-spacing:0.08em;text-decoration:none;text-transform:uppercase;font-size:13px">${escapeHtml(b.label)}</a>
+      </td></tr></table>`
+    )
+    .join('')
+}
+
+export function broadcastEmail(opts: {
+  subject: string
+  bodyText: string
+  unsubscribeUrl: string
+  buttons?: { label: string; url: string }[]
+}) {
   const addressLines = escapeHtml(BUSINESS_MAILING_ADDRESS).replaceAll('\n', '<br/>')
+  const buttons = opts.buttons?.filter((b) => b.label && b.url) ?? []
+  const buttonsText = buttons.length > 0 ? `\n\n${buttons.map((b) => `${b.label}: ${b.url}`).join('\n')}` : ''
   return {
     subject: opts.subject,
     html: layout({
       title: opts.subject,
-      bodyHtml: textToParagraphsHtml(opts.bodyText),
+      bodyHtml: textToParagraphsHtml(opts.bodyText) + (buttons.length > 0 ? `<div style="margin-top:8px">${broadcastButtonsHtml(buttons)}</div>` : ''),
       footerExtraHtml: `<br/><br/>${addressLines}<br/><a href="${opts.unsubscribeUrl}" style="color:#8a8a8a">Unsubscribe from marketing emails</a>`,
     }),
-    text: `${opts.bodyText}\n\n${RESEARCH_DISCLAIMER_SHORT}\n\n${BUSINESS_MAILING_ADDRESS}\n\nUnsubscribe: ${opts.unsubscribeUrl}`,
+    text: `${opts.bodyText}${buttonsText}\n\n${RESEARCH_DISCLAIMER_SHORT}\n\n${BUSINESS_MAILING_ADDRESS}\n\nUnsubscribe: ${opts.unsubscribeUrl}`,
   }
 }
 
