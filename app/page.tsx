@@ -133,6 +133,16 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* PURITY BANNER */}
+      <section className="border-b border-gold/30 bg-gold/5">
+        <div className="mx-auto flex max-w-6xl items-center justify-center gap-2.5 px-4 py-3 text-center">
+          <ShieldIcon className="h-4 w-4 shrink-0 text-gold" />
+          <p className="text-xs font-bold tracking-[0.14em] text-gold uppercase sm:text-sm">
+            Third-Party Tested &middot; 99%+ Purity
+          </p>
+        </div>
+      </section>
+
       {/* FEATURED PRODUCTS */}
       {featuredCards.length > 0 && (
         <section className="mx-auto max-w-6xl px-4 py-16" aria-labelledby="featured-heading">
