@@ -55,7 +55,7 @@ export function ProductCard({ product, bulkTiers }: { product: CatalogProduct; b
           {STOCK_LABELS[status]}
         </span>
         {product.purityVerified && (
-          <span className="badge badge-gold absolute top-3 right-3 bg-ink/80">
+          <span className="badge badge-gold absolute right-3 bottom-3 bg-ink/80">
             Verified{product.purityPercent !== null ? ` ${product.purityPercent}%` : ''}
           </span>
         )}
